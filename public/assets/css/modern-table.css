@@ -1,0 +1,179 @@
+  /* Simplified Tab Styling */
+  .nav-tabs-modern {
+      border-bottom: 2px solid #e5e7eb;
+      gap: 0.5rem;
+      display: flex;
+      background: #fff;
+      padding: 0.5rem 1rem 0;
+  }
+
+  .nav-tabs-modern .nav-item {
+      flex: 0 0 auto;
+  }
+
+  .nav-tabs-modern .nav-link {
+      border: none;
+      background: transparent;
+      color: #6b7280;
+      border-radius: 6px 6px 0 0;
+      padding: 0.625rem 1rem;
+      font-weight: 600;
+      font-size: 0.875rem;
+      transition: all 0.2s ease;
+      text-align: center;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+  }
+
+  .nav-tabs-modern .nav-link i {
+      font-size: 1rem;
+      margin-right: 0.375rem;
+  }
+
+  .nav-tabs-modern .nav-link:hover {
+      background: #f9fafb;
+      color: #111827;
+  }
+
+  .nav-tabs-modern .nav-link.active {
+      background: #ffc107;
+      color: #111827;
+      border-bottom-color: #cd9b04;
+  }
+
+  .tab-text {
+      display: inline;
+  }
+
+  /* Simplified Card */
+  .card-modern {
+      border: 1px solid #e5e7eb;
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      background: #fff;
+      overflow: hidden;
+  }
+
+  .card-modern .card-body {
+      padding: 1.5rem;
+  }
+
+  /* Simplified Table Header */
+  .table-header-modern {
+      background: #f9fafb;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      border-left: 3px solid #111827;
+  }
+
+  .table-header-modern h5 {
+      color: #16a34a;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      font-size: 1rem;
+  }
+
+  .table-header-modern small {
+      color: #6b7280;
+      font-size: 0.75rem;
+  }
+
+  /* Simplified Table */
+  .table-modern {
+      border-collapse: collapse;
+  }
+
+  .table-modern thead th {
+      background: linear-gradient(135deg, #16a34a 0%, #15803d 140%);
+      color: #ffffff;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+      padding: 0.75rem;
+      border-top: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e5e7eb;
+      border-left: none;
+      border-right: none;
+      white-space: nowrap;
+  }
+
+  .table-modern tbody tr {
+      transition: all 0.2s ease;
+      background: #fff;
+  }
+
+  .table-modern tbody tr:hover {
+      background: #f9fafb;
+  }
+
+  .table-modern tbody td {
+      padding: 0.75rem;
+      vertical-align: middle;
+      border-top: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e5e7eb;
+      border-left: none;
+      border-right: none;
+      color: #374151;
+      font-size: 0.875rem;
+  }
+
+  /* Simplified Button */
+  .btn-modern {
+      border-radius: 6px;
+      padding: 0.375rem 0.75rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      font-size: 0.875rem;
+  }
+
+  .btn-modern:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-modern.btn-sm {
+      padding: 0.25rem 0.625rem;
+      font-size: 0.8125rem;
+  }
+
+  /* DataTables Styling */
+  .dataTables_wrapper .dataTables_length select,
+  .dataTables_wrapper .dataTables_filter input {
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 0.375rem 0.625rem;
+      font-size: 0.875rem;
+  }
+
+  .dataTables_wrapper .dataTables_filter input:focus {
+      border-color: #9ca3af;
+      outline: none;
+  }
+
+  .dataTables_wrapper .dataTables_paginate .paginate_button {
+      border-radius: 6px;
+      margin: 0;
+  }
+
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+      background: #111827 !important;
+      border-color: #111827 !important;
+      color: #fff !important;
+  }
+
+  .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+      background: #374151 !important;
+      border-color: #374151 !important;
+      color: #fff !important;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+      .nav-tabs-modern .nav-link {
+          padding: 0.5rem 0.75rem;
+          font-size: 0.8125rem;
+      }
+
+  }

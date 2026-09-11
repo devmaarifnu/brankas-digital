@@ -41,26 +41,6 @@ return [
             'root' => storage_path('app/uploads'),
         ],
 
-        'bhpnu-doc' => [
-            'driver' => 'local',
-            'root' => storage_path('app/bhpnu-doc'),
-        ],
-
-        'ptk-doc' => [
-            'driver' => 'local',
-            'root' => storage_path('app/ptk-doc'),
-        ],
-
-        'oss-doc' => [
-            'driver' => 'local',
-            'root' => storage_path('app/oss-doc'),
-        ],
-
-        'coretax-doc' => [
-            'driver' => 'local',
-            'root' => storage_path('app/coretax-doc'),
-        ],
-
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

@@ -63,4 +63,37 @@ class User extends Authenticatable
     public function cabang() {
         return $this->belongsTo(PengurusCabang::class, 'cabangId', 'id_pc');
     }
+
+    /**
+     * Role Helpers
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super admin';
+    }
+
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['admin', 'super admin', 'admin pusat', 'admin wilayah', 'admin cabang']);
+    }
+
+    public function isViewer(): bool
+    {
+        return $this->role === 'viewer';
+    }
+
+    public function isAproval(): bool
+    {
+        return in_array($this->role, ['aproval', 'approval', 'super admin']);
+    }
+
+    public function canDelete(): bool
+    {
+        return $this->isSuperAdmin();
+    }
+
+    public function canManageData(): bool
+    {
+        return in_array($this->role, ['super admin', 'admin']);
+    }
 }

@@ -23,9 +23,11 @@
                 </div>
             </div>
             <div>
+                @if(auth()->user()->canManageData())
                 <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahSuratTanah">
                     <i class="ti ti-plus me-1"></i>Tambah Surat Tanah
                 </button>
+                @endif
             </div>
         </div>
     </div>
@@ -110,7 +112,7 @@
                                     <span class="text-muted small">-</span>
                                 @endif
                             </td>
-                            <td><small class="text-muted">{{ $item->nama_petugas ?? '-' }}</small></td>
+                            <td><small class="text-muted">{{ $item->user->name ?? auth()->user()->name }}</small></td>
                             <td><small class="text-muted">{{ $item->tgl_input ? $item->tgl_input->format('d/m/Y') : ($item->created_at ? $item->created_at->format('d/m/Y') : '-') }}</small></td>
                             <td>
                                 @if($item->warna_merah)
@@ -130,17 +132,21 @@
                                     </button>
 
                                     {{-- Edit --}}
+                                    @if(auth()->user()->canManageData())
                                     <a href="{{ route('brangkas.surat-tanah.edit', $item->id) }}" class="btn btn-sm btn-outline-warning w-100 py-1 px-2 d-inline-flex align-items-center justify-content-center gap-1 text-nowrap shadow-sm" title="Edit Data">
                                         <i class="ti ti-pencil"></i> Edit
                                     </a>
+                                    @endif
 
                                     {{-- Hapus --}}
+                                    @if(auth()->user()->isSuperAdmin())
                                     <form action="{{ route('brangkas.surat-tanah.destroy', $item->id) }}" method="POST" class="w-100 m-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-outline-danger w-100 py-1 px-2 d-inline-flex align-items-center justify-content-center gap-1 text-nowrap shadow-sm" title="Hapus Data">
                                             <i class="ti ti-trash"></i> Hapus
                                         </button>
                                     </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -253,8 +259,7 @@
                     {{-- 10. Nama Petugas & 11. Tanggal Input --}}
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">10. Nama Petugas</label>
-                            <input type="text" class="form-control" name="nama_petugas" value="{{ auth()->user()->name ?: auth()->user()->username }}" placeholder="Nama petugas penginput">
+
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">11. Tanggal Input</label>

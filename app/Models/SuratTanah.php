@@ -22,12 +22,17 @@ class SuratTanah extends Model
         'alamat',
         'atas_nama',
         'file_dokumen',
-        'nama_petugas',
+        'user_id',
         'tgl_input',
         'keterangan',
         'status_handover',
         'warna_merah',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     protected $casts = [
         'warna_merah' => 'boolean',

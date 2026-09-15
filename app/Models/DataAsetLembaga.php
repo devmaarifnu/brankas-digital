@@ -27,12 +27,23 @@ class DataAsetLembaga extends Model
         'nama_penerima',
         'no_telp_penerima',
         'file_dokumen',
-        'nama_petugas',
+        'user_id',
         'tgl_input',
         'keterangan',
         'status_handover',
         'warna_merah',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    // Accessor for nama_petugas to maintain compatibility with views
+    public function getNamaPetugasAttribute()
+    {
+        return $this->user->name ?? '-';
+    }
 
     protected $casts = [
         'warna_merah' => 'boolean',

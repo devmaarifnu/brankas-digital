@@ -12,6 +12,9 @@ class KeuanganController extends Controller {
         return view('keuangan.pengajuan', compact('data'))->with('title', 'Pengajuan Keuangan');
     }
     public function storePengajuan(Request $request) {
+        if (auth()->user()->isViewer()) {
+            return back()->with('error', 'Akses ditolak: Viewer tidak diizinkan membuat pengajuan.');
+        }
         $request->validate(['judul' => 'required|string']);
         $d = $request->except('file_bukti');
         if ($request->hasFile('file_bukti')) {
@@ -20,9 +23,31 @@ class KeuanganController extends Controller {
             $f->move(public_path('uploads/keuangan'), $fname);
             $d['file_bukti'] = 'uploads/keuangan/'.$fname;
         }
+        $d['status'] = 'Menunggu';
         KeuanganPengajuan::create($d);
         return back()->with('success','Pengajuan berhasil disimpan.');
     }
+
+    public function approvePengajuan($id) {
+        if (!auth()->user()->isAproval() && !auth()->user()->isSuperAdmin()) {
+            return back()->with('error', 'Akses ditolak: Hanya role Aproval dan Super Admin yang berhak menyetujui.');
+        }
+        $item = KeuanganPengajuan::findOrFail($id);
+        $item->status = 'Disetujui';
+        $item->save();
+        return back()->with('success', 'Pengajuan dana berhasil disetujui.');
+    }
+
+    public function rejectPengajuan($id) {
+        if (!auth()->user()->isAproval() && !auth()->user()->isSuperAdmin()) {
+            return back()->with('error', 'Akses ditolak: Hanya role Aproval dan Super Admin yang berhak menolak.');
+        }
+        $item = KeuanganPengajuan::findOrFail($id);
+        $item->status = 'Ditolak';
+        $item->save();
+        return back()->with('success', 'Pengajuan dana telah ditolak.');
+    }
+
     private function dokumenView(string $jenis, string $title, string $viewName) {
         $data = KeuanganDokumen::where('jenis', $jenis)->orderBy('created_at','desc')->get();
         return view($viewName, compact('data'))->with('title', $title);
@@ -40,6 +65,9 @@ class KeuanganController extends Controller {
         return view('keuangan.rekap-tahunan', compact('data'))->with('title','Rekap Tahunan');
     }
     public function storeDokumen(Request $request) {
+        if (auth()->user()->isViewer()) {
+            return back()->with('error', 'Akses ditolak: Viewer tidak diizinkan mengunggah dokumen.');
+        }
         $request->validate(['jenis'=>'required','periode'=>'required','file_path'=>'required|file|mimes:pdf,jpg,jpeg,png|max:10240']);
         $f = $request->file('file_path');
         $fname = time().'_'.$f->getClientOriginalName();

@@ -121,6 +121,7 @@
         </li>
 
         {{-- SETTING --}}
+        @if(auth()->user()->isSuperAdmin())
         <li class="nav-small-cap">
             <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
             <span class="hide-menu">PENGATURAN</span>
@@ -141,6 +142,7 @@
                 </li>
             </ul>
         </li>
+        @endif
 
     </ul>
 </nav>

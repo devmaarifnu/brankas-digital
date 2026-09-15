@@ -35,7 +35,8 @@
     @endif
 
     <div class="row g-4">
-        {{-- Form Input --}}
+        {{-- Form Input (hidden for viewer / aproval) --}}
+        @if(auth()->user()->canManageData())
         <div class="col-lg-5">
             <div class="card shadow-sm border-0 rounded-3" style="border: 1px solid #ebf1f6;">
                 <div class="card-header bg-white border-bottom py-3 px-4">
@@ -152,9 +153,10 @@
                 </div>
             </div>
         </div>
+        @endif
 
         {{-- Tabel Rekap Handover --}}
-        <div class="col-lg-7">
+        <div class="{{ auth()->user()->canManageData() ? 'col-lg-7' : 'col-12' }}">
             <div class="card shadow-sm border-0 rounded-3" style="border: 1px solid #ebf1f6;">
                 <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
                     <h5 class="card-title text-dark fw-bold mb-0 d-flex align-items-center gap-2">

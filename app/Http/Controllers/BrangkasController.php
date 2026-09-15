@@ -21,6 +21,9 @@ class BrangkasController extends Controller
 
     public function storeSuratTanah(Request $request)
     {
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.surat-tanah')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat menambah data.');
+        }
         $request->validate([
             'jenis_sertifikat' => 'required|string|max:100',
             'nomor_sertifikat' => 'required|string|max:100',
@@ -31,7 +34,6 @@ class BrangkasController extends Controller
             'kabupaten_kota'   => 'nullable|string|max:100',
             'provinsi'         => 'nullable|string|max:100',
             'file_dokumen'     => 'nullable|file|mimes:pdf|max:15360',
-            'nama_petugas'     => 'nullable|string|max:100',
             'tgl_input'        => 'nullable|date',
             'keterangan'       => 'nullable|string',
         ], [
@@ -45,7 +47,7 @@ class BrangkasController extends Controller
         $payload['alamat'] = trim(($request->desa_kelurahan ? $request->desa_kelurahan . ', ' : '') . ($request->kecamatan ? $request->kecamatan . ', ' : '') . ($request->kabupaten_kota ? $request->kabupaten_kota . ', ' : '') . ($request->provinsi ?? ''), ' ,');
         $payload['lokasi'] = $payload['alamat'];
         $payload['tgl_input'] = $request->tgl_input ?? date('Y-m-d');
-        $payload['nama_petugas'] = $request->nama_petugas ?? (auth()->user()->name ?: auth()->user()->username);
+                $payload['user_id'] = auth()->id();
 
         // Keterangan khusus "Isi Sendiri"
         if ($request->keterangan === 'Isi Sendiri' && $request->filled('keterangan_custom')) {
@@ -67,10 +69,8 @@ class BrangkasController extends Controller
         }
 
         if ($request->hasFile('file_dokumen')) {
-            $file = $request->file('file_dokumen');
-            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            $file->move(public_path('uploads/surat-tanah'), $filename);
-            $payload['file_dokumen'] = 'uploads/surat-tanah/' . $filename;
+            $path = $request->file('file_dokumen')->store('uploads','local');
+            $payload['file_dokumen'] = $path;
         }
 
         SuratTanah::create($payload);
@@ -80,12 +80,18 @@ class BrangkasController extends Controller
 
     public function editSuratTanah($id)
     {
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.surat-tanah')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
+        }
         $item = SuratTanah::findOrFail($id);
         return view('brangkas.surat-tanah.edit', compact('item'))->with('title', 'Edit Surat Tanah');
     }
 
     public function updateSuratTanah(Request $request, $id)
     {
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.surat-tanah')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
+        }
         $item = SuratTanah::findOrFail($id);
 
         $request->validate([
@@ -138,6 +144,9 @@ class BrangkasController extends Controller
 
     public function destroySuratTanah($id)
     {
+        if (!auth()->user()->isSuperAdmin()) {
+            return redirect()->route('brangkas.surat-tanah')->with('error', 'Akses ditolak: Tombol dan aksi hapus hanya dapat dilakukan oleh Super admin.');
+        }
         $item = SuratTanah::findOrFail($id);
         if ($item->file_dokumen && File::exists(public_path($item->file_dokumen))) {
             File::delete(public_path($item->file_dokumen));
@@ -157,6 +166,10 @@ class BrangkasController extends Controller
 
     public function storeAktaNotaris(Request $request)
     {
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.akta-notaris')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat menambah data.');
+        }
+
         $request->validate([
             'jenis_dokumen'  => 'required|string|max:100',
             'nomor_dokumen'  => 'required|string|max:100',
@@ -180,7 +193,7 @@ class BrangkasController extends Controller
         $payload['alamat'] = $request->alamat_notaris;
         $payload['tanggal_akta'] = $request->tgl_dokumen;
         $payload['tgl_input'] = $request->tgl_input ?? date('Y-m-d');
-        $payload['nama_petugas'] = $request->nama_petugas ?? (auth()->user()->name ?: auth()->user()->username);
+                $payload['user_id'] = auth()->id();
 
         if ($request->keterangan === 'Isi Sendiri' && $request->filled('keterangan_custom')) {
             $payload['keterangan'] = $request->keterangan_custom;
@@ -200,10 +213,8 @@ class BrangkasController extends Controller
         }
 
         if ($request->hasFile('file_dokumen')) {
-            $file = $request->file('file_dokumen');
-            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            $file->move(public_path('uploads/akta-notaris'), $filename);
-            $payload['file_dokumen'] = 'uploads/akta-notaris/' . $filename;
+            $path = $request->file('file_dokumen')->store('uploads','local');
+            $payload['file_dokumen'] = $path;
         }
 
         AktaNotaris::create($payload);
@@ -213,12 +224,18 @@ class BrangkasController extends Controller
 
     public function editAktaNotaris($id)
     {
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.akta-notaris')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
+        }
         $item = AktaNotaris::findOrFail($id);
         return view('brangkas.akta-notaris.edit', compact('item'))->with('title', 'Edit Akta Notaris');
     }
 
     public function updateAktaNotaris(Request $request, $id)
     {
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.akta-notaris')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
+        }
         $item = AktaNotaris::findOrFail($id);
 
         $request->validate([
@@ -271,6 +288,9 @@ class BrangkasController extends Controller
 
     public function destroyAktaNotaris($id)
     {
+        if (!auth()->user()->isSuperAdmin()) {
+            return redirect()->route('brangkas.akta-notaris')->with('error', 'Akses ditolak: Tombol dan aksi hapus hanya dapat dilakukan oleh Super admin.');
+        }
         $item = AktaNotaris::findOrFail($id);
         if ($item->file_dokumen && File::exists(public_path($item->file_dokumen))) {
             File::delete(public_path($item->file_dokumen));
@@ -292,6 +312,10 @@ class BrangkasController extends Controller
 
     public function storeDataAset(Request $request)
     {
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.data-aset')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat menambah data.');
+        }
+
         $request->validate([
             'nama_barang'        => 'required|string|max:255',
             'jenis_barang'       => 'nullable|string|max:100',
@@ -333,12 +357,8 @@ class BrangkasController extends Controller
             $payload['status_handover'] = 'Tersedia';
         }
 
-        if ($request->hasFile('file_dokumen')) {
-            $file = $request->file('file_dokumen');
-            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            $file->move(public_path('uploads/data-aset'), $filename);
-            $payload['file_dokumen'] = 'uploads/data-aset/' . $filename;
-        }
+            $path = $request->file('file_dokumen')->store('uploads','local');
+            $payload['file_dokumen'] = $path;
 
         DataAsetLembaga::create($payload);
 
@@ -347,12 +367,18 @@ class BrangkasController extends Controller
 
     public function editDataAset($id)
     {
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.data-aset')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
+        }
         $item = DataAsetLembaga::findOrFail($id);
         return view('brangkas.data-aset.edit', compact('item'))->with('title', 'Edit Data Aset');
     }
 
     public function updateDataAset(Request $request, $id)
     {
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.data-aset')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
+        }
         $item = DataAsetLembaga::findOrFail($id);
 
         $request->validate([
@@ -382,13 +408,11 @@ class BrangkasController extends Controller
         }
 
         if ($request->hasFile('file_dokumen')) {
-            if ($item->file_dokumen && File::exists(public_path($item->file_dokumen))) {
-                File::delete(public_path($item->file_dokumen));
+            if ($item->file_dokumen && Storage::exists($item->file_dokumen)) {
+                Storage::delete($item->file_dokumen);
             }
-            $file = $request->file('file_dokumen');
-            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            $file->move(public_path('uploads/data-aset'), $filename);
-            $payload['file_dokumen'] = 'uploads/data-aset/' . $filename;
+            $path = $request->file('file_dokumen')->store('uploads','local');
+            $payload['file_dokumen'] = $path;
         }
 
         $item->update($payload);
@@ -398,6 +422,9 @@ class BrangkasController extends Controller
 
     public function destroyDataAset($id)
     {
+        if (!auth()->user()->isSuperAdmin()) {
+            return redirect()->route('brangkas.data-aset')->with('error', 'Akses ditolak: Tombol dan aksi hapus hanya dapat dilakukan oleh Super admin.');
+        }
         $item = DataAsetLembaga::findOrFail($id);
         if ($item->file_dokumen && File::exists(public_path($item->file_dokumen))) {
             File::delete(public_path($item->file_dokumen));

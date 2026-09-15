@@ -1,12 +1,12 @@
 :root {
-    --sip-bg:#F6FAF7; --sip-surface:#FFFFFF; --sip-ink:#12261C; --sip-ink-soft:#5A6B61;
-    --sip-primary:#0B6B3A; --sip-primary-dark:#063D22; --sip-primary-tint:#E7F3EB;
-    --sip-gold:#C08A22; --sip-gold-tint:#F7EDD9; --sip-line:#E1EBE5;
+    --sip-bg:#F4FAF6; --sip-surface:#FFFFFF; --sip-ink:#0F2419; --sip-ink-soft:#4B6356;
+    --sip-primary:#0B5738; --sip-primary-dark:#052F1E; --sip-primary-tint:#E2F3EC;
+    --sip-gold:#C08A22; --sip-gold-tint:#F7EDD9; --sip-line:#D7E7DE;
 }
 *{box-sizing:border-box;}
 html,body{height:100%; margin:0; overflow:hidden;}
 body{
-    font-family:'Inter', sans-serif; color:var(--sip-ink); background:linear-gradient(160deg, #FFFFFF 0%, #DCEEE2 100%);
+    font-family:'Inter', sans-serif; color:var(--sip-ink); background:var(--sip-bg);
     -webkit-font-smoothing:antialiased;
 }
 #main-wrapper { height:100vh; }
@@ -16,12 +16,21 @@ a{text-decoration:none;}
 .sip-shell{display:flex; height:100vh; width:100vw;}
 
 /* left panel */
-.sip-left{order:2; flex:1.2; display:flex; align-items:center; justify-content:center; padding:32px; position:relative; background:linear-gradient(160deg, #FFFFFF 0%, #DCEEE2 100%); overflow-y:auto;}
+.sip-left{
+    order:2; flex:1.2; display:flex; align-items:center; justify-content:center; padding:32px; position:relative;
+    background-color:#F5FAF7;
+    background-image:
+        radial-gradient(circle at 10% 15%, rgba(14, 118, 78, 0.05) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(8, 73, 49, 0.06) 0%, transparent 45%),
+        url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 10l12 12m0-12L10 22' stroke='%230e764e' stroke-width='1.2' stroke-linecap='round' stroke-opacity='0.09' fill='none'/%3E%3C/svg%3E");
+    background-size: auto, auto, 32px 32px;
+    overflow-y:auto;
+}
 .sip-left-wide{flex:1.5; padding:24px;}
-.sip-left::before{content:""; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, var(--sip-primary), var(--sip-gold));}
+.sip-left::before{content:""; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, var(--sip-primary), #20c997);}
 
 /* card */
-.sip-card{width:100%; max-width:400px; background:#FFFFFF; border:1px solid var(--sip-line); border-radius:24px; padding:40px 38px; box-shadow:0 34px 64px -30px rgba(11,66,38,0.28);}
+.sip-card{width:100%; max-width:400px; background:#FFFFFF; border:1px solid var(--sip-line); border-radius:24px; padding:40px 38px; box-shadow:0 30px 60px -25px rgba(14,118,78,0.22);}
 .sip-card-wide{max-width:560px; padding:28px 32px;}
 .sip-card-wide .sip-input-wrap input,
 .sip-card-wide .sip-input-wrap textarea{font-size:13.5px;}
@@ -73,9 +82,9 @@ a{text-decoration:none;}
 .sip-foot-note a{color:var(--sip-gold); font-weight:700;}
 .sip-foot-note a:hover{text-decoration:underline;}
 
-/* right panel */
-.sip-right{order:1; flex:1; position:relative; overflow:hidden; color:#fff; background:linear-gradient(165deg, var(--sip-primary) 0%, var(--sip-primary-dark) 85%); display:flex; flex-direction:column; justify-content:space-between; padding:clamp(24px,4vh,44px) clamp(28px,3.5vw,48px);}
-.sip-lattice{position:absolute; inset:0; opacity:.5; pointer-events:none; background-image:repeating-linear-gradient(45deg, rgba(192,138,34,0.16) 0px, rgba(192,138,34,0.16) 1.5px, transparent 1.5px, transparent 24px),repeating-linear-gradient(-45deg, rgba(192,138,34,0.16) 0px, rgba(192,138,34,0.16) 1.5px, transparent 1.5px, transparent 24px);}
+/* right panel (section kiri visual) */
+.sip-right{order:1; flex:1; position:relative; overflow:hidden; color:#fff; background:linear-gradient(155deg, #0B5738 0%, #063A25 50%, #022416 100%); display:flex; flex-direction:column; justify-content:space-between; padding:clamp(24px,4vh,44px) clamp(28px,3.5vw,48px);}
+.sip-lattice{position:absolute; inset:0; opacity:.85; pointer-events:none; background-image:url("data:image/svg+xml,%3Csvg width='36' height='36' viewBox='0 0 36 36' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 10l16 16m0-16L10 26' stroke='%23ffffff' stroke-width='1.8' stroke-linecap='round' stroke-opacity='0.22' fill='none'/%3E%3C/svg%3E"); background-size:36px 36px;}
 .sip-right-inner{position:relative; z-index:1; display:flex; flex-direction:column; height:100%;}
 .sip-right-logo{display:flex; align-items:center; justify-content:center; flex:1;}
 .sip-right-logo img{max-width:200px; opacity:0.9;}

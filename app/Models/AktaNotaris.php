@@ -22,7 +22,7 @@ class AktaNotaris extends Model
         'alamat_notaris',
         'alamat',
         'telp_notaris',
-        'nama_petugas',
+        'user_id',
         'tgl_input',
         'luas',
         'perihal',
@@ -39,8 +39,8 @@ class AktaNotaris extends Model
         'tgl_input' => 'date',
     ];
 
-    public function handovers()
+    public function user()
     {
-        return $this->hasMany(RecordOfHandover::class, 'ref_id')->where('kategori', 'Akta Notaris');
+        return $this->belongsTo(User::class);
     }
 }

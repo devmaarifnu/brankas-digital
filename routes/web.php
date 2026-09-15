@@ -67,6 +67,8 @@ Route::middleware('mustlogin')->group(function () {
     // Keuangan
     Route::get('/keuangan/pengajuan', [KeuanganController::class, 'pengajuan'])->name('keuangan.pengajuan');
     Route::post('/keuangan/pengajuan', [KeuanganController::class, 'storePengajuan'])->name('keuangan.pengajuan.store');
+    Route::post('/keuangan/pengajuan/{id}/approve', [KeuanganController::class, 'approvePengajuan'])->name('keuangan.pengajuan.approve');
+    Route::post('/keuangan/pengajuan/{id}/reject', [KeuanganController::class, 'rejectPengajuan'])->name('keuangan.pengajuan.reject');
     Route::get('/keuangan/rekening-koran', [KeuanganController::class, 'rekeningKoran'])->name('keuangan.rekening-koran');
     Route::get('/keuangan/buku-bank', [KeuanganController::class, 'bukuBank'])->name('keuangan.buku-bank');
     Route::get('/keuangan/buku-kas-tunai', [KeuanganController::class, 'bukuKasTunai'])->name('keuangan.buku-kas-tunai');
@@ -78,6 +80,7 @@ Route::middleware('mustlogin')->group(function () {
     // Setting - Users
     Route::get('/setting/users', [SettingUserController::class, 'index'])->name('setting.users');
     Route::post('/setting/users/{id}/toggle', [SettingUserController::class, 'toggle'])->name('setting.users.toggle');
+    Route::post('/setting/users/{id}/update-role', [SettingUserController::class, 'updateRole'])->name('setting.users.updateRole');
 
     // ================================================================
     // END BRANGKAS DIGITAL

@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="{{ asset('assets/css/auth.css') }}" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
 .sip-left {
     display: flex;
@@ -34,10 +34,10 @@
     <div class="sip-left">
         <div class="sip-card" style="max-width: 420px; width: 100%;">
             <div class="brangkas-logo-wrap">
-                <img src="{{ asset('assets/images/logos/fotobrankas-removebg.png') }}?v=4" alt="Brangkas Digital" class="brangkas-logo-img">
+                <img src="{{ asset('assets/images/logos/fotobrankas-removebg.png') }}?v=5" alt="Brangkas Digital" class="brangkas-logo-img">
                 <div class="d-flex flex-column text-start">
-                    <span class="fw-bold text-dark lh-1" style="font-size: 17px; letter-spacing: 0.5px;">BRANGKAS DIGITAL</span>
-                    <span class="fw-bold text-primary lh-1 mt-1" style="font-size: 11.5px; letter-spacing: 0.5px;">LP MA'ARIF NU PBNU</span>
+                    <span class="text-dark lh-1" style="font-size: 21px; font-weight: 900; letter-spacing: 0.5px;">BRANGKAS DIGITAL</span>
+                    <span class="lh-1 mt-1" style="font-size: 13.5px; font-weight: 900; letter-spacing: 0.8px; color: var(--sip-primary);">LP MA'ARIF NU PBNU</span>
                 </div>
             </div>
 
@@ -75,7 +75,7 @@
                     <a href="{{ route('forgot') }}">Lupa Password?</a>
                 </div>
 
-                <button type="submit" class="sip-btn-submit" style="background: linear-gradient(135deg, #0f5132 0%, #198754 100%);">
+                <button type="submit" class="sip-btn-submit" style="background: linear-gradient(135deg, var(--sip-primary) 0%, var(--sip-primary-dark) 100%);">
                     Masuk
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
@@ -87,11 +87,11 @@
         </div>
     </div>
 
-    <div class="sip-right" style="background: linear-gradient(145deg, #072a1a 0%, #0f5132 100%);">
+    <div class="sip-right" style="background: linear-gradient(155deg, #0B5738 0%, #063A25 50%, #022416 100%);">
         <div class="sip-lattice"></div>
         <div class="sip-right-inner">
-            <div class="sip-right-logo" style="justify-content:flex-start; flex:none; margin-bottom:16px;">
-                <img src="{{ asset('assets/images/logos/brankas-logo-v3.png') }}?v=1" alt="Logo Brangkas" style="max-height:150px; width:auto; filter: drop-shadow(0 6px 20px rgba(0,0,0,0.5));">
+            <div class="sip-right-logo" style="justify-content:flex-start; flex:none; margin-bottom:20px;">
+                <img src="{{ asset('assets/images/logos/Logo_NU_Putih_PNG.png') }}" alt="Logo Nahdlatul Ulama" style="max-height:120px; width:auto; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.3));">
             </div>
 
             <div class="sip-brand-text">

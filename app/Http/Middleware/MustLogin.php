@@ -15,7 +15,14 @@ class MustLogin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->user() !== NULL && in_array(auth()->user()->role, ['operator', 'super admin', 'admin pusat', 'admin wilayah', 'admin cabang'])) {
+        $validRoles = ['super admin', 'admin', 'viewer', 'aproval', 'approval', 'admin pusat', 'admin wilayah', 'admin cabang', 'operator'];
+        if (auth()->user() !== NULL && in_array(auth()->user()->role, $validRoles)) {
+            if (auth()->user()->status_active === 'block') {
+                if ($request->expectsJson() || $request->is('api/*')) {
+                    return response()->json(['success' => false, 'message' => 'Akun ini telah dinonaktifkan (blocked).'], 403);
+                }
+                return redirect()->route('login')->with('error', 'Akun Anda telah dinonaktifkan.');
+            }
             return $next($request);
         }
         if ($request->expectsJson() || $request->is('api/*')) {

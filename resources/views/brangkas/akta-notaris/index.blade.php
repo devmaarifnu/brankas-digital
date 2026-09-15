@@ -23,9 +23,11 @@
                 </div>
             </div>
             <div>
+                @if(auth()->user()->canManageData())
                 <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahAktaNotaris">
                     <i class="ti ti-plus me-1"></i>Tambah Akta Notaris
                 </button>
+                @endif
             </div>
         </div>
     </div>
@@ -128,17 +130,21 @@
                                     </button>
 
                                     {{-- Edit --}}
+                                    @if(auth()->user()->canManageData())
                                     <a href="{{ route('brangkas.akta-notaris.edit', $item->id) }}" class="btn btn-sm btn-outline-warning w-100 py-1 px-2 d-inline-flex align-items-center justify-content-center gap-1 text-nowrap shadow-sm" title="Edit Data">
                                         <i class="ti ti-pencil"></i> Edit
                                     </a>
+                                    @endif
 
                                     {{-- Hapus --}}
+                                    @if(auth()->user()->isSuperAdmin())
                                     <form action="{{ route('brangkas.akta-notaris.destroy', $item->id) }}" method="POST" class="w-100 m-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-outline-danger w-100 py-1 px-2 d-inline-flex align-items-center justify-content-center gap-1 text-nowrap shadow-sm" title="Hapus Data">
                                             <i class="ti ti-trash"></i> Hapus
                                         </button>
                                     </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

@@ -36,8 +36,10 @@ class DataAsetLembaga extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id', 'id_user');
     }
+
+    protected $appends = ['nama_petugas'];
 
     // Accessor for nama_petugas to maintain compatibility with views
     public function getNamaPetugasAttribute()

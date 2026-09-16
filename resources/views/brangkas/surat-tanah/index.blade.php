@@ -259,7 +259,8 @@
                     {{-- 10. Nama Petugas & 11. Tanggal Input --}}
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-
+                            <label class="form-label fw-semibold">10. Nama Petugas</label>
+                            <input type="text" class="form-control bg-light" value="{{ auth()->user()->name ?: auth()->user()->username }}" readonly>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">11. Tanggal Input</label>

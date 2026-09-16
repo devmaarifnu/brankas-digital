@@ -135,7 +135,7 @@
                                     @endif
                                 </small>
                             </td>
-                            <td><small class="text-muted">{{ $item->nama_petugas ?? '-' }}</small></td>
+                            <td><small class="text-muted">{{ $item->user->name ?? auth()->user()->name }}</small></td>
                             <td><small class="text-muted">{{ $item->tgl_input ? $item->tgl_input->format('d/m/Y') : ($item->created_at ? $item->created_at->format('d/m/Y') : '-') }}</small></td>
                             <td class="text-center">
                                 @if($item->file_dokumen)
@@ -340,7 +340,7 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">13. Nama Petugas</label>
-                            <input type="text" class="form-control" name="nama_petugas" value="{{ auth()->user()->name ?: auth()->user()->username }}">
+                            <input type="text" class="form-control bg-light" value="{{ auth()->user()->name ?: auth()->user()->username }}" readonly>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">14. Tanggal di Input</label>

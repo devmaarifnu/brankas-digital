@@ -161,7 +161,7 @@
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">13. Nama Petugas</label>
-                                <input type="text" class="form-control" name="nama_petugas" value="{{ old('nama_petugas', $item->nama_petugas) }}">
+                                <input type="text" class="form-control bg-light" value="{{ $item->user->name ?? ($item->nama_petugas ?? auth()->user()->name) }}" readonly>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">14. Tanggal Input</label>

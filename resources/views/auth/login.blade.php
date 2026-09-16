@@ -3,7 +3,7 @@
 ])
 
 @section('style')
-<link rel="stylesheet" href="{{ asset('assets/css/auth.css') }}" />
+<link rel="stylesheet" href="{{ asset('assets/css/auth.css') }}?v={{ time() }}" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -87,7 +87,7 @@
         </div>
     </div>
 
-    <div class="sip-right" style="background: linear-gradient(155deg, #0B5738 0%, #063A25 50%, #022416 100%);">
+    <div class="sip-right">
         <div class="sip-lattice"></div>
         <div class="sip-right-inner">
             <div class="sip-right-logo" style="justify-content:flex-start; flex:none; margin-bottom:20px;">

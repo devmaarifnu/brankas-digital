@@ -7,6 +7,7 @@ use App\Models\AktaNotaris;
 use App\Models\DataAsetLembaga;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 class BrangkasController extends Controller
 {
@@ -128,13 +129,15 @@ class BrangkasController extends Controller
         }
 
         if ($request->hasFile('file_dokumen')) {
-            if ($item->file_dokumen && File::exists(public_path($item->file_dokumen))) {
-                File::delete(public_path($item->file_dokumen));
+            if ($item->file_dokumen) {
+                if (Storage::exists($item->file_dokumen)) {
+                    Storage::delete($item->file_dokumen);
+                } elseif (File::exists(public_path($item->file_dokumen))) {
+                    File::delete(public_path($item->file_dokumen));
+                }
             }
-            $file = $request->file('file_dokumen');
-            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            $file->move(public_path('uploads/surat-tanah'), $filename);
-            $payload['file_dokumen'] = 'uploads/surat-tanah/' . $filename;
+            $path = $request->file('file_dokumen')->store('uploads', 'local');
+            $payload['file_dokumen'] = $path;
         }
 
         $item->update($payload);
@@ -148,8 +151,12 @@ class BrangkasController extends Controller
             return redirect()->route('brangkas.surat-tanah')->with('error', 'Akses ditolak: Tombol dan aksi hapus hanya dapat dilakukan oleh Super admin.');
         }
         $item = SuratTanah::findOrFail($id);
-        if ($item->file_dokumen && File::exists(public_path($item->file_dokumen))) {
-            File::delete(public_path($item->file_dokumen));
+        if ($item->file_dokumen) {
+            if (Storage::exists($item->file_dokumen)) {
+                Storage::delete($item->file_dokumen);
+            } elseif (File::exists(public_path($item->file_dokumen))) {
+                File::delete(public_path($item->file_dokumen));
+            }
         }
         $item->delete();
         return redirect()->route('brangkas.surat-tanah')->with('success', 'Data Surat Tanah berhasil dihapus.');
@@ -272,13 +279,15 @@ class BrangkasController extends Controller
         }
 
         if ($request->hasFile('file_dokumen')) {
-            if ($item->file_dokumen && File::exists(public_path($item->file_dokumen))) {
-                File::delete(public_path($item->file_dokumen));
+            if ($item->file_dokumen) {
+                if (Storage::exists($item->file_dokumen)) {
+                    Storage::delete($item->file_dokumen);
+                } elseif (File::exists(public_path($item->file_dokumen))) {
+                    File::delete(public_path($item->file_dokumen));
+                }
             }
-            $file = $request->file('file_dokumen');
-            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            $file->move(public_path('uploads/akta-notaris'), $filename);
-            $payload['file_dokumen'] = 'uploads/akta-notaris/' . $filename;
+            $path = $request->file('file_dokumen')->store('uploads', 'local');
+            $payload['file_dokumen'] = $path;
         }
 
         $item->update($payload);
@@ -292,8 +301,12 @@ class BrangkasController extends Controller
             return redirect()->route('brangkas.akta-notaris')->with('error', 'Akses ditolak: Tombol dan aksi hapus hanya dapat dilakukan oleh Super admin.');
         }
         $item = AktaNotaris::findOrFail($id);
-        if ($item->file_dokumen && File::exists(public_path($item->file_dokumen))) {
-            File::delete(public_path($item->file_dokumen));
+        if ($item->file_dokumen) {
+            if (Storage::exists($item->file_dokumen)) {
+                Storage::delete($item->file_dokumen);
+            } elseif (File::exists(public_path($item->file_dokumen))) {
+                File::delete(public_path($item->file_dokumen));
+            }
         }
         $item->delete();
         return redirect()->route('brangkas.akta-notaris')->with('success', 'Data Akta Notaris berhasil dihapus.');
@@ -335,6 +348,7 @@ class BrangkasController extends Controller
         $payload['jenis_aset'] = $request->jenis_barang;
         $payload['lokasi'] = $request->posisi_aset === 'Kantor' ? ($request->nama_ruangan ?? 'Kantor') : ($request->nama_penerima ?? $request->posisi_aset);
         $payload['tgl_input'] = $request->tgl_input ?? date('Y-m-d');
+        $payload['user_id'] = auth()->id();
         $payload['nama_petugas'] = $request->nama_petugas ?? (auth()->user()->name ?: auth()->user()->username);
 
         // Auto Registration Number
@@ -357,8 +371,10 @@ class BrangkasController extends Controller
             $payload['status_handover'] = 'Tersedia';
         }
 
-            $path = $request->file('file_dokumen')->store('uploads','local');
+        if ($request->hasFile('file_dokumen')) {
+            $path = $request->file('file_dokumen')->store('uploads', 'local');
             $payload['file_dokumen'] = $path;
+        }
 
         DataAsetLembaga::create($payload);
 
@@ -426,8 +442,12 @@ class BrangkasController extends Controller
             return redirect()->route('brangkas.data-aset')->with('error', 'Akses ditolak: Tombol dan aksi hapus hanya dapat dilakukan oleh Super admin.');
         }
         $item = DataAsetLembaga::findOrFail($id);
-        if ($item->file_dokumen && File::exists(public_path($item->file_dokumen))) {
-            File::delete(public_path($item->file_dokumen));
+        if ($item->file_dokumen) {
+            if (Storage::exists($item->file_dokumen)) {
+                Storage::delete($item->file_dokumen);
+            } elseif (File::exists(public_path($item->file_dokumen))) {
+                File::delete(public_path($item->file_dokumen));
+            }
         }
         $item->delete();
         return redirect()->route('brangkas.data-aset')->with('success', 'Data Aset berhasil dihapus.');

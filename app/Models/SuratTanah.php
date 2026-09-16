@@ -48,6 +48,6 @@ class SuratTanah extends Model
 
     public function handovers()
     {
-        return $this->hasMany(RecordOfHandover::class, 'ref_id')->where('kategori', 'Arsip Surat Tanah');
+        return $this->hasMany(RecordOfHandover::class, 'ref_id')->where('kategori', 'Arsip Surat Tanah')->orderBy('created_at', 'desc');
     }
 }

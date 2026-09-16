@@ -66,6 +66,6 @@ class DataAsetLembaga extends Model
 
     public function handovers()
     {
-        return $this->hasMany(RecordOfHandover::class, 'ref_id')->where('kategori', 'Data Aset Lembaga');
+        return $this->hasMany(RecordOfHandover::class, 'ref_id')->where('kategori', 'Data Aset Lembaga')->orderBy('created_at', 'desc');
     }
 }

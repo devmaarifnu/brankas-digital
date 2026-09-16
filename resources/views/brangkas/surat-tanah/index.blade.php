@@ -320,6 +320,34 @@
                         <tr><th class="bg-light">Dokumen Terlampir</th><td id="dt_file">-</td></tr>
                     </tbody>
                 </table>
+
+                {{-- Riwayat Record of Transfer --}}
+                <hr class="my-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                        <i class="ti ti-arrows-left-right text-primary"></i>
+                        <span>Riwayat Record of Transfer / Serah Terima</span>
+                    </h6>
+                    <span class="badge bg-light text-primary border" id="dt_handovers_count">0 Riwayat</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="35">#</th>
+                                <th>Status</th>
+                                <th>Pihak Terkait</th>
+                                <th>Petugas</th>
+                                <th>Tgl Transaksi</th>
+                                <th>Catatan</th>
+                                <th width="60">Bukti</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dt_handovers_body">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div class="modal-footer bg-white border-top px-4 py-3">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -399,7 +427,7 @@ $(document).ready(function() {
         $('#dt_kecamatan').text(item.kecamatan || '-');
         $('#dt_kabupaten').text(item.kabupaten_kota || '-');
         $('#dt_provinsi').text(item.provinsi || '-');
-        $('#dt_petugas').text(item.nama_petugas || '-');
+        $('#dt_petugas').text(item.nama_petugas || (item.user ? item.user.name : '-'));
         $('#dt_tgl').text(item.tgl_input || '-');
         $('#dt_keterangan').html(item.warna_merah ? '<span class="badge bg-danger">' + (item.keterangan || 'Status Khusus') + '</span>' : '<span class="badge bg-success">' + (item.keterangan || 'Dokumen Asli Ada') + '</span>');
         
@@ -407,6 +435,49 @@ $(document).ready(function() {
             $('#dt_file').html('<a href="' + fileUrl + '" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ti ti-download me-1"></i>Unduh PDF</a>');
         } else {
             $('#dt_file').text('Tidak ada dokumen PDF');
+        }
+
+        // Render Riwayat Handover
+        var handovers = item.handovers || [];
+        $('#dt_handovers_count').text(handovers.length + ' Riwayat');
+        var $tbody = $('#dt_handovers_body');
+        $tbody.empty();
+
+        if (handovers.length === 0) {
+            $tbody.append('<tr><td colspan="7" class="text-center text-muted py-3"><i class="ti ti-inbox me-1"></i>Belum ada riwayat serah terima untuk dokumen ini.</td></tr>');
+        } else {
+            $.each(handovers, function(i, h) {
+                var badge = '<span class="badge bg-secondary">' + (h.status || '-') + '</span>';
+                if (h.status === 'Dipinjam') badge = '<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25"><i class="ti ti-hand-stop me-1"></i>Dipinjam</span>';
+                else if (h.status === 'Diagunkan') badge = '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25"><i class="ti ti-building-bank me-1"></i>Diagunkan</span>';
+                else if (h.status === 'Dihibahkan') badge = '<span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25"><i class="ti ti-gift me-1"></i>Dihibahkan</span>';
+                else if (h.status === 'Dikembalikan') badge = '<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25"><i class="ti ti-check me-1"></i>Dikembalikan</span>';
+
+                var pihak = '-';
+                if (h.status === 'Dipinjam') {
+                    pihak = '<div><strong>' + (h.nama_peminjam || '-') + '</strong></div><small class="text-muted">' + (h.no_telp_peminjam || '') + '</small>';
+                } else if (h.status === 'Diagunkan') {
+                    pihak = '<div><strong>' + (h.nama_bank || '-') + '</strong></div><small class="text-muted">PJ: ' + (h.penanggung_agunan || '-') + ' (' + (h.jangka_agunan || '-') + ')</small>';
+                } else if (h.status === 'Dihibahkan') {
+                    pihak = '<div><strong>' + (h.nama_penerima || '-') + '</strong></div><small class="text-muted">' + (h.no_telp_penerima || '') + '</small>';
+                } else if (h.status === 'Dikembalikan') {
+                    pihak = '<div><strong>Dari: ' + (h.nama_peminjam || h.nama_penerima || '-') + '</strong></div><small class="text-muted">' + (h.no_telp_peminjam || h.no_telp_penerima || '') + '</small>';
+                }
+
+                var tgl = h.tgl_serahterima ? h.tgl_serahterima.substring(0, 10) : '-';
+                var petugas = (h.user && h.user.name) ? h.user.name : (h.nama_petugas || '-');
+                var bukti = h.file_bukti ? '<a href="/' + h.file_bukti.replace(/^\//, '') + '" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2" title="Lihat Bukti"><i class="ti ti-eye"></i></a>' : '<span class="text-muted">-</span>';
+
+                $tbody.append('<tr>' +
+                    '<td class="text-center">' + (i+1) + '</td>' +
+                    '<td>' + badge + '</td>' +
+                    '<td>' + pihak + '</td>' +
+                    '<td><small class="text-muted">' + petugas + '</small></td>' +
+                    '<td><small class="text-muted">' + tgl + '</small></td>' +
+                    '<td><small>' + (h.catatan || '-') + '</small></td>' +
+                    '<td class="text-center">' + bukti + '</td>' +
+                '</tr>');
+            });
         }
 
         new bootstrap.Modal(document.getElementById('modalDetailSuratTanah')).show();

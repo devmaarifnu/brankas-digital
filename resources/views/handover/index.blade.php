@@ -49,6 +49,12 @@
                     <form action="{{ route("handover.store") }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
+                        {{-- Nama Petugas (Readonly & Bound to Auth User) --}}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-dark">Nama Petugas</label>
+                            <input type="text" class="form-control bg-light text-dark fw-semibold" value="{{ auth()->user()->name ?: auth()->user()->username }}" readonly>
+                        </div>
+
                         {{-- Kategori --}}
                         <div class="mb-3">
                             <label class="form-label fw-semibold text-dark">Kategori <span class="text-danger">*</span></label>
@@ -60,24 +66,26 @@
                             </select>
                         </div>
 
+                        {{-- Status --}}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-dark">Status Serah Terima <span class="text-danger">*</span></label>
+                            <select class="form-select" name="status" id="status" required>
+                                <option value="">-- Pilih Status --</option>
+                                <option value="Dipinjam">Dipinjam (Peminjaman Dokumen)</option>
+                                <option value="Diagunkan">Diagunkan (Agunan Bank)</option>
+                                <option value="Dihibahkan">Dihibahkan (Pemberian Hibah)</option>
+                                <option value="Dikembalikan">Dikembalikan (Pengembalian ke Brankas)</option>
+                            </select>
+                        </div>
+
                         {{-- Nama Dokumen - Auto dari AJAX --}}
                         <div class="mb-3">
                             <label class="form-label fw-semibold text-dark">Nama Barang / Dokumen <span class="text-danger">*</span></label>
                             <select class="form-select" name="ref_id" id="ref_id" required disabled>
-                                <option value="">-- Pilih Kategori terlebih dahulu --</option>
+                                <option value="">-- Pilih Kategori & Status terlebih dahulu --</option>
                             </select>
                             <input type="hidden" name="nama_dokumen" id="nama_dokumen_hidden">
-                        </div>
-
-                        {{-- Status --}}
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold text-dark">Status <span class="text-danger">*</span></label>
-                            <select class="form-select" name="status" id="status" required>
-                                <option value="">-- Pilih Status --</option>
-                                <option value="Dipinjam">Dipinjam</option>
-                                <option value="Diagunkan">Diagunkan</option>
-                                <option value="Dihibahkan">Dihibahkan</option>
-                            </select>
+                            <div class="form-text" id="doc_hint" style="display:none;"></div>
                         </div>
 
                         {{-- Bagian Dipinjam --}}
@@ -116,7 +124,7 @@
 
                         {{-- Bagian Dihibahkan --}}
                         <div id="section-dihibahkan" style="display:none;" class="p-3 bg-light rounded-3 mb-3 border">
-                            <h6 class="text-success fw-bold mb-2"><i class="ti ti-gift me-1"></i>Data Penerima Hibah</h6>
+                            <h6 class="text-info fw-bold mb-2"><i class="ti ti-gift me-1"></i>Data Penerima Hibah</h6>
                             <div class="mb-2">
                                 <label class="form-label">Nama Penerima <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="nama_penerima" id="nama_penerima" placeholder="Nama lengkap penerima hibah">
@@ -124,6 +132,19 @@
                             <div class="mb-2">
                                 <label class="form-label">Nomor Telepon Penerima <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="no_telp_penerima" id="no_telp_penerima" placeholder="08xxxxxxxxxx">
+                            </div>
+                        </div>
+
+                        {{-- Bagian Dikembalikan --}}
+                        <div id="section-dikembalikan" style="display:none;" class="p-3 bg-light rounded-3 mb-3 border border-success border-opacity-25">
+                            <h6 class="text-success fw-bold mb-2"><i class="ti ti-rotate-clockwise me-1"></i>Data Pengembalian Dokumen / Aset</h6>
+                            <div class="mb-2">
+                                <label class="form-label">Nama Yang Mengembalikan <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="nama_peminjam_kembali" id="nama_peminjam_kembali" placeholder="Nama lengkap pihak yang menyerahkan kembali">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Nomor Telepon Pengembali</label>
+                                <input type="text" class="form-control" name="no_telp_peminjam_kembali" id="no_telp_peminjam_kembali" placeholder="08xxxxxxxxxx">
                             </div>
                         </div>
 
@@ -137,13 +158,13 @@
                         <div class="mb-3">
                             <label class="form-label fw-semibold text-dark">Upload Bukti / Foto Serah Terima</label>
                             <input type="file" class="form-control" name="file_bukti" accept="image/*,application/pdf">
-                            <div class="form-text">JPG, PNG, atau PDF. Foto proses serah terima atau surat bukti.</div>
+                            <div class="form-text">JPG, PNG, atau PDF. Foto serah terima atau berita acara.</div>
                         </div>
 
                         {{-- Catatan --}}
                         <div class="mb-4">
                             <label class="form-label fw-semibold text-dark">Catatan Tambahan</label>
-                            <textarea class="form-control" name="catatan" rows="2" placeholder="Catatan lain jika ada..."></textarea>
+                            <textarea class="form-control" name="catatan" rows="2" placeholder="Catatan kondisi dokumen, keterangan serah terima, dll..."></textarea>
                         </div>
 
                         <button type="submit" class="btn btn-primary fw-semibold w-100 py-2 shadow-sm">
@@ -175,6 +196,7 @@
                                     <th>Nama Dokumen / Aset</th>
                                     <th>Status</th>
                                     <th>Pihak Terkait</th>
+                                    <th>Petugas</th>
                                     <th>Tgl Serah Terima</th>
                                     <th class="pe-3">Bukti</th>
                                 </tr>
@@ -187,11 +209,15 @@
                                     <td class="fw-semibold text-dark">{{ $rec->nama_dokumen }}</td>
                                     <td>
                                         @if($rec->status === 'Dipinjam')
-                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">Dipinjam</span>
+                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25"><i class="ti ti-hand-stop me-1"></i>Dipinjam</span>
                                         @elseif($rec->status === 'Diagunkan')
-                                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">Diagunkan</span>
+                                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25"><i class="ti ti-building-bank me-1"></i>Diagunkan</span>
                                         @elseif($rec->status === 'Dihibahkan')
-                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Dihibahkan</span>
+                                            <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25"><i class="ti ti-gift me-1"></i>Dihibahkan</span>
+                                        @elseif($rec->status === 'Dikembalikan')
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25"><i class="ti ti-check me-1"></i>Dikembalikan</span>
+                                        @else
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border">{{ $rec->status }}</span>
                                         @endif
                                     </td>
                                     <td>
@@ -204,8 +230,12 @@
                                         @elseif($rec->status === 'Dihibahkan')
                                             <small class="d-block fw-semibold text-dark">{{ $rec->nama_penerima }}</small>
                                             <small class="text-muted">{{ $rec->no_telp_penerima }}</small>
+                                        @elseif($rec->status === 'Dikembalikan')
+                                            <small class="d-block fw-semibold text-dark">Dari: {{ $rec->nama_peminjam ?: ($rec->nama_penerima ?: '-') }}</small>
+                                            <small class="text-muted">{{ $rec->no_telp_peminjam ?: $rec->no_telp_penerima }}</small>
                                         @endif
                                     </td>
+                                    <td><small class="text-muted">{{ $rec->user->name ?? ($rec->nama_petugas ?? '-') }}</small></td>
                                     <td><small class="text-muted">{{ $rec->tgl_serahterima ? $rec->tgl_serahterima->format('d/m/Y') : '-' }}</small></td>
                                     <td class="pe-3">
                                         @if($rec->file_bukti)
@@ -219,7 +249,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-5">
+                                    <td colspan="8" class="text-center text-muted py-5">
                                         <i class="ti ti-inbox fs-2 d-block mb-2 text-muted"></i>
                                         Belum ada data perpindahan dokumen / aset.
                                     </td>
@@ -238,43 +268,63 @@
 @section("scripts")
 <script>
 $(document).ready(function() {
-    $('#kategori').on('change', function() {
-        var kategori = $(this).val();
+    function loadDocuments() {
+        var kategori = $('#kategori').val();
+        var status = $('#status').val();
         var $refSelect = $('#ref_id');
-        $refSelect.html('<option value="">Memuat dokumen...</option>').prop('disabled', true);
+        var $hint = $('#doc_hint');
 
         if (!kategori) {
-            $refSelect.html('<option value="">-- Pilih Kategori terlebih dahulu --</option>');
+            $refSelect.html('<option value="">-- Pilih Kategori terlebih dahulu --</option>').prop('disabled', true);
+            $hint.hide();
             return;
         }
+
+        $refSelect.html('<option value="">Memuat data dokumen...</option>').prop('disabled', true);
 
         $.ajax({
             url: "{{ route('handover.items') }}",
             type: "GET",
-            data: { kategori: kategori },
+            data: { kategori: kategori, status: status },
             success: function(data) {
-                $refSelect.empty().append('<option value="">-- Pilih Dokumen / Aset --</option>');
-                $.each(data, function(index, item) {
-                    $refSelect.append('<option value="' + item.id + '" data-nama="' + item.nama_dokumen + '">' + item.nama_dokumen + '</option>');
-                });
+                $refSelect.empty();
+                if (data.length === 0) {
+                    if (status === 'Dikembalikan') {
+                        $refSelect.append('<option value="">-- Tidak ada dokumen yang sedang dipinjam/diagunkan --</option>');
+                    } else {
+                        $refSelect.append('<option value="">-- Tidak ada dokumen yang tersedia --</option>');
+                    }
+                } else {
+                    $refSelect.append('<option value="">-- Pilih Dokumen / Aset (' + data.length + ' item) --</option>');
+                    $.each(data, function(index, item) {
+                        $refSelect.append('<option value="' + item.id + '" data-nama="' + item.nama_dokumen + '">' + item.nama_dokumen + '</option>');
+                    });
+                }
                 $refSelect.prop('disabled', false);
+
+                if (status === 'Dikembalikan') {
+                    $hint.html('<span class="text-success"><i class="ti ti-info-circle me-1"></i>Hanya menampilkan dokumen yang sedang dipinjam / diagunkan untuk proses pengembalian.</span>').show();
+                } else if (status) {
+                    $hint.html('<span class="text-muted"><i class="ti ti-info-circle me-1"></i>Hanya menampilkan dokumen yang tersedia di brankas.</span>').show();
+                } else {
+                    $hint.hide();
+                }
             },
             error: function() {
                 $refSelect.html('<option value="">Gagal memuat data</option>');
+                $hint.hide();
             }
         });
-    });
+    }
 
-    $('#ref_id').on('change', function() {
-        var selectedText = $(this).find('option:selected').data('nama');
-        $('#nama_dokumen_hidden').val(selectedText || '');
-    });
+    $('#kategori, #status').on('change', function() {
+        var status = $('#status').val();
 
-    $('#status').on('change', function() {
-        var status = $(this).val();
+        // Sembunyikan semua sub-form
         $('#section-dipinjam').hide().find('input').prop('required', false);
         $('#section-diagunkan').hide().find('input').prop('required', false);
         $('#section-dihibahkan').hide().find('input').prop('required', false);
+        $('#section-dikembalikan').hide().find('input').prop('required', false);
 
         if (status === 'Dipinjam') {
             $('#section-dipinjam').slideDown().find('input').prop('required', true);
@@ -282,6 +332,31 @@ $(document).ready(function() {
             $('#section-diagunkan').slideDown().find('input').prop('required', true);
         } else if (status === 'Dihibahkan') {
             $('#section-dihibahkan').slideDown().find('input').prop('required', true);
+        } else if (status === 'Dikembalikan') {
+            $('#section-dikembalikan').slideDown();
+            $('#nama_peminjam_kembali').prop('required', true);
+        }
+
+        loadDocuments();
+    });
+
+    $('#ref_id').on('change', function() {
+        var selectedText = $(this).find('option:selected').data('nama');
+        // Bersihkan tag status di nama dokumen sebelum simpan
+        if (selectedText) {
+            selectedText = selectedText.replace(/\s*\[Sedang.*?\]\s*$/, '');
+        }
+        $('#nama_dokumen_hidden').val(selectedText || '');
+    });
+
+    // Handle form submit untuk input nama pengembali jika status Dikembalikan
+    $('form').on('submit', function() {
+        var status = $('#status').val();
+        if (status === 'Dikembalikan') {
+            var namaKembali = $('#nama_peminjam_kembali').val();
+            var telpKembali = $('#no_telp_peminjam_kembali').val();
+            $('#nama_peminjam').val(namaKembali);
+            $('#no_telp_peminjam').val(telpKembali);
         }
     });
 });

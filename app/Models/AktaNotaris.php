@@ -50,4 +50,9 @@ class AktaNotaris extends Model
     {
         return $this->user->name ?? '-';
     }
+
+    public function handovers()
+    {
+        return $this->hasMany(RecordOfHandover::class, 'ref_id')->where('kategori', 'Akta Notaris')->orderBy('created_at', 'desc');
+    }
 }

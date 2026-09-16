@@ -12,27 +12,84 @@ class HandoverController extends Controller
 {
     public function index()
     {
-        $records = RecordOfHandover::orderBy('created_at', 'desc')->get();
+        $records = RecordOfHandover::with('user')->orderBy('created_at', 'desc')->get();
         return view('handover.index', compact('records'))->with('title', 'Record of Transfer');
     }
 
     public function getItemsByKategori(Request $request)
     {
         $kategori = $request->get('kategori');
-        $items = [];
+        $status = $request->get('status'); // 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan', or null
+        $items = collect();
+
         if ($kategori === 'Arsip Surat Tanah') {
-            $items = SuratTanah::select('id', 'nama_sertifikat as nama_dokumen', 'nomor_sertifikat')->get()->map(function($i) {
-                return ['id' => $i->id, 'nama_dokumen' => ($i->nama_dokumen ?: 'Surat Tanah') . ' (' . ($i->nomor_sertifikat ?: '-') . ')'];
+            $query = SuratTanah::query();
+            if ($status === 'Dikembalikan') {
+                $query->where(function($q) {
+                    $q->whereIn('status_handover', ['Dipinjam', 'Diagunkan'])
+                      ->orWhere('warna_merah', true);
+                });
+            } elseif (in_array($status, ['Dipinjam', 'Diagunkan', 'Dihibahkan'])) {
+                $query->where(function($q) {
+                    $q->whereNotIn('status_handover', ['Dipinjam', 'Diagunkan'])
+                      ->where('warna_merah', false);
+                });
+            }
+            $items = $query->get()->map(function($i) {
+                $statusTag = $i->warna_merah ? ' [Sedang ' . ($i->status_handover ?: 'Dipinjam') . ']' : '';
+                return [
+                    'id' => $i->id,
+                    'nama_dokumen' => ($i->nama_sertifikat ?: ($i->nama_dokumen ?: 'Surat Tanah')) . ' (' . ($i->nomor_sertifikat ?: '-') . ')' . $statusTag,
+                    'status_handover' => $i->status_handover,
+                    'is_borrowed' => (bool)$i->warna_merah,
+                ];
             });
         } elseif ($kategori === 'Akta Notaris') {
-            $items = AktaNotaris::select('id', 'nama_dokumen', 'nomor_dokumen')->get()->map(function($i) {
-                return ['id' => $i->id, 'nama_dokumen' => ($i->nama_dokumen ?: 'Akta') . ' (' . ($i->nomor_dokumen ?: '-') . ')'];
+            $query = AktaNotaris::query();
+            if ($status === 'Dikembalikan') {
+                $query->where(function($q) {
+                    $q->whereIn('status_handover', ['Dipinjam', 'Diagunkan'])
+                      ->orWhere('warna_merah', true);
+                });
+            } elseif (in_array($status, ['Dipinjam', 'Diagunkan', 'Dihibahkan'])) {
+                $query->where(function($q) {
+                    $q->whereNotIn('status_handover', ['Dipinjam', 'Diagunkan'])
+                      ->where('warna_merah', false);
+                });
+            }
+            $items = $query->get()->map(function($i) {
+                $statusTag = $i->warna_merah ? ' [Sedang ' . ($i->status_handover ?: 'Dipinjam') . ']' : '';
+                return [
+                    'id' => $i->id,
+                    'nama_dokumen' => ($i->nama_dokumen ?: 'Akta Notaris') . ' (' . ($i->nomor_dokumen ?: ($i->nomor_akta ?: '-')) . ')' . $statusTag,
+                    'status_handover' => $i->status_handover,
+                    'is_borrowed' => (bool)$i->warna_merah,
+                ];
             });
         } elseif ($kategori === 'Data Aset Lembaga') {
-            $items = DataAsetLembaga::select('id', 'nama_barang as nama_dokumen', 'nomor_registrasi')->get()->map(function($i) {
-                return ['id' => $i->id, 'nama_dokumen' => ($i->nama_dokumen ?: 'Aset') . ' [' . ($i->nomor_registrasi ?: '-') . ']'];
+            $query = DataAsetLembaga::query();
+            if ($status === 'Dikembalikan') {
+                $query->where(function($q) {
+                    $q->whereIn('status_handover', ['Dipinjam', 'Diagunkan'])
+                      ->orWhere('warna_merah', true);
+                });
+            } elseif (in_array($status, ['Dipinjam', 'Diagunkan', 'Dihibahkan'])) {
+                $query->where(function($q) {
+                    $q->whereNotIn('status_handover', ['Dipinjam', 'Diagunkan'])
+                      ->where('warna_merah', false);
+                });
+            }
+            $items = $query->get()->map(function($i) {
+                $statusTag = $i->warna_merah ? ' [Sedang ' . ($i->status_handover ?: 'Dipinjam') . ']' : '';
+                return [
+                    'id' => $i->id,
+                    'nama_dokumen' => ($i->nama_barang ?: ($i->nama_aset ?: 'Aset')) . ' [' . ($i->nomor_registrasi ?: '-') . ']' . $statusTag,
+                    'status_handover' => $i->status_handover,
+                    'is_borrowed' => (bool)$i->warna_merah,
+                ];
             });
         }
+
         return response()->json($items);
     }
 
@@ -43,15 +100,43 @@ class HandoverController extends Controller
         }
 
         $request->validate([
-            'kategori'        => 'required',
+            'kategori'        => 'required|in:Arsip Surat Tanah,Akta Notaris,Data Aset Lembaga',
             'ref_id'          => 'required|integer',
             'nama_dokumen'    => 'required|string',
-            'status'          => 'required|in:Dipinjam,Diagunkan,Dihibahkan',
+            'status'          => 'required|in:Dipinjam,Diagunkan,Dihibahkan,Dikembalikan',
             'tgl_serahterima' => 'required|date',
             'file_bukti'      => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:15360',
         ]);
 
+        // Cari item sumber
+        $sourceModel = null;
+        if ($request->kategori === 'Arsip Surat Tanah') {
+            $sourceModel = SuratTanah::find($request->ref_id);
+        } elseif ($request->kategori === 'Akta Notaris') {
+            $sourceModel = AktaNotaris::find($request->ref_id);
+        } elseif ($request->kategori === 'Data Aset Lembaga') {
+            $sourceModel = DataAsetLembaga::find($request->ref_id);
+        }
+
+        if (!$sourceModel) {
+            return back()->with('error', 'Dokumen/Aset terkait tidak ditemukan dalam database.');
+        }
+
+        $isCurrentlyOut = in_array($sourceModel->status_handover, ['Dipinjam', 'Diagunkan']) || $sourceModel->warna_merah;
+
+        // Validasi aturan peralihan status:
+        if ($request->status === 'Dikembalikan') {
+            if (!$isCurrentlyOut) {
+                return back()->with('error', 'Dokumen/Aset ini saat ini berstatus Tersedia (tidak sedang dipinjam atau diagunkan).');
+            }
+        } else {
+            if ($isCurrentlyOut) {
+                return back()->with('error', 'Dokumen/Aset ini sedang berstatus "' . ($sourceModel->status_handover ?: 'Dipinjam') . '". Dokumen harus melalui proses pengembalian terlebih dahulu sebelum dapat dipindahtangankan kembali.');
+            }
+        }
+
         $data = $request->except('file_bukti');
+        $data['user_id'] = auth()->id();
 
         if ($request->hasFile('file_bukti')) {
             $file = $request->file('file_bukti');
@@ -62,33 +147,36 @@ class HandoverController extends Controller
 
         RecordOfHandover::create($data);
 
-        // Auto-update status dan warna merah di tabel sumber
-        $refId = $request->ref_id;
-        $status = $request->status;
-        $keteranganUpdate = $status . ' (Tgl: ' . date('d/m/Y', strtotime($request->tgl_serahterima)) . ')';
+        // Update status dokumen/aset sumber
+        $tglFormat = date('d/m/Y', strtotime($request->tgl_serahterima));
 
-        if ($request->kategori === 'Arsip Surat Tanah') {
-            SuratTanah::where('id', $refId)->update([
-                'status_handover' => $status,
+        if ($request->status === 'Dikembalikan') {
+            $updatePayload = [
+                'status_handover' => 'Tersedia',
+                'keterangan'      => 'Dokumen Asli Ada (Dikembalikan tgl ' . $tglFormat . ')',
+                'warna_merah'     => false,
+            ];
+            if ($request->kategori === 'Data Aset Lembaga') {
+                $updatePayload['posisi_aset'] = 'Kantor';
+                $updatePayload['nama_penerima'] = null;
+            }
+            $sourceModel->update($updatePayload);
+
+            return back()->with('success', 'Pengembalian dokumen/aset berhasil dicatat. Status telah kembali Tersedia (Asli Ada).');
+        } else {
+            $keteranganUpdate = $request->status . ' (Tgl: ' . $tglFormat . ')';
+            $updatePayload = [
+                'status_handover' => $request->status,
                 'keterangan'      => $keteranganUpdate,
-                'warna_merah'     => true
-            ]);
-        } elseif ($request->kategori === 'Akta Notaris') {
-            AktaNotaris::where('id', $refId)->update([
-                'status_handover' => $status,
-                'keterangan'      => $keteranganUpdate,
-                'warna_merah'     => true
-            ]);
-        } elseif ($request->kategori === 'Data Aset Lembaga') {
-            DataAsetLembaga::where('id', $refId)->update([
-                'status_handover' => $status,
-                'posisi_aset'     => $status,
-                'nama_penerima'   => $request->nama_peminjam ?: ($request->nama_penerima ?: $request->penanggung_agunan),
-                'keterangan'      => $keteranganUpdate,
-                'warna_merah'     => true
-            ]);
+                'warna_merah'     => true,
+            ];
+            if ($request->kategori === 'Data Aset Lembaga') {
+                $updatePayload['posisi_aset'] = $request->status;
+                $updatePayload['nama_penerima'] = $request->nama_peminjam ?: ($request->nama_penerima ?: $request->penanggung_agunan);
+            }
+            $sourceModel->update($updatePayload);
+
+            return back()->with('success', 'Record of Transfer berhasil disimpan. Rekap telah diperbarui otomatis & ditandai merah.');
         }
-
-        return back()->with('success', 'Record of Transfer berhasil disimpan. Rekap telah diperbarui otomatis & ditandai merah.');
     }
 }

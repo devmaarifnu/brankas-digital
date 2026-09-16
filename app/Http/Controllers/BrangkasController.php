@@ -16,7 +16,7 @@ class BrangkasController extends Controller
     // ==========================================
     public function suratTanah()
     {
-        $data = SuratTanah::orderBy('created_at', 'desc')->get();
+        $data = SuratTanah::with(['user', 'handovers.user'])->orderBy('created_at', 'desc')->get();
         return view('brangkas.surat-tanah.index', compact('data'))->with('title', 'Arsip Surat Tanah');
     }
 
@@ -167,7 +167,7 @@ class BrangkasController extends Controller
     // ==========================================
     public function aktaNotaris()
     {
-        $data = AktaNotaris::orderBy('created_at', 'desc')->get();
+        $data = AktaNotaris::with(['user', 'handovers.user'])->orderBy('created_at', 'desc')->get();
         return view('brangkas.akta-notaris.index', compact('data'))->with('title', 'Akta Notaris');
     }
 
@@ -317,7 +317,7 @@ class BrangkasController extends Controller
     // ==========================================
     public function dataAset()
     {
-        $data = DataAsetLembaga::orderBy('created_at', 'desc')->get();
+        $data = DataAsetLembaga::with(['user', 'handovers.user'])->orderBy('created_at', 'desc')->get();
         // Generate auto next registration number
         $nextRegNo = 'AST-LPM-' . date('Ym') . '-' . str_pad(($data->count() + 1), 4, '0', STR_PAD_LEFT);
         return view('brangkas.data-aset.index', compact('data', 'nextRegNo'))->with('title', 'Data Aset Lembaga');

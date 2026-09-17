@@ -10,10 +10,46 @@ use Illuminate\Http\Request;
 
 class HandoverController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $records = RecordOfHandover::with('user')->orderBy('created_at', 'desc')->get();
-        return view('handover.index', compact('records'))->with('title', 'Record of Transfer');
+        $query = RecordOfHandover::with('user');
+
+        // Filter Enumerasi: Kategori
+        if ($request->filled('kategori')) {
+            $query->where('kategori', $request->kategori);
+        }
+
+        // Filter Enumerasi: Status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter Enumerasi / Relasi: Petugas (user_id)
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        // Pencarian Free-Text (Keyword nama dokumen, pihak terkait, bank, dll)
+        if ($request->filled('q')) {
+            $q = trim($request->q);
+            $query->where(function($w) use ($q) {
+                $w->where('nama_dokumen', 'like', "%{$q}%")
+                  ->orWhere('nama_peminjam', 'like', "%{$q}%")
+                  ->orWhere('no_telp_peminjam', 'like', "%{$q}%")
+                  ->orWhere('nama_bank', 'like', "%{$q}%")
+                  ->orWhere('penanggung_agunan', 'like', "%{$q}%")
+                  ->orWhere('nama_penerima', 'like', "%{$q}%")
+                  ->orWhere('catatan', 'like', "%{$q}%")
+                  ->orWhere('tgl_serahterima', 'like', "%{$q}%");
+            });
+        }
+
+        $records = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+
+        // Ambil daftar petugas untuk opsi filter
+        $officers = \App\Models\User::orderBy('name', 'asc')->get();
+
+        return view('handover.index', compact('records', 'officers'))->with('title', 'Record of Transfer');
     }
 
     public function getItemsByKategori(Request $request)

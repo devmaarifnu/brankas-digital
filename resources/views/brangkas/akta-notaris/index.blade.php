@@ -51,6 +51,14 @@
     </div>
     @endif
 
+    {{-- Filter & Search Card (Sama Persis Record of Transfer) --}}
+    @include('brangkas.partials._record_table', [
+        'filterField' => 'jenis_dokumen',
+        'filterOptions' => $jenisList,
+        'statusList' => $statusList,
+        'placeholder' => 'Cari nomor dokumen, nama dokumen, notaris...'
+    ])
+
     {{-- REKAP DATA (TABEL HORIZONTAL) --}}
     <div class="card shadow-sm border-0 rounded-3" style="border: 1px solid #ebf1f6;">
         <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -59,7 +67,7 @@
                 <span>Daftar Akta Notaris</span>
             </h5>
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-light text-primary border">{{ $data->count() }} Dokumen</span>
+                <span class="badge bg-light text-primary border">{{ $data->total() ?? $data->count() }} Dokumen</span>
                 @if($data->where("warna_merah",true)->count() > 0)
                 <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
                     <i class="ti ti-alert-triangle me-1"></i>{{ $data->where("warna_merah",true)->count() }} status khusus / dipindah tangan
@@ -123,7 +131,7 @@
                                 <div class="d-flex flex-column gap-1 mx-auto" style="width: 85px;">
                                     {{-- Lihat Detail --}}
                                     <button type="button" class="btn btn-sm btn-outline-info w-100 py-1 px-2 d-inline-flex align-items-center justify-content-center gap-1 text-nowrap shadow-sm btn-detail"
-                                            data-item="{{ json_encode($item) }}"
+                                            data-item='@json($item)'
                                             data-url="{{ $item->file_dokumen ? asset($item->file_dokumen) : '' }}"
                                             title="Lihat Detail Lengkap">
                                         <i class="ti ti-eye"></i> Detail
@@ -165,6 +173,11 @@
                 </table>
             </div>
         </div>
+        @if(method_exists($data, 'hasPages') && $data->hasPages())
+        <div class="card-footer bg-white border-top py-3 px-4">
+            {{ $data->links() }}
+        </div>
+        @endif
     </div>
 </div>
 
@@ -334,6 +347,7 @@
                         </tbody>
                     </table>
                 </div>
+                <div id="dt_an_handovers_pagination"></div>
             </div>
             <div class="modal-footer bg-white border-top px-4 py-3">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -462,10 +476,58 @@ $(document).ready(function() {
                     '<td class="text-center">' + bukti + '</td>' +
                 '</tr>');
             });
+            setupHistoryPagination('dt_an_handovers_body', 'dt_an_handovers_pagination', 5);
+        } else {
+            $('#dt_an_handovers_pagination').empty();
         }
 
         new bootstrap.Modal(document.getElementById('modalDetailAkta')).show();
     });
+
+    function setupHistoryPagination(tbodyId, paginationContainerId, pageSize) {
+        pageSize = pageSize || 5;
+        var $rows = $('#' + tbodyId + ' tr');
+        var totalRows = $rows.length;
+        var $pager = $('#' + paginationContainerId);
+        $pager.empty();
+
+        if (totalRows <= pageSize) {
+            $rows.show();
+            return;
+        }
+
+        var totalPages = Math.ceil(totalRows / pageSize);
+        var currentPage = 1;
+
+        function showPage(page) {
+            currentPage = page;
+            var start = (page - 1) * pageSize;
+            var end = start + pageSize;
+            $rows.hide().slice(start, end).show();
+
+            $pager.find('.page-info').text('Halaman ' + currentPage + ' dari ' + totalPages + ' (' + totalRows + ' riwayat)');
+            $pager.find('.btn-prev').prop('disabled', currentPage === 1);
+            $pager.find('.btn-next').prop('disabled', currentPage === totalPages);
+        }
+
+        var html = '<div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">' +
+                   '  <small class="text-muted page-info"></small>' +
+                   '  <div class="btn-group btn-group-sm">' +
+                   '    <button type="button" class="btn btn-outline-primary btn-prev"><i class="ti ti-chevron-left me-1"></i>Prev</button>' +
+                   '    <button type="button" class="btn btn-outline-primary btn-next">Next<i class="ti ti-chevron-right ms-1"></i></button>' +
+                   '  </div>' +
+                   '</div>';
+        $pager.html(html);
+
+        $pager.find('.btn-prev').on('click', function() {
+            if (currentPage > 1) showPage(currentPage - 1);
+        });
+        $pager.find('.btn-next').on('click', function() {
+            if (currentPage < totalPages) showPage(currentPage + 1);
+        });
+
+        showPage(1);
+    }
 });
 </script>
 @endsection

@@ -77,8 +77,11 @@ Route::middleware('mustlogin')->group(function () {
     Route::get('/keuangan/rekap-tahunan', [KeuanganController::class, 'rekapTahunan'])->name('keuangan.rekap-tahunan');
     Route::post('/keuangan/dokumen', [KeuanganController::class, 'storeDokumen'])->name('keuangan.dokumen.store');
 
-    // Setting - Users
+    // Setting - Users (Super Admin only)
     Route::get('/setting/users', [SettingUserController::class, 'index'])->name('setting.users');
+    Route::post('/setting/users', [SettingUserController::class, 'store'])->name('setting.users.store');
+    Route::post('/setting/users/{id}/update', [SettingUserController::class, 'update'])->name('setting.users.update');
+    Route::post('/setting/users/{id}/delete', [SettingUserController::class, 'destroy'])->name('setting.users.destroy');
     Route::post('/setting/users/{id}/toggle', [SettingUserController::class, 'toggle'])->name('setting.users.toggle');
     Route::post('/setting/users/{id}/update-role', [SettingUserController::class, 'updateRole'])->name('setting.users.updateRole');
 
@@ -111,3 +114,22 @@ Route::prefix("auth")->group(function () {
     Route::get('reset/{token}', [ForgotPasswordController::class, 'showResetPasswordForm'])->name('reset');
     Route::post('reset', [ForgotPasswordController::class, 'submitResetPasswordForm'])->name('reset.send');
 });
+
+/**
+ * Fallback route untuk serving uploaded documents (mencegah 404 pada file di storage maupun public)
+ */
+Route::get('/uploads/{path}', function ($path) {
+    $publicFile = public_path('uploads/' . $path);
+    if (file_exists($publicFile)) {
+        return response()->file($publicFile);
+    }
+    $storageFile = storage_path('app/uploads/' . $path);
+    if (file_exists($storageFile)) {
+        return response()->file($storageFile);
+    }
+    $storageDirect = storage_path('app/' . $path);
+    if (file_exists($storageDirect)) {
+        return response()->file($storageDirect);
+    }
+    abort(404);
+})->where('path', '.*');

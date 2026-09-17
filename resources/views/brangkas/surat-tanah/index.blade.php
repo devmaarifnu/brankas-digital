@@ -51,6 +51,16 @@
     </div>
     @endif
 
+
+
+    {{-- Filter & Search Card (Sama Persis Record of Transfer) --}}
+    @include('brangkas.partials._record_table', [
+        'filterField' => 'jenis_sertifikat',
+        'filterOptions' => $jenisList,
+        'statusList' => $statusList,
+        'placeholder' => 'Cari jenis sertifikat, nomor sertifikat, nama, lokasi...'
+    ])
+
     {{-- REKAP DATA (TABEL HORIZONTAL) --}}
     <div class="card shadow-sm border-0 rounded-3" style="border: 1px solid #ebf1f6;">
         <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -59,7 +69,7 @@
                 <span>Daftar Arsip Surat Tanah</span>
             </h5>
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-light text-primary border">{{ $data->count() }} Dokumen</span>
+                <span class="badge bg-light text-primary border">{{ $data->total() ?? $data->count() }} Dokumen</span>
                 @if($data->where("warna_merah",true)->count() > 0)
                 <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
                     <i class="ti ti-alert-triangle me-1"></i>{{ $data->where("warna_merah",true)->count() }} status khusus / dipindah tangan
@@ -125,7 +135,7 @@
                                 <div class="d-flex flex-column gap-1 mx-auto" style="width: 85px;">
                                     {{-- Lihat Detail --}}
                                     <button type="button" class="btn btn-sm btn-outline-info w-100 py-1 px-2 d-inline-flex align-items-center justify-content-center gap-1 text-nowrap shadow-sm btn-detail"
-                                            data-item="{{ json_encode($item) }}"
+                                            data-item='@json($item)'
                                             data-url="{{ $item->file_dokumen ? asset($item->file_dokumen) : '' }}"
                                             title="Lihat Detail Lengkap">
                                         <i class="ti ti-eye"></i> Detail
@@ -167,6 +177,11 @@
                 </table>
             </div>
         </div>
+        @if(method_exists($data, 'hasPages') && $data->hasPages())
+        <div class="card-footer bg-white border-top py-3 px-4">
+            {{ $data->links() }}
+        </div>
+        @endif
     </div>
 </div>
 
@@ -323,6 +338,33 @@
 
                 {{-- Riwayat Record of Transfer --}}
                 <hr class="my-4">
+                <!-- Filter Form for Handover History -->
+                <form class="row g-2 mb-3" id="handoverFilterForm" onsubmit="return false;">
+                    <div class="col-auto">
+                        <select class="form-select" name="kategori" id="filter_kategori">
+                            <option value="">Semua Kategori</option>
+                            <!-- TODO: populate options from controller -->
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <select class="form-select" name="status" id="filter_status">
+                            <option value="">Semua Status</option>
+                            <option value="Dipinjam">Dipinjam</option>
+                            <option value="Diagunkan">Diagunkan</option>
+                            <option value="Dihibahkan">Dihibahkan</option>
+                            <option value="Dikembalikan">Dikembalikan</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <input type="text" class="form-control" name="petugas" placeholder="Nama Petugas" id="filter_petugas" />
+                    </div>
+                    <div class="col-auto">
+                        <input type="text" class="form-control" name="q" placeholder="Cari Nama / Pihak" id="filter_q" />
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-primary btn-sm" id="btnApplyHandoverFilter"><i class="ti ti-search me-1"></i>Filter</button>
+                    </div>
+                </form>
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
                         <i class="ti ti-arrows-left-right text-primary"></i>
@@ -331,7 +373,7 @@
                     <span class="badge bg-light text-primary border" id="dt_handovers_count">0 Riwayat</span>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-sm table-bordered table-hover align-middle mb-0">
+                    <table class="table table-sm table-bordered table-hover align-middle mb-0" id="handoversTable">
                         <thead class="table-light">
                             <tr>
                                 <th width="35">#</th>
@@ -343,11 +385,10 @@
                                 <th width="60">Bukti</th>
                             </tr>
                         </thead>
-                        <tbody id="dt_handovers_body">
-                            <!-- Populated via JS -->
                         </tbody>
                     </table>
                 </div>
+                <div id="handovers_pagination"></div>
             </div>
             <div class="modal-footer bg-white border-top px-4 py-3">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -478,10 +519,58 @@ $(document).ready(function() {
                     '<td class="text-center">' + bukti + '</td>' +
                 '</tr>');
             });
+            setupHistoryPagination('dt_handovers_body', 'handovers_pagination', 5);
+        } else {
+            $('#handovers_pagination').empty();
         }
 
         new bootstrap.Modal(document.getElementById('modalDetailSuratTanah')).show();
     });
+
+    function setupHistoryPagination(tbodyId, paginationContainerId, pageSize) {
+        pageSize = pageSize || 5;
+        var $rows = $('#' + tbodyId + ' tr');
+        var totalRows = $rows.length;
+        var $pager = $('#' + paginationContainerId);
+        $pager.empty();
+
+        if (totalRows <= pageSize) {
+            $rows.show();
+            return;
+        }
+
+        var totalPages = Math.ceil(totalRows / pageSize);
+        var currentPage = 1;
+
+        function showPage(page) {
+            currentPage = page;
+            var start = (page - 1) * pageSize;
+            var end = start + pageSize;
+            $rows.hide().slice(start, end).show();
+
+            $pager.find('.page-info').text('Halaman ' + currentPage + ' dari ' + totalPages + ' (' + totalRows + ' riwayat)');
+            $pager.find('.btn-prev').prop('disabled', currentPage === 1);
+            $pager.find('.btn-next').prop('disabled', currentPage === totalPages);
+        }
+
+        var html = '<div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">' +
+                   '  <small class="text-muted page-info"></small>' +
+                   '  <div class="btn-group btn-group-sm">' +
+                   '    <button type="button" class="btn btn-outline-primary btn-prev"><i class="ti ti-chevron-left me-1"></i>Prev</button>' +
+                   '    <button type="button" class="btn btn-outline-primary btn-next">Next<i class="ti ti-chevron-right ms-1"></i></button>' +
+                   '  </div>' +
+                   '</div>';
+        $pager.html(html);
+
+        $pager.find('.btn-prev').on('click', function() {
+            if (currentPage > 1) showPage(currentPage - 1);
+        });
+        $pager.find('.btn-next').on('click', function() {
+            if (currentPage < totalPages) showPage(currentPage + 1);
+        });
+
+        showPage(1);
+    }
 });
 </script>
 @endsection

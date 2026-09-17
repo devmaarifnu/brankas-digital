@@ -14,10 +14,28 @@ class BrangkasController extends Controller
     // ==========================================
     // ARSIP SURAT TANAH
     // ==========================================
-    public function suratTanah()
+    public function suratTanah(Request $request)
     {
-        $data = SuratTanah::with(['user', 'handovers.user'])->orderBy('created_at', 'desc')->get();
-        return view('brangkas.surat-tanah.index', compact('data'))->with('title', 'Arsip Surat Tanah');
+        $query = SuratTanah::query();
+
+        $data = $this->applyRecordFilters($query, $request, 'jenis_sertifikat')
+                      ->with(['user', 'handovers.user'])
+                      ->orderBy('created_at', 'desc')
+                      ->paginate(10)
+                      ->withQueryString();
+
+        // Data for filter dropdowns (sesuai formulir input dan database)
+        $defaultJenis = ['SHM', 'Wakaf', 'Hibah', 'SHGB', 'SHGU', 'Hak Guna Pakai'];
+        $dbJenis = SuratTanah::whereNotNull('jenis_sertifikat')->where('jenis_sertifikat', '!=', '')->distinct()->pluck('jenis_sertifikat')->toArray();
+        $jenisList = collect(array_values(array_filter(array_unique(array_merge($defaultJenis, $dbJenis)))));
+
+        $defaultStatus = ['Tersedia', 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan'];
+        $dbStatus = SuratTanah::whereNotNull('status_handover')->where('status_handover', '!=', '')->distinct()->pluck('status_handover')->toArray();
+        $statusList = collect(array_values(array_filter(array_unique(array_merge($defaultStatus, $dbStatus)))));
+        $officers = \App\Models\User::select('id_user as id', 'name')->orderBy('name')->get();
+
+        return view('brangkas.surat-tanah.index', compact('data', 'jenisList', 'statusList', 'officers'))
+            ->with('title', 'Arsip Surat Tanah');
     }
 
     public function storeSuratTanah(Request $request)
@@ -70,8 +88,14 @@ class BrangkasController extends Controller
         }
 
         if ($request->hasFile('file_dokumen')) {
-            $path = $request->file('file_dokumen')->store('uploads','local');
-            $payload['file_dokumen'] = $path;
+            $file = $request->file('file_dokumen');
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+            $destDir = public_path('uploads/surat-tanah');
+            if (!file_exists($destDir)) {
+                @mkdir($destDir, 0777, true);
+            }
+            $file->move($destDir, $filename);
+            $payload['file_dokumen'] = 'uploads/surat-tanah/' . $filename;
         }
 
         SuratTanah::create($payload);
@@ -129,15 +153,17 @@ class BrangkasController extends Controller
         }
 
         if ($request->hasFile('file_dokumen')) {
-            if ($item->file_dokumen) {
-                if (Storage::exists($item->file_dokumen)) {
-                    Storage::delete($item->file_dokumen);
-                } elseif (File::exists(public_path($item->file_dokumen))) {
-                    File::delete(public_path($item->file_dokumen));
-                }
+            if ($item->file_dokumen && file_exists(public_path($item->file_dokumen))) {
+                @unlink(public_path($item->file_dokumen));
             }
-            $path = $request->file('file_dokumen')->store('uploads', 'local');
-            $payload['file_dokumen'] = $path;
+            $file = $request->file('file_dokumen');
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+            $destDir = public_path('uploads/surat-tanah');
+            if (!file_exists($destDir)) {
+                @mkdir($destDir, 0777, true);
+            }
+            $file->move($destDir, $filename);
+            $payload['file_dokumen'] = 'uploads/surat-tanah/' . $filename;
         }
 
         $item->update($payload);
@@ -165,10 +191,29 @@ class BrangkasController extends Controller
     // ==========================================
     // AKTA NOTARIS
     // ==========================================
-    public function aktaNotaris()
+    public function aktaNotaris(Request $request)
     {
-        $data = AktaNotaris::with(['user', 'handovers.user'])->orderBy('created_at', 'desc')->get();
-        return view('brangkas.akta-notaris.index', compact('data'))->with('title', 'Akta Notaris');
+        $query = AktaNotaris::query();
+
+        // Apply unified filters and pagination
+        $data = $this->applyRecordFilters($query, $request, 'jenis_dokumen')
+                      ->with(['user', 'handovers.user'])
+                      ->orderBy('created_at', 'desc')
+                      ->paginate(10)
+                      ->withQueryString();
+
+        // Data for filter dropdowns (sesuai formulir input dan database)
+        $defaultJenis = ['Akta Notaris', 'SK Menkumham'];
+        $dbJenis = AktaNotaris::whereNotNull('jenis_dokumen')->where('jenis_dokumen', '!=', '')->distinct()->pluck('jenis_dokumen')->toArray();
+        $jenisList = collect(array_values(array_filter(array_unique(array_merge($defaultJenis, $dbJenis)))));
+
+        $defaultStatus = ['Tersedia', 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan'];
+        $dbStatus = AktaNotaris::whereNotNull('status_handover')->where('status_handover', '!=', '')->distinct()->pluck('status_handover')->toArray();
+        $statusList = collect(array_values(array_filter(array_unique(array_merge($defaultStatus, $dbStatus)))));
+        $officers = \App\Models\User::select('id_user as id', 'name')->orderBy('name')->get();
+
+        return view('brangkas.akta-notaris.index', compact('data', 'jenisList', 'statusList', 'officers'))
+            ->with('title', 'Akta Notaris');
     }
 
     public function storeAktaNotaris(Request $request)
@@ -220,8 +265,14 @@ class BrangkasController extends Controller
         }
 
         if ($request->hasFile('file_dokumen')) {
-            $path = $request->file('file_dokumen')->store('uploads','local');
-            $payload['file_dokumen'] = $path;
+            $file = $request->file('file_dokumen');
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+            $destDir = public_path('uploads/akta-notaris');
+            if (!file_exists($destDir)) {
+                @mkdir($destDir, 0777, true);
+            }
+            $file->move($destDir, $filename);
+            $payload['file_dokumen'] = 'uploads/akta-notaris/' . $filename;
         }
 
         AktaNotaris::create($payload);
@@ -279,15 +330,17 @@ class BrangkasController extends Controller
         }
 
         if ($request->hasFile('file_dokumen')) {
-            if ($item->file_dokumen) {
-                if (Storage::exists($item->file_dokumen)) {
-                    Storage::delete($item->file_dokumen);
-                } elseif (File::exists(public_path($item->file_dokumen))) {
-                    File::delete(public_path($item->file_dokumen));
-                }
+            if ($item->file_dokumen && file_exists(public_path($item->file_dokumen))) {
+                @unlink(public_path($item->file_dokumen));
             }
-            $path = $request->file('file_dokumen')->store('uploads', 'local');
-            $payload['file_dokumen'] = $path;
+            $file = $request->file('file_dokumen');
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+            $destDir = public_path('uploads/akta-notaris');
+            if (!file_exists($destDir)) {
+                @mkdir($destDir, 0777, true);
+            }
+            $file->move($destDir, $filename);
+            $payload['file_dokumen'] = 'uploads/akta-notaris/' . $filename;
         }
 
         $item->update($payload);
@@ -312,15 +365,108 @@ class BrangkasController extends Controller
         return redirect()->route('brangkas.akta-notaris')->with('success', 'Data Akta Notaris berhasil dihapus.');
     }
 
+    /**
+     * Apply common filters for Record of Transfer listings.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Http\Request $request
+     * @param string $categoryColumn Column name for document category (e.g., 'jenis_sertifikat', 'jenis_dokumen', 'jenis_aset')
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    private function applyRecordFilters($query, $request, $categoryColumn)
+    {
+        // Free‑text search across key columns
+        if ($request->filled('q')) {
+            $search = trim($request->q);
+            $query->where(function ($q) use ($search, $categoryColumn) {
+                if ($categoryColumn === 'jenis_sertifikat') {
+                    $q->where('nama_dokumen', 'like', "%{$search}%")
+                      ->orWhere('nomor_sertifikat', 'like', "%{$search}%")
+                      ->orWhere('nama_sertifikat', 'like', "%{$search}%")
+                      ->orWhere('desa_kelurahan', 'like', "%{$search}%")
+                      ->orWhere('kecamatan', 'like', "%{$search}%")
+                      ->orWhere('kabupaten_kota', 'like', "%{$search}%")
+                      ->orWhere('provinsi', 'like', "%{$search}%")
+                      ->orWhere('keterangan', 'like', "%{$search}%");
+                } elseif ($categoryColumn === 'jenis_dokumen') {
+                    $q->where('nama_dokumen', 'like', "%{$search}%")
+                      ->orWhere('nomor_dokumen', 'like', "%{$search}%")
+                      ->orWhere('nomor_akta', 'like', "%{$search}%")
+                      ->orWhere('nama_notaris', 'like', "%{$search}%")
+                      ->orWhere('alamat_notaris', 'like', "%{$search}%")
+                      ->orWhere('keterangan', 'like', "%{$search}%");
+                } elseif ($categoryColumn === 'jenis_aset') {
+                    $q->where('nama_barang', 'like', "%{$search}%")
+                      ->orWhere('nama_aset', 'like', "%{$search}%")
+                      ->orWhere('merek', 'like', "%{$search}%")
+                      ->orWhere('nomor_seri_model', 'like', "%{$search}%")
+                      ->orWhere('nomor_registrasi', 'like', "%{$search}%")
+                      ->orWhere('lokasi', 'like', "%{$search}%")
+                      ->orWhere('keterangan', 'like', "%{$search}%");
+                } else {
+                    $q->where('nama_dokumen', 'like', "%{$search}%")
+                      ->orWhere('keterangan', 'like', "%{$search}%");
+                }
+            });
+        }
+
+        // Filter Enumerasi: Kategori
+        $catValue = $request->filled($categoryColumn) ? $request->get($categoryColumn) : ($request->filled('kategori') ? $request->kategori : null);
+        if ($catValue) {
+            if ($categoryColumn === 'jenis_aset') {
+                $query->where(function($q) use ($catValue) {
+                    $q->where('jenis_aset', $catValue)->orWhere('jenis_barang', $catValue);
+                });
+            } else {
+                $query->where($categoryColumn, $catValue);
+            }
+        }
+
+        // Filter Enumerasi: Status Handover
+        if ($request->filled('status_handover')) {
+            $query->where('status_handover', $request->status_handover);
+        } elseif ($request->filled('status')) {
+            $query->where('status_handover', $request->status);
+        }
+
+        return $query;
+    }
+
     // ==========================================
     // DATA ASET LEMBAGA
     // ==========================================
-    public function dataAset()
+    public function dataAset(Request $request)
     {
-        $data = DataAsetLembaga::with(['user', 'handovers.user'])->orderBy('created_at', 'desc')->get();
-        // Generate auto next registration number
-        $nextRegNo = 'AST-LPM-' . date('Ym') . '-' . str_pad(($data->count() + 1), 4, '0', STR_PAD_LEFT);
-        return view('brangkas.data-aset.index', compact('data', 'nextRegNo'))->with('title', 'Data Aset Lembaga');
+        $query = DataAsetLembaga::query();
+
+        // Free‑text search across key columns
+       // Apply unified filters and pagination
+        $data = $this->applyRecordFilters($query, $request, 'jenis_aset')
+                      ->with(['user', 'handovers.user'])
+                      ->orderBy('created_at', 'desc')
+                      ->paginate(10)
+                      ->withQueryString();
+
+        // Auto next registration number based on total count
+        $nextRegNo = 'AST-LPM-' . date('Ym') . '-' . str_pad((DataAsetLembaga::count() + 1), 4, '0', STR_PAD_LEFT);
+
+        // Data for filter dropdowns (sesuai formulir input dan database)
+        $defaultJenis = ['Mobil', 'Sepeda Motor', 'Laptop', 'PC', 'Printer', 'TV', 'Lainnya'];
+        $dbJenisBarang = DataAsetLembaga::whereNotNull('jenis_barang')->where('jenis_barang', '!=', '')->distinct()->pluck('jenis_barang')->toArray();
+        $dbJenisAset = DataAsetLembaga::whereNotNull('jenis_aset')->where('jenis_aset', '!=', '')->distinct()->pluck('jenis_aset')->toArray();
+        $jenisList = collect(array_values(array_filter(array_unique(array_merge($defaultJenis, $dbJenisBarang, $dbJenisAset)))));
+
+        $defaultStatus = ['Tersedia', 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan'];
+        $dbStatus = DataAsetLembaga::whereNotNull('status_handover')->where('status_handover', '!=', '')->distinct()->pluck('status_handover')->toArray();
+        $statusList = collect(array_values(array_filter(array_unique(array_merge($defaultStatus, $dbStatus)))));
+
+        $kondisiList = DataAsetLembaga::select('kondisi_aset')->distinct()->pluck('kondisi_aset');
+        $posisiList  = DataAsetLembaga::select('posisi_aset')->distinct()->pluck('posisi_aset');
+        $sumberList  = DataAsetLembaga::select('sumber_perolehan')->distinct()->pluck('sumber_perolehan');
+        $officers    = \App\Models\User::select('id_user as id', 'name')->orderBy('name')->get();
+
+        return view('brangkas.data-aset.index', compact('data', 'nextRegNo', 'jenisList', 'kondisiList', 'posisiList', 'sumberList', 'statusList', 'officers'))
+            ->with('title', 'Data Aset Lembaga');
     }
 
     public function storeDataAset(Request $request)
@@ -372,8 +518,14 @@ class BrangkasController extends Controller
         }
 
         if ($request->hasFile('file_dokumen')) {
-            $path = $request->file('file_dokumen')->store('uploads', 'local');
-            $payload['file_dokumen'] = $path;
+            $file = $request->file('file_dokumen');
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+            $destDir = public_path('uploads/data-aset');
+            if (!file_exists($destDir)) {
+                @mkdir($destDir, 0777, true);
+            }
+            $file->move($destDir, $filename);
+            $payload['file_dokumen'] = 'uploads/data-aset/' . $filename;
         }
 
         DataAsetLembaga::create($payload);
@@ -424,11 +576,17 @@ class BrangkasController extends Controller
         }
 
         if ($request->hasFile('file_dokumen')) {
-            if ($item->file_dokumen && Storage::exists($item->file_dokumen)) {
-                Storage::delete($item->file_dokumen);
+            if ($item->file_dokumen && file_exists(public_path($item->file_dokumen))) {
+                @unlink(public_path($item->file_dokumen));
             }
-            $path = $request->file('file_dokumen')->store('uploads','local');
-            $payload['file_dokumen'] = $path;
+            $file = $request->file('file_dokumen');
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+            $destDir = public_path('uploads/data-aset');
+            if (!file_exists($destDir)) {
+                @mkdir($destDir, 0777, true);
+            }
+            $file->move($destDir, $filename);
+            $payload['file_dokumen'] = 'uploads/data-aset/' . $filename;
         }
 
         $item->update($payload);

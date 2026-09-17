@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="{{asset('assets/libs/datatables/dataTables.bootstrap5.min.css')}}" />
   <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}" />
   <link rel="stylesheet" href="{{ asset('assets/css/modern-table.css') }}" />
+  <link rel="stylesheet" href="{{ asset('assets/libs/select2/select2.min.css') }}" />
+  <link rel="stylesheet" href="{{ asset('assets/libs/select2/select2-bootstrap-5-theme.min.css') }}" />
     <style>
         body {
             background: url("/assets/images/backgrounds/layout_bg.jpg") no-repeat #F5F5F5;
@@ -212,9 +214,11 @@
         });
   </script>
 
+  <script src="{{ asset('assets/libs/select2/select2.min.js') }}"></script>
   @yield('scripts')
   @yield('modalscripts')
   @yield('extendscripts')
+  @stack('scripts')
 
 </body>
 

@@ -178,13 +178,52 @@
 
         {{-- Tabel Rekap Handover --}}
         <div class="{{ auth()->user()->canManageData() ? 'col-lg-7' : 'col-12' }}">
+            {{-- Filter & Search Card --}}
+            <div class="card shadow-sm border-0 rounded-3 mb-3" style="border: 1px solid #ebf1f6;">
+                <div class="card-body p-3">
+                    <form action="{{ route('handover.index') }}" method="GET" class="row g-2 align-items-center">
+                        <div class="col-md-4">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light"><i class="ti ti-search"></i></span>
+                                <input type="text" class="form-control" name="q" value="{{ request('q') }}" placeholder="Cari nama, pihak terkait, catatan...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select form-select-sm" name="kategori">
+                                <option value="">-- Semua Kategori --</option>
+                                <option value="Arsip Surat Tanah" {{ request('kategori') === 'Arsip Surat Tanah' ? 'selected' : '' }}>Arsip Surat Tanah</option>
+                                <option value="Akta Notaris" {{ request('kategori') === 'Akta Notaris' ? 'selected' : '' }}>Akta Notaris</option>
+                                <option value="Data Aset Lembaga" {{ request('kategori') === 'Data Aset Lembaga' ? 'selected' : '' }}>Data Aset Lembaga</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select form-select-sm" name="status">
+                                <option value="">-- Semua Status --</option>
+                                <option value="Dipinjam" {{ request('status') === 'Dipinjam' ? 'selected' : '' }}>Dipinjam</option>
+                                <option value="Diagunkan" {{ request('status') === 'Diagunkan' ? 'selected' : '' }}>Diagunkan</option>
+                                <option value="Dihibahkan" {{ request('status') === 'Dihibahkan' ? 'selected' : '' }}>Dihibahkan</option>
+                                <option value="Dikembalikan" {{ request('status') === 'Dikembalikan' ? 'selected' : '' }}>Dikembalikan</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex gap-1">
+                            <button type="submit" class="btn btn-sm btn-primary flex-fill" title="Terapkan Filter">
+                                <i class="ti ti-filter me-1"></i>Filter
+                            </button>
+                            <a href="{{ route('handover.index') }}" class="btn btn-sm btn-outline-secondary" title="Reset Filter">
+                                <i class="ti ti-refresh"></i>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="card shadow-sm border-0 rounded-3" style="border: 1px solid #ebf1f6;">
                 <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
                     <h5 class="card-title text-dark fw-bold mb-0 d-flex align-items-center gap-2">
                         <i class="ti ti-list" style="color: #5D87FF;"></i>
                         <span>Log Record of Transfer</span>
                     </h5>
-                    <span class="badge bg-light text-primary border">{{ $records->count() }} Data</span>
+                    <span class="badge bg-light text-primary border">{{ $records->total() }} Data</span>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -204,7 +243,7 @@
                             <tbody>
                                 @forelse($records as $i => $rec)
                                 <tr>
-                                    <td class="ps-3">{{ $i+1 }}</td>
+                                    <td class="ps-3">{{ $records->firstItem() + $i }}</td>
                                     <td><span class="badge bg-light text-dark border">{{ $rec->kategori }}</span></td>
                                     <td class="fw-semibold text-dark">{{ $rec->nama_dokumen }}</td>
                                     <td>
@@ -251,13 +290,25 @@
                                 <tr>
                                     <td colspan="8" class="text-center text-muted py-5">
                                         <i class="ti ti-inbox fs-2 d-block mb-2 text-muted"></i>
-                                        Belum ada data perpindahan dokumen / aset.
+                                        Belum ada data perpindahan dokumen / aset yang sesuai pencarian / filter.
                                     </td>
                                 </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
+
+                    {{-- Paginasi --}}
+                    @if($records->hasPages())
+                    <div class="p-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <small class="text-muted">
+                            Menampilkan {{ $records->firstItem() ?? 0 }} - {{ $records->lastItem() ?? 0 }} dari total {{ $records->total() }} data
+                        </small>
+                        <div>
+                            {{ $records->links() }}
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -275,11 +326,17 @@ $(document).ready(function() {
         var $hint = $('#doc_hint');
 
         if (!kategori) {
+            if ($refSelect.hasClass('select2-hidden-accessible')) {
+                $refSelect.select2('destroy');
+            }
             $refSelect.html('<option value="">-- Pilih Kategori terlebih dahulu --</option>').prop('disabled', true);
             $hint.hide();
             return;
         }
 
+        if ($refSelect.hasClass('select2-hidden-accessible')) {
+            $refSelect.select2('destroy');
+        }
         $refSelect.html('<option value="">Memuat data dokumen...</option>').prop('disabled', true);
 
         $.ajax({
@@ -295,12 +352,20 @@ $(document).ready(function() {
                         $refSelect.append('<option value="">-- Tidak ada dokumen yang tersedia --</option>');
                     }
                 } else {
-                    $refSelect.append('<option value="">-- Pilih Dokumen / Aset (' + data.length + ' item) --</option>');
+                    $refSelect.append('<option value="">-- Ketik / Cari Dokumen atau Aset (' + data.length + ' item) --</option>');
                     $.each(data, function(index, item) {
                         $refSelect.append('<option value="' + item.id + '" data-nama="' + item.nama_dokumen + '">' + item.nama_dokumen + '</option>');
                     });
                 }
                 $refSelect.prop('disabled', false);
+
+                // Aktifkan Fitur Pencarian Select2
+                $refSelect.select2({
+                    theme: 'bootstrap-5',
+                    placeholder: '-- Ketik / Cari Dokumen atau Aset --',
+                    allowClear: true,
+                    width: '100%'
+                });
 
                 if (status === 'Dikembalikan') {
                     $hint.html('<span class="text-success"><i class="ti ti-info-circle me-1"></i>Hanya menampilkan dokumen yang sedang dipinjam / diagunkan untuk proses pengembalian.</span>').show();
@@ -340,7 +405,7 @@ $(document).ready(function() {
         loadDocuments();
     });
 
-    $('#ref_id').on('change', function() {
+    $(document).on('change select2:select', '#ref_id', function() {
         var selectedText = $(this).find('option:selected').data('nama');
         // Bersihkan tag status di nama dokumen sebelum simpan
         if (selectedText) {

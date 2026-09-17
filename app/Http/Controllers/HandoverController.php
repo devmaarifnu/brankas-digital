@@ -141,7 +141,7 @@ class HandoverController extends Controller
             'nama_dokumen'    => 'required|string',
             'status'          => 'required|in:Dipinjam,Diagunkan,Dihibahkan,Dikembalikan',
             'tgl_serahterima' => 'required|date',
-            'file_bukti'      => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:15360',
+            'file_bukti'      => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:20480',
         ]);
 
         // Cari item sumber

@@ -9,7 +9,7 @@
   <link rel="shortcut icon" type="image/jpeg" href="{{ asset('assets/images/logos/fotobrankas.jpeg') }}?v=3" />
   <link rel="stylesheet" href="{{ asset('assets/css/styles.min.css') }}" />
   <link rel="stylesheet" href="{{asset('assets/libs/datatables/dataTables.bootstrap5.min.css')}}" />
-  <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}" />
+  <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}?v={{ time() }}" />
   <link rel="stylesheet" href="{{ asset('assets/css/modern-table.css') }}" />
   <link rel="stylesheet" href="{{ asset('assets/libs/select2/select2.min.css') }}" />
   <link rel="stylesheet" href="{{ asset('assets/libs/select2/select2-bootstrap-5-theme.min.css') }}" />
@@ -166,8 +166,8 @@
       </div>
       <!-- End Modal Change Password -->
 
-        <div class="py-6 px-6 text-center">
-          <p class="mb-0 fs-4"> Copyright &copy; {{ date('Y') }} <strong>Brangkas Digital</strong> &mdash; LP Ma'arif NU PBNU &bull; brankas.maarifnu.or.id </p>
+        <div class="py-3 px-3 text-center mt-2">
+          <p class="mb-0 text-muted" style="font-size: 11px; letter-spacing: 0.2px;"> Copyright &copy; {{ date('Y') }} <strong class="text-dark">Brangkas Digital</strong> &mdash; LP Ma'arif NU PBNU &bull; brankas.maarifnu.or.id </p>
         </div>
       </div>
     </div>

@@ -147,11 +147,15 @@
                             <td><small class="text-muted">{{ $item->tgl_input ? $item->tgl_input->format('d/m/Y') : ($item->created_at ? $item->created_at->format('d/m/Y') : '-') }}</small></td>
                             <td class="text-center">
                                 @if($item->file_dokumen)
-                                    <button type="button" class="btn btn-sm btn-outline-primary px-2 py-1 shadow-sm btn-preview"
+                                    @php
+                                        $ext = strtolower(pathinfo($item->file_dokumen, PATHINFO_EXTENSION));
+                                        $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif']);
+                                    @endphp
+                                    <button type="button" class="btn btn-sm {{ $isImg ? 'btn-outline-success' : 'btn-outline-primary' }} px-2 py-1 shadow-sm btn-preview"
                                             data-title="{{ $item->nama_barang ?? $item->nama_aset }}"
                                             data-url="{{ asset($item->file_dokumen) }}"
-                                            title="Lihat Foto/Dokumen PDF">
-                                        <i class="ti ti-file-text me-1"></i>PDF
+                                            title="Lihat {{ $isImg ? 'Foto' : 'Dokumen PDF' }}">
+                                        <i class="ti {{ $isImg ? 'ti-photo' : 'ti-file-text' }} me-1"></i>{{ $isImg ? 'Foto' : 'PDF' }}
                                     </button>
                                 @else
                                     <span class="text-muted small">-</span>
@@ -340,13 +344,37 @@
                         </div>
                     </div>
 
-                    {{-- 12. Upload Foto/Dokumen Aset (Kunci PDF) --}}
+                    {{-- 12. Upload Foto/Dokumen Aset (Kamera, Galeri, PDF) --}}
                     <div class="mb-3 p-3 bg-light rounded border">
-                        <label class="form-label fw-semibold text-primary">
-                            <i class="ti ti-file-upload me-1"></i>12. Upload Foto / Dokumen Aset (Wajib PDF)
+                        <label class="form-label fw-semibold text-primary d-flex align-items-center justify-content-between flex-wrap gap-1 mb-2">
+                            <span><i class="ti ti-camera me-1"></i>12. Upload Foto / Dokumen Aset Fisik</span>
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 fs-1">PDF / Foto / Kamera HP</span>
                         </label>
-                        <input type="file" class="form-control" name="file_dokumen" accept=".pdf,application/pdf">
-                        <div class="form-text text-danger"><i class="ti ti-info-circle me-1"></i>Hanya format file <strong>PDF</strong> yang diizinkan. Maksimal 15MB.</div>
+                        
+                        {{-- Tombol Cepat Pilihan: Kamera HP, Galeri Foto, atau PDF --}}
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 btn-trigger-camera">
+                                <i class="ti ti-camera fs-4"></i> Buka Kamera HP
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1 btn-trigger-gallery">
+                                <i class="ti ti-photo fs-4"></i> Pilih Foto / Galeri
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 btn-trigger-pdf">
+                                <i class="ti ti-file-type-pdf fs-4"></i> Pilih File PDF
+                            </button>
+                        </div>
+
+                        {{-- Hidden specialized inputs --}}
+                        <input type="file" class="d-none input-camera" accept="image/*" capture="environment">
+                        <input type="file" class="d-none input-gallery" accept="image/*">
+                        <input type="file" class="d-none input-pdf" accept=".pdf,application/pdf">
+
+                        {{-- Input file utama --}}
+                        <input type="file" class="form-control main-upload-input" name="file_dokumen" accept=".pdf,application/pdf,image/*">
+                        <div class="form-text text-muted small mt-1">
+                            <i class="ti ti-info-circle me-1"></i>Mendukung <strong>PDF, Foto Kamera, atau Galeri HP</strong> (Maksimal 20MB).
+                        </div>
+                        <div class="preview-selected-file mt-2" style="display: none;"></div>
                     </div>
 
                     {{-- 13. Nama Petugas & 14. Tanggal Input --}}
@@ -361,16 +389,19 @@
                         </div>
                     </div>
 
-                    {{-- 15. Keterangan --}}
+                    {{-- 15. Status --}}
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">15. Keterangan</label>
-                        <select class="form-select" name="keterangan" id="ast_keterangan">
-                            <option value="Dipakai kebutuhan operasional kantor" selected>Dipakai kebutuhan operasional kantor</option>
-                            <option value="Dipinjam untuk kegiatan operasional">Dipinjam untuk kegiatan operasional</option>
-                            <option value="Cadangan inventaris kantor">Cadangan inventaris kantor</option>
+                        <label class="form-label fw-semibold">15. Status <span class="text-danger">*</span></label>
+                        <select class="form-select" name="keterangan" id="ast_keterangan" required>
+                            <option value="Tersedia" selected>Tersedia (Operasional Kantor)</option>
+                            <option value="Dipinjam">Dipinjam</option>
+                            <option value="Diagunkan">Diagunkan</option>
+                            <option value="Dihibahkan">Dihibahkan</option>
+                            <option value="Dikembalikan">Dikembalikan</option>
+                            <option value="Rusak / Perbaikan">Rusak / Perbaikan</option>
                             <option value="Isi Sendiri">Isi Sendiri...</option>
                         </select>
-                        <input type="text" class="form-control mt-2" name="keterangan_custom" id="ast_keterangan_custom" placeholder="Tuliskan keterangan..." style="display:none;">
+                        <input type="text" class="form-control mt-2" name="keterangan_custom" id="ast_keterangan_custom" placeholder="Tuliskan status khusus..." style="display:none;">
                     </div>
                 </div>
                 <div class="modal-footer border-top px-4 py-3 bg-white">
@@ -410,7 +441,7 @@
                         <tr><th class="bg-light">Ruangan / Penerima</th><td id="dt_ast_lokasi">-</td></tr>
                         <tr><th class="bg-light">Nama Petugas</th><td id="dt_ast_petugas">-</td></tr>
                         <tr><th class="bg-light">Tanggal Input</th><td id="dt_ast_tglinput">-</td></tr>
-                        <tr><th class="bg-light">Keterangan</th><td id="dt_ast_keterangan">-</td></tr>
+                        <tr><th class="bg-light">Status</th><td id="dt_ast_keterangan">-</td></tr>
                         <tr><th class="bg-light">Dokumen/Foto Terlampir</th><td id="dt_ast_file">-</td></tr>
                     </tbody>
                 </table>
@@ -527,22 +558,88 @@ $(document).ready(function() {
         }
     });
 
-    // Preview PDF
-    $('.btn-preview').on('click', function() {
-        var docUrl = $(this).data('url');
-        var docTitle = $(this).data('title');
-        $('#previewTitle').text('Pratinjau Dokumen PDF: ' + docTitle);
+    // Helper Function Pratinjau Dokumen / Foto
+    function openPreviewDoc(docUrl, docTitle) {
+        if (!docUrl) return;
+        var ext = docUrl.split('.').pop().toLowerCase().split('?')[0];
+        var isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'].includes(ext);
+
+        $('#previewTitle').text((isImage ? 'Pratinjau Foto/Gambar: ' : 'Pratinjau Dokumen PDF: ') + docTitle);
         $('#btnOpenTab').attr('href', docUrl);
         $('#previewFilename').text(docTitle);
-        $('#previewContainer').html('<iframe src="' + docUrl + '" style="width: 100%; height: 75vh; border: none;"></iframe>');
+
+        if (isImage) {
+            $('#previewContainer').html('<div class="p-3 d-flex align-items-center justify-content-center" style="min-height: 450px;"><img src="' + docUrl + '" class="img-fluid rounded shadow-sm" style="max-height: 75vh; max-width: 100%; object-fit: contain;"></div>');
+        } else {
+            $('#previewContainer').html('<iframe src="' + docUrl + '" style="width: 100%; height: 75vh; border: none;"></iframe>');
+        }
         new bootstrap.Modal(document.getElementById('modalPreviewDoc')).show();
+    }
+
+    // Preview Button Click (Tabel & Modal)
+    $(document).on('click', '.btn-preview', function() {
+        var docUrl = $(this).data('url');
+        var docTitle = $(this).data('title') || 'Foto / Dokumen Aset';
+        openPreviewDoc(docUrl, docTitle);
+    });
+
+    // Helper Upload: Buka Kamera HP, Galeri, dan PDF
+    $(document).on('click', '.btn-trigger-camera', function() {
+        $(this).closest('.p-3').find('.input-camera').trigger('click');
+    });
+    $(document).on('click', '.btn-trigger-gallery', function() {
+        $(this).closest('.p-3').find('.input-gallery').trigger('click');
+    });
+    $(document).on('click', '.btn-trigger-pdf', function() {
+        $(this).closest('.p-3').find('.input-pdf').trigger('click');
+    });
+
+    $(document).on('change', '.input-camera, .input-gallery, .input-pdf', function() {
+        if (this.files && this.files[0]) {
+            var $parent = $(this).closest('.p-3');
+            var mainInput = $parent.find('.main-upload-input')[0];
+            var dt = new DataTransfer();
+            dt.items.add(this.files[0]);
+            mainInput.files = dt.files;
+            $(mainInput).trigger('change');
+        }
+    });
+
+    $(document).on('change', '.main-upload-input', function() {
+        var $parent = $(this).closest('.p-3');
+        var $preview = $parent.find('.preview-selected-file');
+        if (this.files && this.files[0]) {
+            var file = this.files[0];
+            var isImg = file.type.startsWith('image/');
+            var sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+            var html = '<div class="alert alert-info py-2 px-3 mb-0 d-flex align-items-center gap-2 flex-wrap">' +
+                       '  <i class="ti ' + (isImg ? 'ti-photo text-success' : 'ti-file-type-pdf text-danger') + ' fs-5"></i>' +
+                       '  <div class="flex-grow-1"><strong class="d-block text-truncate" style="max-width:250px;">' + file.name + '</strong><small class="text-muted">' + sizeMb + ' MB</small></div>';
+            if (isImg) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $preview.html(html + '<img src="' + e.target.result + '" class="rounded border ms-auto" style="height:45px;width:45px;object-fit:cover;"></div>').slideDown();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                $preview.html(html + '</div>').slideDown();
+            }
+        } else {
+            $preview.empty().slideUp();
+        }
     });
 
     // Detail Modal
     $('.btn-detail').on('click', function() {
+        console.log('btn-detail clicked (aset)');
         var item = $(this).data('item');
+        console.log('item data:', item, typeof item);
         var fileUrl = $(this).data('url');
         var usia = $(this).data('usia');
+
+        if (!item || typeof item !== 'object') {
+            try { item = JSON.parse(item); } catch(e) { console.error('JSON parse error:', e); alert('Gagal membaca data item. Cek console browser.'); return; }
+        }
 
         $('#dt_ast_reg').text(item.nomor_registrasi || '-');
         $('#dt_ast_jenis').text(item.jenis_barang || item.jenis_aset || '-');
@@ -559,9 +656,17 @@ $(document).ready(function() {
         $('#dt_ast_keterangan').html(item.warna_merah ? '<span class="badge bg-danger">' + (item.keterangan || 'Status Khusus') + '</span>' : '<span class="badge bg-success">' + (item.keterangan || 'Operasional Kantor') + '</span>');
         
         if (fileUrl) {
-            $('#dt_ast_file').html('<a href="' + fileUrl + '" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ti ti-download me-1"></i>Unduh PDF</a>');
+            var ext = fileUrl.split('.').pop().toLowerCase().split('?')[0];
+            var isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'].includes(ext);
+            var btnIcon = isImage ? 'ti-photo' : 'ti-file-type-pdf';
+            var btnLabel = isImage ? 'Lihat Foto' : 'Lihat Dokumen';
+
+            $('#dt_ast_file').html(
+                '<button type="button" class="btn btn-sm btn-primary me-2 btn-preview" data-url="' + fileUrl + '" data-title="' + (item.nama_barang || item.nama_aset || '') + '"><i class="ti ' + btnIcon + ' me-1"></i>' + btnLabel + '</button>' +
+                '<a href="' + fileUrl + '" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="ti ti-external-link me-1"></i>Buka Tab Baru</a>'
+            );
         } else {
-            $('#dt_ast_file').text('Tidak ada dokumen PDF');
+            $('#dt_ast_file').text('Tidak ada dokumen/foto PDF');
         }
 
         // Render Riwayat Handover
@@ -606,7 +711,9 @@ $(document).ready(function() {
                 '</tr>');
             });
             setupHistoryPagination('dt_ast_handovers_body', 'dt_ast_handovers_pagination', 5);
-        } else {
+        }
+
+        if (handovers.length === 0) {
             $('#dt_ast_handovers_pagination').empty();
         }
 

@@ -142,19 +142,47 @@
                             </div>
                         </div>
 
-                        {{-- 12. Upload Dokumen PDF --}}
+                        {{-- 12. Upload Dokumen / Foto (Kamera, Galeri, PDF) --}}
                         <div class="mb-3 p-3 bg-light rounded border">
-                            <label class="form-label fw-semibold text-primary">
-                                <i class="ti ti-file-upload me-1"></i>12. Upload Foto / Dokumen Aset (Wajib PDF)
+                            <label class="form-label fw-semibold text-primary d-flex align-items-center justify-content-between flex-wrap gap-1 mb-2">
+                                <span><i class="ti ti-camera me-1"></i>12. Upload Foto / Dokumen Aset Fisik</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 fs-1">PDF / Foto / Kamera HP</span>
                             </label>
                             @if($item->file_dokumen)
-                                <div class="mb-2">
-                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 me-2"><i class="ti ti-file-check me-1"></i>Dokumen PDF sudah ada</span>
-                                    <a href="{{ asset($item->file_dokumen) }}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2">Lihat File PDF Saat Ini</a>
+                                @php
+                                    $ext = strtolower(pathinfo($item->file_dokumen, PATHINFO_EXTENSION));
+                                    $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif']);
+                                @endphp
+                                <div class="mb-2 p-2 bg-white rounded border d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25"><i class="ti {{ $isImg ? 'ti-photo' : 'ti-file-check' }} me-1"></i>Berkas saat ini ada</span>
+                                    <a href="{{ asset($item->file_dokumen) }}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2">Lihat {{ $isImg ? 'Foto' : 'PDF' }} Saat Ini</a>
                                 </div>
                             @endif
-                            <input type="file" class="form-control" name="file_dokumen" accept=".pdf,application/pdf">
-                            <div class="form-text text-danger"><i class="ti ti-info-circle me-1"></i>Biarkan kosong jika tidak mengganti file. Format wajib PDF.</div>
+
+                            {{-- Tombol Cepat Pilihan: Kamera HP, Galeri Foto, atau PDF --}}
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 btn-trigger-camera">
+                                    <i class="ti ti-camera fs-4"></i> Buka Kamera HP
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1 btn-trigger-gallery">
+                                    <i class="ti ti-photo fs-4"></i> Pilih Foto / Galeri
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 btn-trigger-pdf">
+                                    <i class="ti ti-file-type-pdf fs-4"></i> Pilih File PDF
+                                </button>
+                            </div>
+
+                            {{-- Hidden specialized inputs --}}
+                            <input type="file" class="d-none input-camera" accept="image/*" capture="environment">
+                            <input type="file" class="d-none input-gallery" accept="image/*">
+                            <input type="file" class="d-none input-pdf" accept=".pdf,application/pdf">
+
+                            {{-- Input file utama --}}
+                            <input type="file" class="form-control main-upload-input" name="file_dokumen" accept=".pdf,application/pdf,image/*">
+                            <div class="form-text text-muted small mt-1">
+                                <i class="ti ti-info-circle me-1"></i>Biarkan kosong jika tidak mengganti file. Mendukung <strong>PDF, Foto Kamera, atau Galeri HP</strong> (Maksimal 20MB).
+                            </div>
+                            <div class="preview-selected-file mt-2" style="display: none;"></div>
                         </div>
 
                         {{-- 13. Petugas & 14. Tgl Input --}}
@@ -169,10 +197,17 @@
                             </div>
                         </div>
 
-                        {{-- 15. Keterangan --}}
+                        {{-- 15. Status --}}
                         <div class="mb-4">
-                            <label class="form-label fw-semibold">15. Keterangan</label>
-                            <input type="text" class="form-control" name="keterangan" value="{{ old('keterangan', $item->keterangan) }}">
+                            <label class="form-label fw-semibold">15. Status <span class="text-danger">*</span></label>
+                            <select class="form-select" name="keterangan" id="ast_keterangan_edit" required>
+                                @foreach(['Tersedia', 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan', 'Rusak / Perbaikan'] as $st)
+                                    <option value="{{ $st }}" {{ old('keterangan', $item->status_handover ?: $item->keterangan) == $st ? 'selected' : '' }}>{{ $st }}</option>
+                                @endforeach
+                                @if(!in_array(old('keterangan', $item->status_handover ?: $item->keterangan), ['Tersedia', 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan', 'Rusak / Perbaikan']) && !empty($item->keterangan))
+                                    <option value="{{ $item->keterangan }}" selected>{{ $item->keterangan }}</option>
+                                @endif
+                            </select>
                         </div>
 
                         <div class="d-flex justify-content-end gap-2">
@@ -205,6 +240,52 @@ $(document).ready(function() {
         togglePosisi($(this).val());
     });
     togglePosisi($('#edit_posisi_aset').val());
+
+    // Upload Trigger Handlers
+    $(document).on('click', '.btn-trigger-camera', function() {
+        $(this).closest('.p-3').find('.input-camera').trigger('click');
+    });
+    $(document).on('click', '.btn-trigger-gallery', function() {
+        $(this).closest('.p-3').find('.input-gallery').trigger('click');
+    });
+    $(document).on('click', '.btn-trigger-pdf', function() {
+        $(this).closest('.p-3').find('.input-pdf').trigger('click');
+    });
+
+    $(document).on('change', '.input-camera, .input-gallery, .input-pdf', function() {
+        if (this.files && this.files[0]) {
+            var $parent = $(this).closest('.p-3');
+            var mainInput = $parent.find('.main-upload-input')[0];
+            var dt = new DataTransfer();
+            dt.items.add(this.files[0]);
+            mainInput.files = dt.files;
+            $(mainInput).trigger('change');
+        }
+    });
+
+    $(document).on('change', '.main-upload-input', function() {
+        var $parent = $(this).closest('.p-3');
+        var $preview = $parent.find('.preview-selected-file');
+        if (this.files && this.files[0]) {
+            var file = this.files[0];
+            var isImg = file.type.startsWith('image/');
+            var sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+            var html = '<div class="alert alert-info py-2 px-3 mb-0 d-flex align-items-center gap-2 flex-wrap">' +
+                       '  <i class="ti ' + (isImg ? 'ti-photo text-success' : 'ti-file-type-pdf text-danger') + ' fs-5"></i>' +
+                       '  <div class="flex-grow-1"><strong class="d-block text-truncate" style="max-width:250px;">' + file.name + '</strong><small class="text-muted">' + sizeMb + ' MB</small></div>';
+            if (isImg) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $preview.html(html + '<img src="' + e.target.result + '" class="rounded border ms-auto" style="height:45px;width:45px;object-fit:cover;"></div>').slideDown();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                $preview.html(html + '</div>').slideDown();
+            }
+        } else {
+            $preview.empty().slideUp();
+        }
+    });
 });
 </script>
 @endsection

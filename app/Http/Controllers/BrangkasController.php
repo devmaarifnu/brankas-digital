@@ -52,12 +52,12 @@ class BrangkasController extends Controller
             'kecamatan'        => 'nullable|string|max:100',
             'kabupaten_kota'   => 'nullable|string|max:100',
             'provinsi'         => 'nullable|string|max:100',
-            'file_dokumen'     => 'nullable|file|mimes:pdf|max:15360',
+            'file_dokumen'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
             'tgl_input'        => 'nullable|date',
             'keterangan'       => 'nullable|string',
         ], [
             'required' => 'Kolom :attribute wajib diisi.',
-            'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF.',
+            'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
         ]);
 
         $payload = $request->except('file_dokumen');
@@ -78,14 +78,10 @@ class BrangkasController extends Controller
         }
 
         // Tentukan status handover & warna merah
-        $ket = strtolower($payload['keterangan'] ?? '');
-        if (str_contains($ket, 'tidak ada') || str_contains($ket, 'fotocopy') || str_contains($ket, 'dipinjam') || str_contains($ket, 'diagunkan')) {
-            $payload['warna_merah'] = true;
-            $payload['status_handover'] = str_contains($ket, 'diagunkan') ? 'Diagunkan' : (str_contains($ket, 'dipinjam') ? 'Dipinjam' : 'Ditangguhkan');
-        } else {
-            $payload['warna_merah'] = false;
-            $payload['status_handover'] = 'Tersedia';
-        }
+        $statusInfo = $this->resolveStatusFields($payload['keterangan'] ?? 'Tersedia');
+        $payload['keterangan'] = $statusInfo['keterangan'];
+        $payload['status_handover'] = $statusInfo['status_handover'];
+        $payload['warna_merah'] = $statusInfo['warna_merah'];
 
         if ($request->hasFile('file_dokumen')) {
             $file = $request->file('file_dokumen');
@@ -124,9 +120,9 @@ class BrangkasController extends Controller
             'nomor_sertifikat' => 'required|string|max:100',
             'luas'             => 'required|string|max:50',
             'nama_sertifikat'  => 'required|string|max:255',
-            'file_dokumen'     => 'nullable|file|mimes:pdf|max:15360',
+            'file_dokumen'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
         ], [
-            'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF.',
+            'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
         ]);
 
         $payload = $request->except('file_dokumen');
@@ -143,14 +139,10 @@ class BrangkasController extends Controller
             $payload['jenis_sertifikat'] = $request->jenis_sertifikat_custom;
         }
 
-        $ket = strtolower($payload['keterangan'] ?? '');
-        if (str_contains($ket, 'tidak ada') || str_contains($ket, 'fotocopy') || str_contains($ket, 'dipinjam') || str_contains($ket, 'diagunkan')) {
-            $payload['warna_merah'] = true;
-            $payload['status_handover'] = str_contains($ket, 'diagunkan') ? 'Diagunkan' : (str_contains($ket, 'dipinjam') ? 'Dipinjam' : 'Ditangguhkan');
-        } else {
-            $payload['warna_merah'] = false;
-            $payload['status_handover'] = 'Tersedia';
-        }
+        $statusInfo = $this->resolveStatusFields($payload['keterangan'] ?? 'Tersedia');
+        $payload['keterangan'] = $statusInfo['keterangan'];
+        $payload['status_handover'] = $statusInfo['status_handover'];
+        $payload['warna_merah'] = $statusInfo['warna_merah'];
 
         if ($request->hasFile('file_dokumen')) {
             if ($item->file_dokumen && file_exists(public_path($item->file_dokumen))) {
@@ -230,12 +222,12 @@ class BrangkasController extends Controller
             'nama_notaris'   => 'nullable|string|max:150',
             'alamat_notaris' => 'nullable|string',
             'telp_notaris'   => 'nullable|string|max:50',
-            'file_dokumen'   => 'nullable|file|mimes:pdf|max:15360',
+            'file_dokumen'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
             'nama_petugas'   => 'nullable|string|max:100',
             'tgl_input'      => 'nullable|date',
             'keterangan'     => 'nullable|string',
         ], [
-            'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF.',
+            'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
         ]);
 
         $payload = $request->except('file_dokumen');
@@ -255,14 +247,11 @@ class BrangkasController extends Controller
             $payload['jenis_dokumen'] = $request->jenis_dokumen_custom;
         }
 
-        $ket = strtolower($payload['keterangan'] ?? '');
-        if (str_contains($ket, 'tidak ada') || str_contains($ket, 'fotocopy') || str_contains($ket, 'dipinjam') || str_contains($ket, 'diagunkan')) {
-            $payload['warna_merah'] = true;
-            $payload['status_handover'] = str_contains($ket, 'diagunkan') ? 'Diagunkan' : (str_contains($ket, 'dipinjam') ? 'Dipinjam' : 'Ditangguhkan');
-        } else {
-            $payload['warna_merah'] = false;
-            $payload['status_handover'] = 'Tersedia';
-        }
+        // Tentukan status handover & warna merah
+        $statusInfo = $this->resolveStatusFields($payload['keterangan'] ?? 'Tersedia');
+        $payload['keterangan'] = $statusInfo['keterangan'];
+        $payload['status_handover'] = $statusInfo['status_handover'];
+        $payload['warna_merah'] = $statusInfo['warna_merah'];
 
         if ($request->hasFile('file_dokumen')) {
             $file = $request->file('file_dokumen');
@@ -300,9 +289,9 @@ class BrangkasController extends Controller
             'jenis_dokumen' => 'required|string|max:100',
             'nomor_dokumen' => 'required|string|max:100',
             'nama_dokumen'  => 'required|string|max:255',
-            'file_dokumen'  => 'nullable|file|mimes:pdf|max:15360',
+            'file_dokumen'  => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
         ], [
-            'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF.',
+            'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
         ]);
 
         $payload = $request->except('file_dokumen');
@@ -320,14 +309,10 @@ class BrangkasController extends Controller
             $payload['jenis_dokumen'] = $request->jenis_dokumen_custom;
         }
 
-        $ket = strtolower($payload['keterangan'] ?? '');
-        if (str_contains($ket, 'tidak ada') || str_contains($ket, 'fotocopy') || str_contains($ket, 'dipinjam') || str_contains($ket, 'diagunkan')) {
-            $payload['warna_merah'] = true;
-            $payload['status_handover'] = str_contains($ket, 'diagunkan') ? 'Diagunkan' : (str_contains($ket, 'dipinjam') ? 'Dipinjam' : 'Ditangguhkan');
-        } else {
-            $payload['warna_merah'] = false;
-            $payload['status_handover'] = 'Tersedia';
-        }
+        $statusInfo = $this->resolveStatusFields($payload['keterangan'] ?? 'Tersedia');
+        $payload['keterangan'] = $statusInfo['keterangan'];
+        $payload['status_handover'] = $statusInfo['status_handover'];
+        $payload['warna_merah'] = $statusInfo['warna_merah'];
 
         if ($request->hasFile('file_dokumen')) {
             if ($item->file_dokumen && file_exists(public_path($item->file_dokumen))) {
@@ -422,14 +407,54 @@ class BrangkasController extends Controller
             }
         }
 
-        // Filter Enumerasi: Status Handover
-        if ($request->filled('status_handover')) {
-            $query->where('status_handover', $request->status_handover);
-        } elseif ($request->filled('status')) {
-            $query->where('status_handover', $request->status);
+        // Filter Enumerasi: Status Handover / Status
+        $statusVal = $request->filled('status_handover') ? $request->status_handover : ($request->filled('status') ? $request->status : null);
+        if ($statusVal) {
+            $query->where(function($q) use ($statusVal) {
+                $q->where('status_handover', $statusVal)
+                  ->orWhere('keterangan', $statusVal)
+                  ->orWhere('keterangan', 'like', "%{$statusVal}%");
+            });
         }
 
         return $query;
+    }
+
+    /**
+     * Helper to resolve status, status_handover, and color indicator
+     */
+    private function resolveStatusFields(?string $inputStatus = null): array
+    {
+        $status = $inputStatus ?: 'Tersedia';
+        $ket = strtolower($status);
+        $isRed = false;
+        $handoverStatus = 'Tersedia';
+
+        if (str_contains($ket, 'diagunkan')) {
+            $isRed = true;
+            $handoverStatus = 'Diagunkan';
+        } elseif (str_contains($ket, 'dipinjam')) {
+            $isRed = true;
+            $handoverStatus = 'Dipinjam';
+        } elseif (str_contains($ket, 'dihibahkan')) {
+            $isRed = true;
+            $handoverStatus = 'Dihibahkan';
+        } elseif (str_contains($ket, 'dikembalikan')) {
+            $isRed = false;
+            $handoverStatus = 'Dikembalikan';
+        } elseif (str_contains($ket, 'fotocopy') || str_contains($ket, 'tidak ada') || str_contains($ket, 'rusak')) {
+            $isRed = true;
+            $handoverStatus = $status;
+        } else {
+            $isRed = false;
+            $handoverStatus = 'Tersedia';
+        }
+
+        return [
+            'keterangan' => $status,
+            'status_handover' => $handoverStatus,
+            'warna_merah' => $isRed,
+        ];
     }
 
     // ==========================================
@@ -484,9 +509,9 @@ class BrangkasController extends Controller
             'tgl_perolehan'      => 'nullable|date',
             'kondisi_aset'       => 'nullable|string|max:50',
             'posisi_aset'        => 'nullable|string|max:50',
-            'file_dokumen'       => 'nullable|file|mimes:pdf|max:15360',
+            'file_dokumen'       => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
         ], [
-            'file_dokumen.mimes' => 'Foto/Berkas aset wajib berformat PDF.',
+            'file_dokumen.mimes' => 'Foto/Berkas aset wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
         ]);
 
         $payload = $request->except('file_dokumen');
@@ -507,15 +532,10 @@ class BrangkasController extends Controller
             $payload['keterangan'] = $request->keterangan_custom;
         }
 
-        $posisi = $payload['posisi_aset'] ?? 'Kantor';
-        $kondisi = $payload['kondisi_aset'] ?? 'Sangat Baik';
-        if ($posisi === 'Dipinjam' || $posisi === 'Dihibahkan' || $kondisi === 'Rusak Berat') {
-            $payload['warna_merah'] = true;
-            $payload['status_handover'] = $posisi;
-        } else {
-            $payload['warna_merah'] = false;
-            $payload['status_handover'] = 'Tersedia';
-        }
+        $statusInfo = $this->resolveStatusFields($payload['keterangan'] ?? 'Tersedia');
+        $payload['keterangan'] = $statusInfo['keterangan'];
+        $payload['status_handover'] = $statusInfo['status_handover'];
+        $payload['warna_merah'] = $statusInfo['warna_merah'];
 
         if ($request->hasFile('file_dokumen')) {
             $file = $request->file('file_dokumen');
@@ -551,9 +571,9 @@ class BrangkasController extends Controller
 
         $request->validate([
             'nama_barang'  => 'required|string|max:255',
-            'file_dokumen' => 'nullable|file|mimes:pdf|max:15360',
+            'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
         ], [
-            'file_dokumen.mimes' => 'Foto/Berkas aset wajib berformat PDF.',
+            'file_dokumen.mimes' => 'Foto/Berkas aset wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
         ]);
 
         $payload = $request->except('file_dokumen');
@@ -565,15 +585,10 @@ class BrangkasController extends Controller
             $payload['keterangan'] = $request->keterangan_custom;
         }
 
-        $posisi = $payload['posisi_aset'] ?? 'Kantor';
-        $kondisi = $payload['kondisi_aset'] ?? 'Sangat Baik';
-        if ($posisi === 'Dipinjam' || $posisi === 'Dihibahkan' || $kondisi === 'Rusak Berat') {
-            $payload['warna_merah'] = true;
-            $payload['status_handover'] = $posisi;
-        } else {
-            $payload['warna_merah'] = false;
-            $payload['status_handover'] = 'Tersedia';
-        }
+        $statusInfo = $this->resolveStatusFields($payload['keterangan'] ?? 'Tersedia');
+        $payload['keterangan'] = $statusInfo['keterangan'];
+        $payload['status_handover'] = $statusInfo['status_handover'];
+        $payload['warna_merah'] = $statusInfo['warna_merah'];
 
         if ($request->hasFile('file_dokumen')) {
             if ($item->file_dokumen && file_exists(public_path($item->file_dokumen))) {

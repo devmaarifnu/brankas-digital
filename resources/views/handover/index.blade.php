@@ -155,10 +155,28 @@
                         </div>
 
                         {{-- Upload Bukti / Foto Serah Terima --}}
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold text-dark">Upload Bukti / Foto Serah Terima</label>
-                            <input type="file" class="form-control" name="file_bukti" accept="image/*,application/pdf">
-                            <div class="form-text">JPG, PNG, atau PDF. Foto serah terima atau berita acara.</div>
+                        <div class="mb-3 p-3 bg-light rounded-3 border">
+                            <label class="form-label fw-semibold text-dark d-flex align-items-center justify-content-between flex-wrap gap-1 mb-2">
+                                <span><i class="ti ti-camera me-1"></i>Upload Bukti / Foto Serah Terima</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 fs-1">Kamera / Galeri / PDF</span>
+                            </label>
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 btn-trigger-camera">
+                                    <i class="ti ti-camera fs-4"></i> Buka Kamera HP
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1 btn-trigger-gallery">
+                                    <i class="ti ti-photo fs-4"></i> Pilih Foto / Galeri
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 btn-trigger-pdf">
+                                    <i class="ti ti-file-type-pdf fs-4"></i> Pilih PDF
+                                </button>
+                            </div>
+                            <input type="file" class="d-none input-camera" accept="image/*" capture="environment">
+                            <input type="file" class="d-none input-gallery" accept="image/*">
+                            <input type="file" class="d-none input-pdf" accept=".pdf,application/pdf">
+                            <input type="file" class="form-control main-upload-input" name="file_bukti" accept="image/*,application/pdf">
+                            <div class="form-text text-muted small mt-1">JPG, PNG, atau PDF (Maksimal 20MB). Foto serah terima atau scan berita acara.</div>
+                            <div class="preview-selected-file mt-2" style="display: none;"></div>
                         </div>
 
                         {{-- Catatan --}}
@@ -422,6 +440,52 @@ $(document).ready(function() {
             var telpKembali = $('#no_telp_peminjam_kembali').val();
             $('#nama_peminjam').val(namaKembali);
             $('#no_telp_peminjam').val(telpKembali);
+        }
+    });
+
+    // Upload Trigger Handlers
+    $(document).on('click', '.btn-trigger-camera', function() {
+        $(this).closest('.p-3').find('.input-camera').trigger('click');
+    });
+    $(document).on('click', '.btn-trigger-gallery', function() {
+        $(this).closest('.p-3').find('.input-gallery').trigger('click');
+    });
+    $(document).on('click', '.btn-trigger-pdf', function() {
+        $(this).closest('.p-3').find('.input-pdf').trigger('click');
+    });
+
+    $(document).on('change', '.input-camera, .input-gallery, .input-pdf', function() {
+        if (this.files && this.files[0]) {
+            var $parent = $(this).closest('.p-3');
+            var mainInput = $parent.find('.main-upload-input')[0];
+            var dt = new DataTransfer();
+            dt.items.add(this.files[0]);
+            mainInput.files = dt.files;
+            $(mainInput).trigger('change');
+        }
+    });
+
+    $(document).on('change', '.main-upload-input', function() {
+        var $parent = $(this).closest('.p-3');
+        var $preview = $parent.find('.preview-selected-file');
+        if (this.files && this.files[0]) {
+            var file = this.files[0];
+            var isImg = file.type.startsWith('image/');
+            var sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+            var html = '<div class="alert alert-info py-2 px-3 mb-0 d-flex align-items-center gap-2 flex-wrap">' +
+                       '  <i class="ti ' + (isImg ? 'ti-photo text-success' : 'ti-file-type-pdf text-danger') + ' fs-5"></i>' +
+                       '  <div class="flex-grow-1"><strong class="d-block text-truncate" style="max-width:250px;">' + file.name + '</strong><small class="text-muted">' + sizeMb + ' MB</small></div>';
+            if (isImg) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $preview.html(html + '<img src="' + e.target.result + '" class="rounded border ms-auto" style="height:45px;width:45px;object-fit:cover;"></div>').slideDown();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                $preview.html(html + '</div>').slideDown();
+            }
+        } else {
+            $preview.empty().slideUp();
         }
     });
 });

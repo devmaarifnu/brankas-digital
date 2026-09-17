@@ -41,8 +41,8 @@
 <div class="container-fluid footer-down">
     <div class="row justify-content-center">
         <div class="col-sm-10">
-            <div class="py-6 px-6">
-                <p class="mb-0 fs-4 py-3"> Copyright &copy; {{ date('Y') }} Brangkas Digital LP Ma'arif NU PBNU &bull; brankas.maarifnu.or.id </p>
+            <div class="py-3 px-3 text-center">
+                <p class="mb-0 text-white-50" style="font-size: 11px; letter-spacing: 0.2px;"> Copyright &copy; {{ date('Y') }} <strong class="text-white">Brangkas Digital</strong> LP Ma'arif NU PBNU &bull; brankas.maarifnu.or.id </p>
             </div>
         </div>
     </div>

@@ -24,11 +24,6 @@ class HandoverController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Filter Enumerasi / Relasi: Petugas (user_id)
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->user_id);
-        }
-
         // Pencarian Free-Text (Keyword nama dokumen, pihak terkait, bank, dll)
         if ($request->filled('q')) {
             $q = trim($request->q);
@@ -46,10 +41,7 @@ class HandoverController extends Controller
 
         $records = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
 
-        // Ambil daftar petugas untuk opsi filter
-        $officers = \App\Models\User::orderBy('name', 'asc')->get();
-
-        return view('handover.index', compact('records', 'officers'))->with('title', 'Record of Transfer');
+        return view('handover.index', compact('records'))->with('title', 'Record of Transfer');
     }
 
     public function getItemsByKategori(Request $request)

@@ -200,10 +200,10 @@
             <div class="card shadow-sm border-0 rounded-3 mb-3" style="border: 1px solid #ebf1f6;">
                 <div class="card-body p-3">
                     <form action="{{ route('handover.index') }}" method="GET" class="row g-2 align-items-center">
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light"><i class="ti ti-search"></i></span>
-                                <input type="text" class="form-control" name="q" value="{{ request('q') }}" placeholder="Cari dokumen, pihak, catatan...">
+                                <input type="text" class="form-control" name="q" value="{{ request('q') }}" placeholder="Cari nama, pihak terkait, catatan...">
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -214,23 +214,13 @@
                                 <option value="Data Aset Lembaga" {{ request('kategori') === 'Data Aset Lembaga' ? 'selected' : '' }}>Data Aset Lembaga</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <select class="form-select form-select-sm" name="status">
                                 <option value="">-- Semua Status --</option>
                                 <option value="Dipinjam" {{ request('status') === 'Dipinjam' ? 'selected' : '' }}>Dipinjam</option>
                                 <option value="Diagunkan" {{ request('status') === 'Diagunkan' ? 'selected' : '' }}>Diagunkan</option>
                                 <option value="Dihibahkan" {{ request('status') === 'Dihibahkan' ? 'selected' : '' }}>Dihibahkan</option>
                                 <option value="Dikembalikan" {{ request('status') === 'Dikembalikan' ? 'selected' : '' }}>Dikembalikan</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <select class="form-select form-select-sm" name="user_id">
-                                <option value="">-- Semua Petugas --</option>
-                                @if(isset($officers))
-                                    @foreach($officers as $off)
-                                        <option value="{{ $off->id_user }}" {{ request('user_id') == $off->id_user ? 'selected' : '' }}>{{ $off->name ?: $off->username }}</option>
-                                    @endforeach
-                                @endif
                             </select>
                         </div>
                         <div class="col-md-2 d-flex gap-1">

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->id('id_user');
             $table->string('name', 100)->nullable();
             $table->string('username')->unique();
+            $table->string('email')->unique()->nullable();
             $table->string('password');
             if (DB::getDriverName() === 'mysql') {
                 $table->enum('role', ['super admin', 'admin pusat', 'admin wilayah', 'admin cabang', 'operator']);

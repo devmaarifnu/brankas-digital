@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create("surat_tanah", function (Blueprint $table) {
             $table->id();
-            $table->string("nama_dokumen");
+            $table->string("nama_dokumen")->nullable();
             $table->string("nomor_sertifikat")->nullable();
             $table->string("lokasi")->nullable();
             $table->string("luas")->nullable();

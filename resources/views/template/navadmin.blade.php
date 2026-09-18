@@ -22,7 +22,7 @@
         <li class="sidebar-item">
             <a class="sidebar-link has-arrow {{ request()->routeIs('brangkas.surat*') || request()->routeIs('brangkas.akta*') ? 'active' : '' }}"
                href="javascript:void(0)" aria-expanded="false">
-                <span><i class="ti ti-folder-open"></i></span>
+                <span><i class="ti ti-folder"></i></span>
                 <span class="hide-menu">Surat Surat Berharga</span>
             </a>
             <ul aria-expanded="false" class="collapse first-level {{ request()->routeIs('brangkas.surat*') || request()->routeIs('brangkas.akta*') ? 'in' : '' }}">

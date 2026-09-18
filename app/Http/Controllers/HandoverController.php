@@ -7,7 +7,9 @@ use App\Models\SuratTanah;
 use App\Models\AktaNotaris;
 use App\Models\DataAsetLembaga;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\RecordOfHandoverExport;
 class HandoverController extends Controller
 {
     public function index(Request $request)
@@ -204,5 +206,37 @@ class HandoverController extends Controller
 
             return back()->with('success', 'Record of Transfer berhasil disimpan. Rekap telah diperbarui otomatis & ditandai merah.');
         }
+    }
+
+    public function export(Request $request)
+    {
+        $query = RecordOfHandover::with('user');
+
+        if ($request->filled('kategori')) {
+            $query->where('kategori', $request->kategori);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('q')) {
+            $q = trim($request->q);
+            $query->where(function($w) use ($q) {
+                $w->where('nama_dokumen', 'like', "%{$q}%")
+                  ->orWhere('nama_peminjam', 'like', "%{$q}%")
+                  ->orWhere('no_telp_peminjam', 'like', "%{$q}%")
+                  ->orWhere('nama_bank', 'like', "%{$q}%")
+                  ->orWhere('penanggung_agunan', 'like', "%{$q}%")
+                  ->orWhere('nama_penerima', 'like', "%{$q}%")
+                  ->orWhere('catatan', 'like', "%{$q}%")
+                  ->orWhere('tgl_serahterima', 'like', "%{$q}%");
+            });
+        }
+
+        $query->orderBy('created_at', 'desc');
+
+        $filename = 'Rekap-Record-of-Transfer-' . date('Y-m-d_His') . '.xlsx';
+        return Excel::download(new RecordOfHandoverExport($query), $filename);
     }
 }

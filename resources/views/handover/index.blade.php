@@ -241,7 +241,13 @@
                         <i class="ti ti-list" style="color: #5D87FF;"></i>
                         <span>Log Record of Transfer</span>
                     </h5>
-                    <span class="badge bg-light text-primary border">{{ $records->total() }} Data</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="{{ route('handover.export', request()->query()) }}" class="btn btn-sm btn-success fw-semibold shadow-sm d-flex align-items-center gap-1" title="Export Rekap ke Excel">
+                            <i class="ti ti-file-spreadsheet fs-5"></i>
+                            <span>Export Excel</span>
+                        </a>
+                        <span class="badge bg-light text-primary border">{{ $records->total() }} Data</span>
+                    </div>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">

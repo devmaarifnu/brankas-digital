@@ -37,12 +37,14 @@ Route::middleware('mustlogin')->group(function () {
 
     // Record of Handover
     Route::get('/handover', [HandoverController::class, 'index'])->name('handover.index');
+    Route::get('/handover/export', [HandoverController::class, 'export'])->name('handover.export');
     Route::post('/handover', [HandoverController::class, 'store'])->name('handover.store');
     Route::get('/handover/get-items', [HandoverController::class, 'getItemsByKategori'])->name('handover.get-items');
     Route::get('/handover/items', [HandoverController::class, 'getItemsByKategori'])->name('handover.items');
 
     // Surat Surat Berharga
     Route::get('/brangkas/surat-tanah', [BrangkasController::class, 'suratTanah'])->name('brangkas.surat-tanah');
+    Route::get('/brangkas/surat-tanah/export', [BrangkasController::class, 'exportSuratTanah'])->name('brangkas.surat-tanah.export');
     Route::get('/brangkas/surat-tanah/tambah', [BrangkasController::class, 'createSuratTanah'])->name('brangkas.surat-tanah.create');
     Route::post('/brangkas/surat-tanah', [BrangkasController::class, 'storeSuratTanah'])->name('brangkas.surat-tanah.store');
     Route::get('/brangkas/surat-tanah/{id}/edit', [BrangkasController::class, 'editSuratTanah'])->name('brangkas.surat-tanah.edit');
@@ -50,6 +52,7 @@ Route::middleware('mustlogin')->group(function () {
     Route::post('/brangkas/surat-tanah/{id}/delete', [BrangkasController::class, 'destroySuratTanah'])->name('brangkas.surat-tanah.destroy');
 
     Route::get('/brangkas/akta-notaris', [BrangkasController::class, 'aktaNotaris'])->name('brangkas.akta-notaris');
+    Route::get('/brangkas/akta-notaris/export', [BrangkasController::class, 'exportAktaNotaris'])->name('brangkas.akta-notaris.export');
     Route::get('/brangkas/akta-notaris/tambah', [BrangkasController::class, 'createAktaNotaris'])->name('brangkas.akta-notaris.create');
     Route::post('/brangkas/akta-notaris', [BrangkasController::class, 'storeAktaNotaris'])->name('brangkas.akta-notaris.store');
     Route::get('/brangkas/akta-notaris/{id}/edit', [BrangkasController::class, 'editAktaNotaris'])->name('brangkas.akta-notaris.edit');
@@ -58,6 +61,7 @@ Route::middleware('mustlogin')->group(function () {
 
     // Data Aset Lembaga
     Route::get('/brangkas/data-aset', [BrangkasController::class, 'dataAset'])->name('brangkas.data-aset');
+    Route::get('/brangkas/data-aset/export', [BrangkasController::class, 'exportDataAset'])->name('brangkas.data-aset.export');
     Route::get('/brangkas/data-aset/tambah', [BrangkasController::class, 'createDataAset'])->name('brangkas.data-aset.create');
     Route::post('/brangkas/data-aset', [BrangkasController::class, 'storeDataAset'])->name('brangkas.data-aset.store');
     Route::get('/brangkas/data-aset/{id}/edit', [BrangkasController::class, 'editDataAset'])->name('brangkas.data-aset.edit');
@@ -84,6 +88,11 @@ Route::middleware('mustlogin')->group(function () {
     Route::post('/setting/users/{id}/delete', [SettingUserController::class, 'destroy'])->name('setting.users.destroy');
     Route::post('/setting/users/{id}/toggle', [SettingUserController::class, 'toggle'])->name('setting.users.toggle');
     Route::post('/setting/users/{id}/update-role', [SettingUserController::class, 'updateRole'])->name('setting.users.updateRole');
+
+    // Export Excel
+    Route::get('/brangkas/surat-tanah/export', [BrangkasController::class, 'exportSuratTanah'])->name('brangkas.surat-tanah.export');
+    Route::get('/brangkas/akta-notaris/export', [BrangkasController::class, 'exportAktaNotaris'])->name('brangkas.akta-notaris.export');
+    Route::get('/brangkas/data-aset/export', [BrangkasController::class, 'exportDataAset'])->name('brangkas.data-aset.export');
 
     // ================================================================
     // END BRANGKAS DIGITAL

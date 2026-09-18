@@ -22,7 +22,11 @@
                     <small class="text-muted">Rekapitulasi dokumen akta notaris & SK yang tersimpan di brankas</small>
                 </div>
             </div>
-            <div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ route('brangkas.akta-notaris.export', request()->query()) }}" class="btn btn-success fw-semibold shadow-sm d-flex align-items-center gap-1" title="Export Rekap Akta Notaris ke Excel">
+                    <i class="ti ti-file-spreadsheet fs-5"></i>
+                    <span>Export Excel</span>
+                </a>
                 @if(auth()->user()->canManageData())
                 <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahAktaNotaris">
                     <i class="ti ti-plus me-1"></i>Tambah Akta Notaris

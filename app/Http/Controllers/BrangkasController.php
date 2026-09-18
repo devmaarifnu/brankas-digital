@@ -5,9 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\SuratTanah;
 use App\Models\AktaNotaris;
 use App\Models\DataAsetLembaga;
+use App\Exports\SuratTanahExport;
+use App\Exports\AktaNotarisExport;
+use App\Exports\DataAsetExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class BrangkasController extends Controller
 {
@@ -256,8 +260,8 @@ class BrangkasController extends Controller
         if ($request->hasFile('file_dokumen')) {
             $file = $request->file('file_dokumen');
             $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            $path = $file->store('uploads/akta-notaris', 'public');
-            $payload['file_dokumen'] = Storage::url($path);
+            $file->move(public_path('uploads/akta-notaris'), $filename);
+            $payload['file_dokumen'] = 'uploads/akta-notaris/' . $filename;
         }
 
         AktaNotaris::create($payload);
@@ -620,5 +624,35 @@ class BrangkasController extends Controller
         }
         $item->delete();
         return redirect()->route('brangkas.data-aset')->with('success', 'Data Aset berhasil dihapus.');
+    }
+
+    public function exportSuratTanah(Request $request)
+    {
+        $query = SuratTanah::query();
+        $this->applyRecordFilters($query, $request, 'jenis_sertifikat')
+             ->orderBy('created_at', 'desc');
+
+        $filename = 'Rekap-Surat-Tanah-' . date('Y-m-d_His') . '.xlsx';
+        return Excel::download(new SuratTanahExport($query), $filename);
+    }
+
+    public function exportAktaNotaris(Request $request)
+    {
+        $query = AktaNotaris::query();
+        $this->applyRecordFilters($query, $request, 'jenis_dokumen')
+             ->orderBy('created_at', 'desc');
+
+        $filename = 'Rekap-Akta-Notaris-' . date('Y-m-d_His') . '.xlsx';
+        return Excel::download(new AktaNotarisExport($query), $filename);
+    }
+
+    public function exportDataAset(Request $request)
+    {
+        $query = DataAsetLembaga::query();
+        $this->applyRecordFilters($query, $request, 'jenis_aset')
+             ->orderBy('created_at', 'desc');
+
+        $filename = 'Rekap-Data-Aset-' . date('Y-m-d_His') . '.xlsx';
+        return Excel::download(new DataAsetExport($query), $filename);
     }
 }

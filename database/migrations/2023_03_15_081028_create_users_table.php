@@ -19,8 +19,13 @@ return new class extends Migration
             $table->string('name', 100)->nullable();
             $table->string('username')->unique();
             $table->string('password');
-            $table->enum('role', ['super admin', 'admin pusat', 'admin wilayah', 'admin cabang', 'operator']);
-            $table->enum('status_active', ['active', 'block']);
+            if (DB::getDriverName() === 'mysql') {
+                $table->enum('role', ['super admin', 'admin pusat', 'admin wilayah', 'admin cabang', 'operator']);
+                $table->enum('status_active', ['active', 'block']);
+            } else {
+                $table->string('role')->default('operator');
+                $table->string('status_active')->default('active');
+            }
             $table->string('provId', 20)->nullable();
             $table->string('cabangId', 20)->nullable();
             $table->timestamps();

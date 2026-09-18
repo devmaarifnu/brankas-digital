@@ -1,11 +1,12 @@
-# SIPINTER LP MA'ARIF NU PBNU
+# BRANGKAS DIGITAL LP MA'ARIF NU PBNU
 
 <p align="center">
-  <img src="https://sipinter.maarifnu.or.id/assets/images/logos/Logo_Sipinter_Panjang.png" width="300" alt="LP Ma'arif NU Logo">
+  <img src="public/assets/images/logos/fotobrankas.jpeg" width="140" alt="Brangkas Digital Logo" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 </p>
 
 <p align="center">
-  <strong>Sistem Informasi Pendataan Terintegrasi Lembaga Pendidikan Ma'arif Nahdlatul Ulama</strong>
+  <strong>Sistem Manajemen Arsip Dokumen Berharga, Aset Lembaga, & Rekapitulasi Serah Terima (Handover)</strong><br>
+  <em>Lembaga Pendidikan Ma'arif Nahdlatul Ulama Pengurus Besar Nahdlatul Ulama (LP Ma'arif NU PBNU)</em>
 </p>
 
 <p align="center">
@@ -13,512 +14,179 @@
   <img src="https://img.shields.io/badge/PHP-8.1+-blue?style=flat-square&logo=php" alt="PHP">
   <img src="https://img.shields.io/badge/MySQL-8.0+-orange?style=flat-square&logo=mysql" alt="MySQL">
   <img src="https://img.shields.io/badge/Bootstrap-5.x-purple?style=flat-square&logo=bootstrap" alt="Bootstrap">
-  <img src="https://img.shields.io/badge/ApexCharts-3.x-green?style=flat-square" alt="ApexCharts">
+  <img src="https://img.shields.io/badge/Select2-Bootstrap5-green?style=flat-square" alt="Select2">
+  <img src="https://img.shields.io/badge/Mobile-Optimized-teal?style=flat-square" alt="Mobile Ready">
 </p>
 
 ---
 
-## 📋 Deskripsi
+## 📋 Tentang Aplikasi
 
-SIPINTER LP Ma'arif NU PBNU adalah sistem informasi pendataan terintegrasi yang menghubungkan satuan pendidikan di bawah naungan LP Ma'arif NU dengan kantor pusat PBNU. Sistem ini memfasilitasi pendataan dua arah antara operator sekolah dengan administrator LP Ma'arif NU PBNU secara digital dan real-time.
+**Brangkas Digital LP Ma'arif NU PBNU** adalah platform digital berbasis web yang dirancang untuk mengamankan, mendokumentasikan, menginventarisasi, dan melacak peredaran surat-surat berharga serta aset fisik milik LP Ma'arif NU PBNU. 
 
-## ✨ Fitur Utama
+Sistem ini memastikan seluruh dokumen kepemilikan aset (seperti Sertifikat Tanah dan Akta Notaris), inventaris barang lembaga, serta riwayat peminjaman/pengagunan/hibah tercatat secara real-time, akuntabel, dan transparan.
 
-### 🏫 **Manajemen Satuan Pendidikan (SATPEN)**
-- Registrasi dan validasi satuan pendidikan
-- Pengelolaan data sekolah/madrasah
-- Verifikasi dokumen kelengkapan
-- Status tracking permohonan
-- Perpanjangan izin operasional
+---
 
-### 👥 **Manajemen PTK (Pendidik & Tenaga Kependidikan)**
-- Pendataan guru dan tenaga kependidikan
-- Sertifikasi dan kompetensi
-- Status kepegawaian
-- Riwayat karir dan pendidikan
+## ✨ Fitur Utama Sistem
 
-### 🎓 **Manajemen Peserta Didik**
-- Data statistik peserta didik
-- Distribusi berdasarkan jenjang
-- Analisis per wilayah dan cabang
-- Laporan perkembangan
+### 1. 🔄 **Record of Transfer (Serah Terima Dokumen & Aset)**
+- **Pencatatan Alur Distribusi**: Mendata transaksi dokumen atau aset yang **Dipinjam**, **Diagunkan ke Bank**, **Dihibahkan**, atau **Dikembalikan**.
+- **Validasi Cerdas Anti-Ganda**: Dokumen yang sedang berstatus *Dipinjam* atau *Diagunkan* tidak dapat dipinjam kembali sebelum ada transaksi *Pengembalian*.
+- **Alur Pengembalian Cepat**: Otomatis memfilter hanya dokumen yang sedang dipinjam/diagunkan untuk diproses kembali ke status *Tersedia*.
+- **Pencarian Live Select2**: Dropdown dokumen dilengkapi kolom ketik langsung untuk mencari item dengan cepat di antara ratusan berkas.
+- **Filter & Rekapitulasi**: Filter berdasarkan Kategori dan Status, pencarian free-text pihak terkait/bank/catatan, serta paginasi 10 data per halaman.
 
-### 🏢 **Manajemen OSS (Online Single Submission)**
-- Permohonan izin operasional
-- Tracking status permohonan
-- Kelengkapan dokumen digital
-- Timeline proses perizinan
+### 2. 📜 **Arsip Surat Tanah**
+- **Pendataan Sertifikat**: Pencatatan jenis sertifikat (SHM, HGB, Hak Pakai, Wakaf, Girik, dll), nomor sertifikat, luas, atas nama, serta lokasi lengkap (Desa, Kecamatan, Kabupaten/Kota, Provinsi).
+- **Status & Indikator Visual**: Sinkronisasi status kepemilikan (*Tersedia, Dipinjam, Diagunkan, Dihibahkan, Dikembalikan, Rusak*) dengan penanda warna status.
+- **Modal Detail & Riwayat Handover**: Menampilkan detail lengkap serta tabel riwayat serah terima berkas dengan sistem **Pagination Riwayat** terintegrasi.
+- **Filter & Pencarian**: Filter dropdown jenis sertifikat dan status, pencarian nomor/nama/lokasi, serta paginasi data.
 
-### 💰 **Manajemen BHPNU (Biaya Hak Pengelolaan NU)**
-- Pembayaran biaya pengelolaan
-- Verifikasi bukti pembayaran
-- Riwayat transaksi
-- Status pembayaran
+### 3. 🏛️ **Arsip Akta Notaris**
+- **Manajemen Akta Hukum**: Pencatatan nomor akta, jenis dokumen, nama notaris, kontak/alamat notaris, tanggal akta, dan perihal.
+- **Tracking Berkas**: Pelacakan posisi fisik berkas akta notaris (di brankas / sedang dipinjam pihak terkait).
+- **Modal Detail & Log Riwayat**: Pratinjau berkas digital dan log perpindahan akta.
 
-### 📊 **Dashboard & Reporting**
-- Dashboard multi-level (Pusat, Wilayah, Cabang)
-- Visualisasi data dengan charts interaktif
-- Export data ke Excel/PDF
-- Real-time statistics
+### 4. 🏢 **Data Aset Lembaga (Inventaris Fisik)**
+- **Kuesioner Inventaris Lengkap**: Pendataan jenis barang (Laptop, PC, Kendaraan, Printer, dll), merek, nomor seri/model, tanggal perolehan, dan sumber perolehan.
+- **Nomor Registrasi Otomatis**: Generate kode registrasi aset otomatis bertformat `AST-LPM-YYYYMM-XXXX`.
+- **Kondisi & Posisi Aset**: Pemantauan kondisi fisik (*Sangat Baik, Rusak Ringan, Rusak Berat*) dan posisi penempatan (*Ruangan Kantor* atau *Pihak Penerima/Pengguna*).
 
-### 🔐 **Sistem Otentikasi & Otorisasi**
-- Multi-role access control
-- Role-based permissions
-- Session management
-- Password recovery
+### 5. 📷 **Multi-Upload Cerdas (Kamera HP, Galeri, & PDF)**
+- **Akses Kamera Langsung di HP**: Form input dilengkapi tombol **Buka Kamera HP** (`capture="environment"`) untuk langsung memotret dokumen/aset fisik.
+- **Fleksibilitas Format**: Mendukung pemilihan berkas lewat **Galeri Foto** (JPG, JPEG, PNG, WEBP) maupun **Dokumen PDF**.
+- **Kapasitas Besar & Preview Real-Time**: Batas ukuran upload hingga **Maksimal 20MB** disertai pratinjau thumbnail instan sebelum data disimpan.
+- **Viewer Dokumen Terintegrasi**: Modal preview cerdas otomatis menampilkan foto gambar atau viewer dokumen PDF tanpa error 404.
 
-## 🏗️ Arsitektur Sistem
+### 6. 📱 **Mobile Responsive & Sticky Header**
+- **Standar Tampilan Ponsel**: Penyesuaian tipografi, padding formulir, dan tabel responsif khusus layar smartphone Android & iOS.
+- **Fixed / Sticky Top Header**: Header bar (menu garis tiga dan avatar profil) standby di posisi teratas saat halaman digulir (*scroll*).
 
-### **Multi-Level Access**
-```
-Super Admin (PBNU)
-├── Admin Pusat
-├── Admin Wilayah (Provinsi)
-│   ├── Admin Cabang (Kabupaten/Kota)
-│   │   └── Operator Sekolah
-```
+### 7. 💰 **Modul Keuangan & Persetujuan**
+- **Pengajuan Dana**: Formulir pengajuan dana operasional dengan lampiran bukti dokumen.
+- **Alur Verifikasi (Approval)**: Fitur persetujuan/penolakan pengajuan dana oleh role *Aproval* dan *Super Admin*.
+- **Rekapitulasi Dokumen**: Buku Bank, Buku Kas Tunai, Buku Kas Umum, Rekening Koran, serta Rekap Bulanan dan Tahunan.
 
-### **Struktur Database**
-- **Users**: Manajemen pengguna dan roles
-- **Satpen**: Data satuan pendidikan
-- **PDPTK**: Pendidik dan tenaga kependidikan
-- **OSS**: Online Single Submission
-- **BHPNU**: Biaya hak pengelolaan
-- **Regional**: Provinsi, kabupaten, cabang
+### 8. 🔐 **Manajemen Pengguna & Role-Based Access Control**
+Menu manajemen pengguna (**Setting ➔ Users**) eksklusif hanya dapat diakses oleh **Super Admin**:
+- **Super Admin**: Akses penuh seluruh modul, manajemen user, approval keuangan, dan aksi hapus data.
+- **Admin**: Akses kelola data brankas, input surat tanah, akta notaris, data aset, dan transaksi handover.
+- **Aproval**: Hak akses khusus untuk meninjau dan menyetujui pengajuan keuangan.
+- **Viewer**: Hak akses read-only (hanya melihat data dan pratinjau dokumen).
+
+---
 
 ## 🛠️ Tech Stack
 
-### **Backend**
-- **Framework**: Laravel 10.13.2
-- **PHP**: 8.1+
-- **Database**: MySQL 8.0+
-- **Authentication**: Session-based Authentication
-- **File Storage**: Local Storage (Filesystem)
+- **Backend Framework**: [Laravel 10.x](https://laravel.com/)
+- **Bahasa Pemrograman**: PHP 8.1+
+- **Database**: MySQL 8.0+ / MariaDB
+- **Frontend & UI**: Bootstrap 5.3, Blade Templating, Custom Mobile CSS
+- **Icons**: Tabler Icons (`@tabler/icons`)
+- **Plugin JavaScript**: jQuery, Select2 Bootstrap-5 Theme, DataTables
 
-### **Frontend**
-- **CSS Framework**: Bootstrap 5.x
-- **Charts**: ApexCharts.js
-- **Icons**: Tabler Icons
-- **JavaScript**: Vanilla JS + jQuery
-- **Build Tool**: Vite
-- **Template Engine**: Blade
+---
 
-### **Packages & Libraries**
-Lihat detail di [composer.json](composer.json):
-- **maatwebsite/excel** (^3.1): Excel import/export
-- **endroid/qr-code** (^4.8): QR Code generator
-- **phpoffice/phpword** (^1.1): Word document generator
-- **alkoumi/laravel-hijri-date** (^1.0): Hijri date converter
-- **guzzlehttp/guzzle** (^7.2): HTTP client
-- **laravel/sanctum** (^3.2): API authentication
-- **symfony/dom-crawler** (^6.3): Web scraping
+## 🚀 Panduan Instalasi Lokal
 
-### **Development Tools**
-- **laravel/pint** (^1.0): Code style fixer
-- **phpunit/phpunit** (^10.1): Testing framework
-- **spatie/laravel-ignition** (^2.0): Error page
-- **fakerphp/faker** (^1.9.1): Fake data generator
+### 1. Prasyarat Sistem
+Pastikan perangkat Anda telah terpasang:
+- PHP >= 8.1 dengan ekstensi `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`
+- Composer >= 2.x
+- Web Server Apache & MySQL (XAMPP / Laragon)
 
-## 📦 Instalasi
-
-### **Prerequisites**
+### 2. Kloning Repository
 ```bash
-PHP >= 8.1
-Composer
-Node.js & NPM
-MySQL >= 8.0
+git clone https://github.com/devmaarifnu/brankas-digital.git
+cd brankas-digital
 ```
 
-### **1. Clone Repository**
+### 3. Pasang Dependensi Composer
 ```bash
-git clone https://github.com/faisolarifin/siap-lpmaarif-nupnbu.git
-cd sipinter-lpmaarif-nupbnu
-```
-
-### **2. Install Dependencies**
-```bash
-# Install PHP dependencies
 composer install
-
-# Install Node.js dependencies
-npm install
 ```
 
-### **3. Environment Setup**
+### 4. Konfigurasi Lingkungan (`.env`)
+Salin file `.env.example` menjadi `.env`:
 ```bash
-# Copy environment file
 cp .env.example .env
-
-# Generate application key
-php artisan key:generate
 ```
-
-### **4. Database Configuration**
-Edit `.env` file dan sesuaikan dengan konfigurasi database Anda:
+Sesuaikan konfigurasi database pada file `.env`:
 ```env
-APP_NAME="SIPINTER LP Ma'arif NU"
+APP_NAME="Brangkas Digital LP Ma'arif NU"
 APP_ENV=local
-APP_KEY=base64:your_generated_key
+APP_KEY=
 APP_DEBUG=true
-APP_URL=http://localhost
+APP_URL=http://localhost:8000
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=sipinter_lpmaarif_nupbnu
+DB_DATABASE=brangkas_digital
 DB_USERNAME=root
-DB_PASSWORD=your_password
+DB_PASSWORD=
 ```
 
-**Catatan untuk Laragon:**
-- Default DB_USERNAME: `root`
-- Default DB_PASSWORD: `` (kosong)
-- Database akan dibuat otomatis atau buat manual melalui phpMyAdmin/HeidiSQL
-
-### **5. Database Migration & Seeding**
+### 5. Generate Application Key & Jalankan Migrasi
 ```bash
-# Run migrations
+# Buat application key
+php artisan key:generate
+
+# Jalankan migrasi database
 php artisan migrate
 
-# Seed database (optional)
-php artisan db:seed
-```
-
-### **6. Storage & Permissions**
-```bash
-# Create storage symlink
+# Hubungkan direktori storage (opsional jika menggunakan storage link)
 php artisan storage:link
-
-# Set permissions (Linux/Mac)
-chmod -R 775 storage bootstrap/cache
 ```
 
-### **7. Build Assets**
+### 6. Jalankan Server Lokal
 ```bash
-# Development
-npm run dev
-
-# Production
-npm run build
-```
-
-### **8. Run Application**
-
-**Opsi 1: Menggunakan PHP Built-in Server**
-```bash
-# Development server
 php artisan serve
 ```
-Access: `http://localhost:8000`
-
-**Opsi 2: Menggunakan Laragon (Recommended untuk Windows)**
-1. Letakkan project di folder: `C:\laragon\www\sipinter-lpmaarif-nupbnu`
-2. Start Laragon (Apache & MySQL)
-3. Access: `http://sipinter-lpmaarif-nupbnu.test`
-
-**Opsi 3: Menggunakan Artisan dengan custom port**
-```bash
-php artisan serve --host=0.0.0.0 --port=8080
-```
-
-### **9. Default Login (Setelah Seeding)**
-Jika sudah menjalankan seeder, gunakan akun default:
-```
-Super Admin:
-Email: admin@maarifnu.or.id
-Password: password123
-
-Operator:
-Email: operator@maarifnu.or.id
-Password: password123
-```
-**Penting:** Segera ganti password default setelah login pertama!
-
-## ⚙️ Konfigurasi Tambahan
-
-### **Mail Configuration**
-Untuk fitur email (notifikasi, reset password, dll), konfigurasi di `.env`:
-```env
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-app-password
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=noreply@maarifnu.or.id
-MAIL_FROM_NAME="SIPINTER LP Ma'arif NU"
-```
-
-**Catatan:**
-- Untuk Gmail, gunakan App Password bukan password biasa
-- Untuk testing lokal, bisa gunakan Mailtrap atau MailHog
-
-### **Session Configuration**
-```env
-SESSION_DRIVER=file
-SESSION_LIFETIME=120  # dalam menit (2 jam)
-```
-
-### **File Upload Configuration**
-Konfigurasi file upload di `php.ini` atau `.htaccess`:
-```ini
-upload_max_filesize=10M
-post_max_size=10M
-max_execution_time=300
-```
-
-File types yang diizinkan:
-- Dokumen: PDF, DOC, DOCX
-- Gambar: JPG, JPEG, PNG
-- Maksimal ukuran: 10MB per file
-
-### **Storage Configuration**
-```env
-FILESYSTEM_DISK=local  # atau 'public' untuk akses publik
-```
-
-Path storage:
-- Upload NPWP: `storage/app/npyp/npwp/`
-- Upload Dokumen: `storage/app/documents/`
-- Temporary files: `storage/app/temp/`
-
-## 📁 Struktur Project
-
-```
-sipinter-lpmaarif-nupbnu/
-├── app/
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   │   ├── Admin/              # Admin area controllers
-│   │   │   ├── Api/                # API controllers
-│   │   │   ├── Master/             # Master data controllers
-│   │   │   ├── AuthController.php
-│   │   │   ├── BHPNUController.php
-│   │   │   ├── CoretaxController.php
-│   │   │   ├── HomeController.php
-│   │   │   ├── NPYPController.php
-│   │   │   ├── OSSController.php
-│   │   │   └── SatpenController.php
-│   │   ├── Middleware/
-│   │   └── Requests/
-│   ├── Models/                     # Eloquent models
-│   │   ├── User.php
-│   │   ├── Satpen.php
-│   │   ├── PTK.php
-│   │   ├── NPYP.php
-│   │   ├── OSS.php
-│   │   ├── BHPNU.php
-│   │   ├── Coretax.php
-│   │   ├── Provinsi.php
-│   │   ├── Kabupaten.php
-│   │   ├── Jenjang.php
-│   │   └── ... (30+ models)
-│   ├── Helpers/                    # Helper classes
-│   ├── Mail/                       # Mail classes
-│   └── Exports/                    # Excel export classes
-├── bootstrap/
-│   └── cache/                      # Framework bootstrap cache
-├── config/                         # Configuration files
-├── database/
-│   ├── migrations/                 # Database migrations
-│   └── seeders/                    # Database seeders
-├── public/
-│   ├── assets/                     # Static assets (CSS, JS, images)
-│   ├── images/                     # Public images
-│   └── storage/                    # Symlink to storage/app/public
-├── resources/
-│   ├── views/                      # Blade templates
-│   │   ├── admin/                  # Admin views
-│   │   │   ├── bhpnu/              # BHPNU management
-│   │   │   ├── coretax/            # Coretax management
-│   │   │   ├── home/               # Admin dashboard
-│   │   │   ├── informasi/          # Information management
-│   │   │   ├── master/             # Master data views
-│   │   │   ├── npyp/               # NPYP management
-│   │   │   ├── oss/                # OSS management
-│   │   │   ├── profile/            # Organization profiles
-│   │   │   ├── satpen/             # Satpen management
-│   │   │   └── users/              # User management
-│   │   ├── auth/                   # Authentication views
-│   │   ├── bhpnu/                  # BHPNU operator views
-│   │   ├── coretax/                # Coretax operator views
-│   │   ├── component/              # Reusable components
-│   │   ├── emails/                 # Email templates
-│   │   ├── exception/              # Error pages
-│   │   ├── home/                   # Operator dashboard
-│   │   ├── landing/                # Public landing pages
-│   │   ├── npyp/                   # NPYP operator views
-│   │   ├── oss/                    # OSS operator views
-│   │   ├── satpen/                 # Satpen operator views
-│   │   └── template/               # Layout templates
-│   ├── js/                         # JavaScript files
-│   │   ├── app.js
-│   │   └── bootstrap.js
-│   └── css/                        # Stylesheets
-│       └── app.css
-├── routes/
-│   ├── web.php                     # Web routes
-│   ├── api.php                     # API routes
-│   ├── channels.php                # Broadcast channels
-│   └── console.php                 # Console routes
-├── storage/
-│   ├── app/
-│   │   ├── public/                 # Public accessible storage
-│   │   └── private/                # Private storage
-│   ├── framework/                  # Framework generated files
-│   └── logs/                       # Application logs
-├── tests/                          # Application tests
-├── vendor/                         # Composer dependencies
-├── .env                            # Environment configuration
-├── .env.example                    # Environment template
-├── composer.json                   # PHP dependencies
-├── package.json                    # Node dependencies
-├── artisan                         # Artisan CLI
-└── vite.config.js                  # Vite configuration
-```
-
-## 🔧 API Endpoints
-
-### **Authentication**
-```http
-POST /login                     # User login
-POST /logout                    # User logout
-POST /register                  # User registration
-POST /forgot-password           # Password reset
-```
-
-### **Dashboard API**
-```http
-GET /api/provcount              # Province statistics
-GET /api/kabcount               # Regency statistics
-GET /api/pccount                # Branch statistics
-GET /api/jenjangcount           # Education level stats
-GET /api/ptkcount               # PTK statistics (Admin Cabang)
-GET /api/pdcount                # Student statistics (Admin Cabang)
-```
-
-### **Data Management**
-```http
-GET /api/satpen/search          # Search institutions
-GET /api/satpen/{id}            # Get institution details
-GET /api/checknpsn/{npsn}       # Validate NPSN
-GET /api/kabupaten/{provId}     # Get regencies by province
-```
-
-## 👤 User Roles & Permissions
-
-| Role | Permissions |
-|------|-------------|
-| **Super Admin** | Full system access, user management |
-| **Admin Pusat** | National data access, reporting |
-| **Admin Wilayah** | Provincial data management |
-| **Admin Cabang** | Regional data management, PTK/PD charts |
-| **Operator** | School data entry, document upload |
-
-## 📊 Dashboard Features
-
-### **Admin Cabang Dashboard**
-- **Chart PTK**: Statistik Pendidik & Tenaga Kependidikan
-  - Guru Laki-laki/Perempuan
-  - Tendik Laki-laki/Perempuan
-- **Chart Peserta Didik**: Distribusi berdasarkan jenis kelamin
-- **Interactive Charts**: Bar, Pie, Line charts
-- **Export Features**: PNG, PDF export
-
-### **Multi-Level Analytics**
-- Provincial distribution maps
-- Regency-wise statistics
-- Education level analysis
-- Time-series data
-
-## 🔒 Keamanan
-
-- **Authentication**: Session-based authentication
-- **Authorization**: Role-based access control
-- **CSRF Protection**: Built-in CSRF tokens
-- **Input Validation**: Server-side validation
-- **File Upload Security**: Type and size restrictions
-- **SQL Injection Prevention**: Eloquent ORM
-
-## 📱 Responsive Design
-
-- **Mobile-First**: Bootstrap 5 responsive grid
-- **Cross-Browser**: Modern browser compatibility
-- **Touch-Friendly**: Mobile-optimized interfaces
-- **Progressive Enhancement**: Graceful degradation
-
-## 🧪 Testing
-
-```bash
-# Run tests
-php artisan test
-
-# Run specific test
-php artisan test --filter TestName
-
-# Generate coverage report
-php artisan test --coverage
-```
-
-## 📝 Logging
-
-```bash
-# View logs
-tail -f storage/logs/laravel.log
-
-# Clear logs
-php artisan log:clear
-```
-
-## 🚀 Deployment
-
-### **Production Setup**
-```bash
-# Optimize for production
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-
-# Set environment
-APP_ENV=production
-APP_DEBUG=false
-```
-
-### **Server Requirements**
-- **Web Server**: Apache/Nginx
-- **PHP**: 8.1+ with extensions (mbstring, openssl, PDO, tokenizer, XML)
-- **Database**: MySQL 8.0+
-- **Storage**: Sufficient space for file uploads
-
-## 🤝 Contributing
-
-1. Fork repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
-
-## 👨‍💻 Development Team
-
-- **Lead Developer**: [Faisal Arifin](https://github.com/faisolarifin)
-- **Organization**: LP Ma'arif NU PBNU
-
-## 📞 Support
-
-Untuk bantuan teknis dan pertanyaan:
-
-- **Email**: support@maarifnu.or.id
-- **Website**: [https://maarifnu.or.id](https://maarifnu.or.id)
-- **Documentation**: [Wiki](https://github.com/faisolarifin/siap-lpmaarif-nupnbu/wiki)
+Akses aplikasi melalui browser di: `http://127.0.0.1:8000` atau `http://localhost/sipinter-backend/public` (jika menggunakan folder XAMPP).
 
 ---
 
-<p align="center">
-  <strong>SIPINTER LP Ma'arif NU PBNU</strong><br>
-  <em>Memajukan Pendidikan Islam Berkualitas</em>
-</p>
+## 📁 Struktur Direktori Utama
+
+```
+brankas-digital/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── AuthController.php         # Autentikasi login & logout
+│   │   │   ├── BrangkasController.php     # Surat Tanah, Akta Notaris, Data Aset
+│   │   │   ├── HandoverController.php     # Record of Transfer / Serah Terima
+│   │   │   ├── KeuanganController.php     # Modul Keuangan & Pengajuan Dana
+│   │   │   └── SettingUserController.php  # Manajemen User (Super Admin)
+│   │   └── Middleware/
+│   └── Models/                            # Eloquent Models (SuratTanah, AktaNotaris, dll)
+├── public/
+│   ├── assets/                            # File CSS, JS, font, dan icons
+│   │   └── css/custom.css                 # Styling responsif mobile & sticky header
+│   └── uploads/                           # Direktori penyimpanan berkas dokumen & foto
+│       ├── surat-tanah/
+│       ├── akta-notaris/
+│       ├── data-aset/
+│       └── handover/
+├── resources/
+│   └── views/
+│       ├── auth/login.blade.php           # Halaman login modern
+│       ├── brangkas/                      # View Surat Tanah, Akta Notaris, Data Aset
+│       ├── handover/index.blade.php       # View Record of Transfer
+│       ├── keuangan/                      # View Pengajuan & Rekap Keuangan
+│       ├── setting/users.blade.php        # View Manajemen User
+│       └── template/                      # Layout utama, header, dan navigasi
+└── routes/
+    └── web.php                            # Definisi rute aplikasi
+```
+
+---
+
+## 📄 Lisensi & Hak Cipta
+
+Dikembangkan untuk dan dikelola oleh:  
+**Lembaga Pendidikan Ma'arif NU Pengurus Besar Nahdlatul Ulama (LP Ma'arif NU PBNU)**  
+Copyright &copy; 2026 **Brangkas Digital LP Ma'arif NU PBNU** &bull; [brankas.maarifnu.or.id](https://brankas.maarifnu.or.id)
 

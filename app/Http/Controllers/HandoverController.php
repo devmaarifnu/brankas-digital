@@ -6,7 +6,7 @@ use App\Models\RecordOfHandover;
 use App\Models\SuratTanah;
 use App\Models\AktaNotaris;
 use App\Models\DataAsetLembaga;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class HandoverController extends Controller
 {
@@ -167,10 +167,8 @@ class HandoverController extends Controller
         $data['user_id'] = auth()->id();
 
         if ($request->hasFile('file_bukti')) {
-            $file = $request->file('file_bukti');
-            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            $file->move(public_path('uploads/handover'), $filename);
-            $data['file_bukti'] = 'uploads/handover/' . $filename;
+            $path = $file->store('uploads/handover', 'public');
+            $data['file_bukti'] = Storage::url($path);
         }
 
         RecordOfHandover::create($data);

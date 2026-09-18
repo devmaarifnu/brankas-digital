@@ -13,13 +13,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Ubah kolom role menjadi VARCHAR agar fleksibel untuk 4 role utama:
-        // 'super admin', 'admin', 'viewer', 'aproval'
-        DB::statement("ALTER TABLE users MODIFY role VARCHAR(50) NOT NULL DEFAULT 'viewer'");
-
-        // Mapping role lama jika ada
-        DB::statement("UPDATE users SET role = 'super admin' WHERE role = 'super admin'");
-        DB::statement("UPDATE users SET role = 'admin' WHERE role IN ('admin pusat', 'admin wilayah', 'admin cabang', 'operator')");
+        if (DB::getDriverName() === 'mysql') {
+            // Ubah kolom role menjadi VARCHAR agar fleksibel untuk 4 role utama:
+            // 'super admin', 'admin', 'viewer', 'aproval'
+            DB::statement("ALTER TABLE users MODIFY role VARCHAR(50) NOT NULL DEFAULT 'viewer'");
+            // Mapping role lama jika ada
+            DB::statement("UPDATE users SET role = 'super admin' WHERE role = 'super admin'");
+            DB::statement("UPDATE users SET role = 'admin' WHERE role IN ('admin pusat', 'admin wilayah', 'admin cabang', 'operator')");
+        }
     }
 
     /**

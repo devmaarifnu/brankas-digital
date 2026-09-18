@@ -256,12 +256,8 @@ class BrangkasController extends Controller
         if ($request->hasFile('file_dokumen')) {
             $file = $request->file('file_dokumen');
             $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            $destDir = public_path('uploads/akta-notaris');
-            if (!file_exists($destDir)) {
-                @mkdir($destDir, 0777, true);
-            }
-            $file->move($destDir, $filename);
-            $payload['file_dokumen'] = 'uploads/akta-notaris/' . $filename;
+            $path = $file->store('uploads/akta-notaris', 'public');
+            $payload['file_dokumen'] = Storage::url($path);
         }
 
         AktaNotaris::create($payload);

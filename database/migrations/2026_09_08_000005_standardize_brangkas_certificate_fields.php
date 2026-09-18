@@ -9,9 +9,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Alter status_handover to VARCHAR so it accepts Ditangguhkan, Diagunkan, etc.
-        DB::statement("ALTER TABLE surat_tanah MODIFY status_handover VARCHAR(50) DEFAULT 'Tersedia'");
-        DB::statement("ALTER TABLE akta_notaris MODIFY status_handover VARCHAR(50) DEFAULT 'Tersedia'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE surat_tanah MODIFY status_handover VARCHAR(50) DEFAULT 'Tersedia'");
+            DB::statement("ALTER TABLE akta_notaris MODIFY status_handover VARCHAR(50) DEFAULT 'Tersedia'");
+        }
 
         Schema::table("surat_tanah", function (Blueprint $table) {
             if (!Schema::hasColumn("surat_tanah", "jenis_sertifikat")) {

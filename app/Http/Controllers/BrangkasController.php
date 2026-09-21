@@ -90,9 +90,9 @@ class BrangkasController extends Controller
         if ($request->hasFile('file_dokumen')) {
             $file = $request->file('file_dokumen');
             $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            $destDir = public_path('uploads/surat-tanah');
+            $destDir = storage_path('app/uploads/surat-tanah');
             if (!file_exists($destDir)) {
-                @mkdir($destDir, 0777, true);
+                @mkdir($destDir, 0755, true);
             }
             $file->move($destDir, $filename);
             $payload['file_dokumen'] = 'uploads/surat-tanah/' . $filename;
@@ -149,14 +149,18 @@ class BrangkasController extends Controller
         $payload['warna_merah'] = $statusInfo['warna_merah'];
 
         if ($request->hasFile('file_dokumen')) {
-            if ($item->file_dokumen && file_exists(public_path($item->file_dokumen))) {
-                @unlink(public_path($item->file_dokumen));
+            if ($item->file_dokumen) {
+                if (file_exists(storage_path('app/' . $item->file_dokumen))) {
+                    @unlink(storage_path('app/' . $item->file_dokumen));
+                } elseif (file_exists(public_path($item->file_dokumen))) {
+                    @unlink(public_path($item->file_dokumen));
+                }
             }
             $file = $request->file('file_dokumen');
             $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            $destDir = public_path('uploads/surat-tanah');
+            $destDir = storage_path('app/uploads/surat-tanah');
             if (!file_exists($destDir)) {
-                @mkdir($destDir, 0777, true);
+                @mkdir($destDir, 0755, true);
             }
             $file->move($destDir, $filename);
             $payload['file_dokumen'] = 'uploads/surat-tanah/' . $filename;
@@ -176,6 +180,8 @@ class BrangkasController extends Controller
         if ($item->file_dokumen) {
             if (Storage::exists($item->file_dokumen)) {
                 Storage::delete($item->file_dokumen);
+            } elseif (File::exists(storage_path('app/' . $item->file_dokumen))) {
+                File::delete(storage_path('app/' . $item->file_dokumen));
             } elseif (File::exists(public_path($item->file_dokumen))) {
                 File::delete(public_path($item->file_dokumen));
             }
@@ -260,7 +266,11 @@ class BrangkasController extends Controller
         if ($request->hasFile('file_dokumen')) {
             $file = $request->file('file_dokumen');
             $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            $file->move(public_path('uploads/akta-notaris'), $filename);
+            $destDir = storage_path('app/uploads/akta-notaris');
+            if (!file_exists($destDir)) {
+                @mkdir($destDir, 0755, true);
+            }
+            $file->move($destDir, $filename);
             $payload['file_dokumen'] = 'uploads/akta-notaris/' . $filename;
         }
 
@@ -315,14 +325,18 @@ class BrangkasController extends Controller
         $payload['warna_merah'] = $statusInfo['warna_merah'];
 
         if ($request->hasFile('file_dokumen')) {
-            if ($item->file_dokumen && file_exists(public_path($item->file_dokumen))) {
-                @unlink(public_path($item->file_dokumen));
+            if ($item->file_dokumen) {
+                if (file_exists(storage_path('app/' . $item->file_dokumen))) {
+                    @unlink(storage_path('app/' . $item->file_dokumen));
+                } elseif (file_exists(public_path($item->file_dokumen))) {
+                    @unlink(public_path($item->file_dokumen));
+                }
             }
             $file = $request->file('file_dokumen');
             $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            $destDir = public_path('uploads/akta-notaris');
+            $destDir = storage_path('app/uploads/akta-notaris');
             if (!file_exists($destDir)) {
-                @mkdir($destDir, 0777, true);
+                @mkdir($destDir, 0755, true);
             }
             $file->move($destDir, $filename);
             $payload['file_dokumen'] = 'uploads/akta-notaris/' . $filename;
@@ -342,6 +356,8 @@ class BrangkasController extends Controller
         if ($item->file_dokumen) {
             if (Storage::exists($item->file_dokumen)) {
                 Storage::delete($item->file_dokumen);
+            } elseif (File::exists(storage_path('app/' . $item->file_dokumen))) {
+                File::delete(storage_path('app/' . $item->file_dokumen));
             } elseif (File::exists(public_path($item->file_dokumen))) {
                 File::delete(public_path($item->file_dokumen));
             }
@@ -540,9 +556,9 @@ class BrangkasController extends Controller
         if ($request->hasFile('file_dokumen')) {
             $file = $request->file('file_dokumen');
             $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            $destDir = public_path('uploads/data-aset');
+            $destDir = storage_path('app/uploads/data-aset');
             if (!file_exists($destDir)) {
-                @mkdir($destDir, 0777, true);
+                @mkdir($destDir, 0755, true);
             }
             $file->move($destDir, $filename);
             $payload['file_dokumen'] = 'uploads/data-aset/' . $filename;
@@ -591,14 +607,18 @@ class BrangkasController extends Controller
         $payload['warna_merah'] = $statusInfo['warna_merah'];
 
         if ($request->hasFile('file_dokumen')) {
-            if ($item->file_dokumen && file_exists(public_path($item->file_dokumen))) {
-                @unlink(public_path($item->file_dokumen));
+            if ($item->file_dokumen) {
+                if (file_exists(storage_path('app/' . $item->file_dokumen))) {
+                    @unlink(storage_path('app/' . $item->file_dokumen));
+                } elseif (file_exists(public_path($item->file_dokumen))) {
+                    @unlink(public_path($item->file_dokumen));
+                }
             }
             $file = $request->file('file_dokumen');
             $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            $destDir = public_path('uploads/data-aset');
+            $destDir = storage_path('app/uploads/data-aset');
             if (!file_exists($destDir)) {
-                @mkdir($destDir, 0777, true);
+                @mkdir($destDir, 0755, true);
             }
             $file->move($destDir, $filename);
             $payload['file_dokumen'] = 'uploads/data-aset/' . $filename;
@@ -618,6 +638,8 @@ class BrangkasController extends Controller
         if ($item->file_dokumen) {
             if (Storage::exists($item->file_dokumen)) {
                 Storage::delete($item->file_dokumen);
+            } elseif (File::exists(storage_path('app/' . $item->file_dokumen))) {
+                File::delete(storage_path('app/' . $item->file_dokumen));
             } elseif (File::exists(public_path($item->file_dokumen))) {
                 File::delete(public_path($item->file_dokumen));
             }

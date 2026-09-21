@@ -169,8 +169,14 @@ class HandoverController extends Controller
         $data['user_id'] = auth()->id();
 
         if ($request->hasFile('file_bukti')) {
-            $path = $file->store('uploads/handover', 'public');
-            $data['file_bukti'] = Storage::url($path);
+            $file = $request->file('file_bukti');
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+            $destDir = storage_path('app/uploads/handover');
+            if (!file_exists($destDir)) {
+                @mkdir($destDir, 0755, true);
+            }
+            $file->move($destDir, $filename);
+            $data['file_bukti'] = 'uploads/handover/' . $filename;
         }
 
         RecordOfHandover::create($data);

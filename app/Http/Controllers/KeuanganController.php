@@ -19,8 +19,12 @@ class KeuanganController extends Controller {
         $d = $request->except('file_bukti');
         if ($request->hasFile('file_bukti')) {
             $f = $request->file('file_bukti');
-            $fname = time().'_'.$f->getClientOriginalName();
-            $f->move(public_path('uploads/keuangan'), $fname);
+            $fname = time().'_'.preg_replace('/[^a-zA-Z0-9._-]/', '', $f->getClientOriginalName());
+            $destDir = storage_path('app/uploads/keuangan');
+            if (!file_exists($destDir)) {
+                @mkdir($destDir, 0755, true);
+            }
+            $f->move($destDir, $fname);
             $d['file_bukti'] = 'uploads/keuangan/'.$fname;
         }
         $d['status'] = 'Menunggu';
@@ -70,8 +74,12 @@ class KeuanganController extends Controller {
         }
         $request->validate(['jenis'=>'required','periode'=>'required','file_path'=>'required|file|mimes:pdf,jpg,jpeg,png|max:10240']);
         $f = $request->file('file_path');
-        $fname = time().'_'.$f->getClientOriginalName();
-        $f->move(public_path('uploads/keuangan'), $fname);
+        $fname = time().'_'.preg_replace('/[^a-zA-Z0-9._-]/', '', $f->getClientOriginalName());
+        $destDir = storage_path('app/uploads/keuangan');
+        if (!file_exists($destDir)) {
+            @mkdir($destDir, 0755, true);
+        }
+        $f->move($destDir, $fname);
         KeuanganDokumen::create(['jenis'=>$request->jenis,'periode'=>$request->periode,'file_path'=>'uploads/keuangan/'.$fname,'judul'=>$request->judul,'keterangan'=>$request->keterangan]);
         return back()->with('success','Dokumen berhasil diunggah.');
     }

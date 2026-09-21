@@ -1,0 +1,579 @@
+/*breadcrumb style*/
+#breadcrumb {
+    list-style: none;
+    display: inline-block;
+}
+#breadcrumb .fa {
+    font-size: 14px;
+}
+#breadcrumb li {
+    float: left;
+}
+#breadcrumb li a {
+    color: #212529;
+    display: block;
+    background: #ffc107;
+    text-decoration: none;
+    position: relative;
+    height: 30px;
+    line-height: 30px;
+    padding: 0 10px 0 5px;
+    text-align: center;
+    margin-right: 23px;
+    margin-top: 10px
+}
+#breadcrumb li:nth-child(even) a {
+    background-color: #ffc107;
+}
+#breadcrumb li:nth-child(even) a:before {
+    border-color: #ffc107;
+    border-left-color: transparent;
+}
+#breadcrumb li:nth-child(even) a:after {
+    border-left-color: #ffc107;
+}
+#breadcrumb li:first-child a {
+    padding-left: 15px;
+    -moz-border-radius: 4px 0 0 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px 0 0 4px;
+}
+#breadcrumb li:first-child a:before {
+    border: none;
+}
+#breadcrumb li:last-child a {
+    padding-right: 15px;
+    -moz-border-radius: 0 4px 4px 0;
+    -webkit-border-radius: 0;
+    border-radius: 0 4px 4px 0;
+}
+#breadcrumb li:last-child a:after {
+    border: none;
+}
+#breadcrumb li a:before, #breadcrumb li a:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    border: 0 solid #ffc107;
+    border-width: 15px 10px;
+    width: 0;
+    height: 0;
+}
+#breadcrumb li a:before {
+    left: -20px;
+    border-left-color: transparent;
+}
+#breadcrumb li a:after {
+    left: 100%;
+    border-color: transparent;
+    border-left-color: #ffc107;
+}
+#breadcrumb li a:hover {
+    background-color: #E0A800;
+}
+#breadcrumb li a:hover:before {
+    border-color: #E0A800;
+    border-left-color: transparent;
+}
+#breadcrumb li a:hover:after {
+    border-left-color: #E0A800;
+}
+#breadcrumb li a:active {
+    background-color: #E0A800;
+}
+#breadcrumb li a:active:before {
+    border-color: #E0A800;
+    border-left-color: transparent;
+}
+#breadcrumb li a:active:after {
+    border-left-color: #E0A800;
+}
+
+/*content style*/
+.container-begin .nav li {
+    margin-right: 15px;
+    background-color: #fff;
+    border-top-left-radius: var(--bs-nav-tabs-border-radius);
+    border-top-right-radius: var(--bs-nav-tabs-border-radius);
+    color: #222;
+}
+.container-begin .nav-item button {
+    color: #212529;
+    font-weight: 500;
+}
+.container-begin .nav .active {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+.container-begin .tab-content .card {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+.container-begin table th, .container-begin table td {
+    padding: .5rem .6rem;
+}
+.form-control-sm, .form-select-sm {
+    min-height: calc(1.5em + 0.8rem + calc(var(--bs-border-width) * 2));
+}
+.login-side-right {
+    background: #ECF3FC;
+}
+.w-60 {
+    width: 60% !important;
+}
+.file-download-box {
+    background-color: #efeeee;
+    padding: .8rem 1.3rem;
+    border-radius: .3rem;
+    margin-right: 1.9rem;
+}
+/*mytable style*/
+/* #mytable td, #mytable1 td, #mytable2 td, #mytable2 td {
+    font-size: .9em;
+    font-weight: 500;
+    vertical-align: middle;
+    padding: .388rem;
+} */
+/* #mytable th, #mytable1 th, #mytable2 th, #mytable3 th {
+    background-color: rgba(50, 123, 50, .199);
+    padding: .4rem;
+} */
+#mytable td:last-child, #mytable td:first-child,
+#mytable1 td:last-child, #mytable1 td:first-child,
+#mytable2 td:last-child, #mytable2 td:first-child,
+#mytable3 td:last-child, #mytable3 td:first-child  {
+    text-align: center;
+}
+#mytable button, #mytable1 button, #mytable2 button, #mytable3 button {
+    padding: .1rem .3rem;
+    margin-right: .3rem;
+}
+#mytable .expired {
+    background-color: rgba(227, 53, 30, 0.8);
+    color: #fff;
+}
+.card .form-filter .form-select-sm {
+    min-height: calc(1.5em + 0.3rem + calc(var(--bs-border-width) * 2));
+    min-width: 7rem;
+}
+
+/*modal custom*/
+.modal-header {
+    background-color: #49A232;
+    color: #fff;
+}
+.modal-header .modal-title {
+    color: #fff;
+}
+.modal-backdrop.show {
+    opacity: 0.8;
+}
+
+.sidebar-nav ul .sidebar-item.selected > .sidebar-link, .sidebar-nav ul .sidebar-item.selected > .sidebar-link.active, .sidebar-nav ul .sidebar-item > .sidebar-link.active {
+    background-color: #327B32;
+}
+
+/*custom button in layout*/
+.container-begin .btn-green, .btn-green  {
+    background-color: #327B32;
+    color: #fff;
+}
+
+.btn-green:hover, .btn-green:focus {
+    background-color: #296b29 !important;
+    color: #fff !important;
+}
+
+.card-box-detail {
+    border: .08rem solid #ebf1f6;
+    border-top: .3rem solid #ffc107;
+}
+
+.btn-generate-padding {
+    padding: .34rem .6rem;
+}
+
+.short-profile i {
+    font-size: 2em;
+    margin-bottom: .5rem;
+}
+
+.col-file-dash {
+    background: rgba(224, 224, 224, 0.82);
+    border-radius: .2rem;
+}
+
+.form-password .input-group-text {
+    border: var(--bs-border-width) solid #DFE5EF;
+    border-top-right-radius: 5px !important;
+    border-bottom-right-radius: 5px !important;
+}
+
+input[type='file'].form-control-sm {
+    line-height: 1.9;
+}
+
+.card-header-navs {
+    /*background-color: #3C8637;*/
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+    background-color: #ffc107;
+    color: #212529;
+}
+.nav-pills .nav-link {
+    font-weight: 500;
+    color: #212529;
+}
+
+.step-status i.ti {
+    font-size: 1.4em;
+    background-color: #eaeaea;
+    color: #fff;
+    padding: .5rem;
+    border-radius: 50%;
+}
+
+.step-status i.ti.success {
+    background-color: #D3EEE5;
+    color: #52BD97;
+}
+
+.step-status i.ti.failed {
+    background-color: #eed8d3;
+    color: #bd6252;
+}
+
+.step-status p {
+    font-size: 1em;
+    margin-top: .7rem;
+    margin-bottom: 0;
+}
+
+hr {
+    opacity: 0.18;
+}
+
+.modal-content {
+    border-radius: 0;
+}
+
+.required::after {
+    color: #e32;
+    content: ' *';
+    display:inline;
+}
+
+.table-hover > tbody > tr:hover > .expired {
+    --bs-table-accent-bg: rgba(227, 53, 30, 0.8);
+    color: var(--bs-table-hover-color);
+}
+
+.scroll-mirror-top {
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 16px; /* tinggi scrollbar */
+}
+
+.table-scroll-top {
+    width: 100%;
+}
+
+.scroll-mirror-top::-webkit-scrollbar {
+    height: 8px;
+}
+
+#table-scroll-container {
+    overflow-x: auto;
+}
+
+.table-rekap tr td, .table-rekap tr th {
+    text-align: left;
+}
+
+@media (max-width: 575.98px) {
+    .w-50, .w-60 {
+        width: 90% !important;
+    }
+}
+
+input[readonly] {
+  background-color: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
+  border-color: #ced4da;
+}
+
+input[readonly]:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Sub-menu styling: rata kiri (left-aligned) dengan indentasi rapi */
+.sidebar-nav ul .first-level {
+    padding-left: 8px;
+}
+
+.first-level .sidebar-item .sidebar-link {
+    display: flex !important;
+    justify-content: flex-start !important; /* left align */
+    align-items: center !important;
+    text-align: left !important;
+    padding-left: 20px !important; /* consistent left padding */
+    padding-right: 15px !important;
+    gap: 8px !important;
+}
+
+.first-level .sidebar-link span {
+    margin-left: 0 !important; /* reset extra margin */
+}
+
+.first-level .sidebar-link .hide-menu {
+    text-align: left !important;
+}
+
+/* Ensure modal bodies are scrollable when content exceeds view height */
+.modal-dialog-scrollable .modal-body {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+/* ==========================================================================
+   ANDROID & MOBILE RESPONSIVE STYLING (HP STANDARD OPTIMIZATION)
+   ========================================================================== */
+
+@media (max-width: 1199.98px) {
+    .app-header {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        z-index: 999 !important;
+        background: #ffffff !important;
+        box-shadow: 0 1px 10px rgba(0, 0, 0, 0.08) !important;
+    }
+    .left-sidebar {
+        z-index: 1050 !important;
+    }
+    .body-wrapper {
+        padding-top: 65px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    /* 1. Body & Typography */
+    body {
+        font-size: 13px !important;
+        line-height: 1.45 !important;
+    }
+
+    h1, .h1 { font-size: 1.4rem !important; }
+    h2, .h2 { font-size: 1.25rem !important; }
+    h3, .h3 { font-size: 1.15rem !important; }
+    h4, .h4 { font-size: 1.05rem !important; }
+    h5, .h5 { font-size: 0.95rem !important; }
+    h6, .h6 { font-size: 0.85rem !important; }
+
+    /* 2. Container & Page Padding */
+    .container-fluid {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+    .body-wrapper {
+        padding-top: 60px !important;
+        margin-top: 0 !important;
+    }
+    .body-wrapper > .container-fluid {
+        padding: 12px 10px !important;
+        min-height: calc(100vh - 60px) !important;
+    }
+
+    /* 3. Top Header Bar (App Header - Fixed / Standby di Atas) */
+    .app-header {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        height: 60px !important;
+        padding: 0 12px !important;
+        z-index: 999 !important;
+        background: #ffffff !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08) !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    .app-header .navbar {
+        width: 100% !important;
+        min-height: 60px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 !important;
+    }
+    .app-header .navbar .navbar-nav {
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 6px !important;
+    }
+    .app-header .navbar .navbar-collapse {
+        display: flex !important;
+        flex-basis: auto !important;
+        flex-grow: 0 !important;
+    }
+    .app-header .navbar .text-end {
+        display: none !important; /* Hide long user subtitle on small screens */
+    }
+    .app-header .dropdown-menu {
+        position: absolute !important;
+        z-index: 1001 !important;
+    }
+    .left-sidebar {
+        z-index: 1050 !important;
+    }
+
+    /* 4. Breadcrumb on Mobile */
+    #breadcrumb {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 4px !important;
+        padding: 0 !important;
+        margin-bottom: 8px !important;
+    }
+    #breadcrumb li {
+        float: none !important;
+        margin: 0 !important;
+    }
+    #breadcrumb li a {
+        height: 24px !important;
+        line-height: 24px !important;
+        padding: 0 8px !important;
+        margin: 0 !important;
+        font-size: 11px !important;
+        border-radius: 4px !important;
+    }
+    #breadcrumb li a:before,
+    #breadcrumb li a:after {
+        display: none !important; /* Remove jagged arrow triangles on mobile */
+    }
+
+    /* 5. Top Header Card on Pages */
+    .card.mb-4, .card.mb-3 {
+        margin-bottom: 12px !important;
+    }
+    .card .card-body {
+        padding: 12px !important;
+    }
+    .card-header {
+        padding: 10px 12px !important;
+    }
+
+    /* 6. Sidebar Menu on Mobile */
+    .sidebar-nav ul .sidebar-item .sidebar-link {
+        padding: 9px 12px !important;
+        font-size: 13px !important;
+    }
+    .sidebar-nav ul .sidebar-item .sidebar-link i {
+        font-size: 18px !important;
+    }
+    .nav-small-cap {
+        font-size: 10px !important;
+        padding: 12px 12px 4px !important;
+    }
+
+    /* 7. Search & Filter Cards on Mobile */
+    .card-body form.row.g-2 {
+        row-gap: 8px !important;
+    }
+    .card-body form.row.g-2 > div {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    .form-control, .form-select, .input-group-text, .btn {
+        font-size: 13px !important;
+        border-radius: 6px !important;
+    }
+    .btn-sm, .form-control-sm, .form-select-sm {
+        font-size: 12px !important;
+        padding: 6px 10px !important;
+    }
+
+    /* 8. Table Styling on Mobile */
+    .table-responsive {
+        border-radius: 8px !important;
+        border: 1px solid #ebf1f6 !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    .table {
+        font-size: 12px !important;
+    }
+    .table th, .table td {
+        padding: 6px 8px !important;
+        vertical-align: middle !important;
+    }
+    .table thead th {
+        font-size: 11px !important;
+        letter-spacing: 0.2px !important;
+        white-space: nowrap !important;
+    }
+    .table .badge {
+        font-size: 10px !important;
+        padding: 3px 6px !important;
+    }
+
+    /* Action buttons in tables */
+    .table td .btn-sm {
+        padding: 3px 6px !important;
+        font-size: 11px !important;
+    }
+
+    /* 9. Modals on Mobile (Popups) */
+    .modal-dialog {
+        margin: 8px !important;
+        max-width: calc(100% - 16px) !important;
+    }
+    .modal-content {
+        border-radius: 12px !important;
+    }
+    .modal-header {
+        padding: 10px 14px !important;
+    }
+    .modal-title {
+        font-size: 14px !important;
+    }
+    .modal-body {
+        padding: 12px 14px !important;
+        max-height: calc(100vh - 140px) !important;
+        overflow-y: auto !important;
+    }
+    .modal-footer {
+        padding: 10px 14px !important;
+        flex-wrap: nowrap !important;
+    }
+    .modal-footer .btn {
+        flex: 1 1 auto !important;
+    }
+
+    /* 10. Form Grid in Modals */
+    .row.g-3 {
+        --bs-gutter-y: 0.75rem !important;
+        --bs-gutter-x: 0.75rem !important;
+    }
+    .form-label {
+        font-size: 12px !important;
+        margin-bottom: 4px !important;
+    }
+
+    /* Detail Modal Table */
+    .modal-body table.table-bordered th {
+        width: 40% !important;
+        font-size: 11px !important;
+        padding: 6px 8px !important;
+    }
+    .modal-body table.table-bordered td {
+        font-size: 12px !important;
+        padding: 6px 8px !important;
+    }
+}

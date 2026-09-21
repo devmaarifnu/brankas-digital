@@ -1,0 +1,17 @@
+.bootstrap-select:not([class*="col-"]):not([class*="form-control"]):not(.input-group-btn) {
+    width: 100%;
+    border: var(--bs-border-width) solid #DFE5EF;
+    border-radius: 5px;
+    /*max-height: calc(1.5em + 0.8rem + calc(var(--bs-border-width) * 2));*/
+    min-height: 2.38rem;
+    max-height: calc(1.5em + 1.5rem + calc(var(--bs-border-width) * 2));
+}
+
+.bootstrap-select .dropdown-toggle {
+    /*max-height: calc(1.3em + 0.8rem + calc(var(--bs-border-width) * 2));*/
+    height: 2.38rem;
+    max-height: calc(1.3em + 1.5rem + calc(var(--bs-border-width) * 2));
+    background-color: transparent;
+    color: #5A6A85;
+    font-size: 0.765625rem;
+}

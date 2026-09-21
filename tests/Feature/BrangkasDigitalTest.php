@@ -79,7 +79,8 @@ class BrangkasDigitalTest extends TestCase
         $this->assertEquals('2500', $surat->luas);
         $this->assertEquals('Dokumen Asli Ada', $surat->keterangan);
         $this->assertFalse($surat->warna_merah);
-        $this->assertTrue(File::exists(public_path($surat->file_dokumen)));
+        $this->assertTrue(File::exists(storage_path('app/' . $surat->file_dokumen)));
+        $this->assertFalse(File::exists(public_path($surat->file_dokumen)));
 
         // Update
         $updateData = [
@@ -101,7 +102,7 @@ class BrangkasDigitalTest extends TestCase
         $this->assertTrue($surat->warna_merah);
 
         // Delete
-        $filePath = public_path($surat->file_dokumen);
+        $filePath = storage_path('app/' . $surat->file_dokumen);
         $deleteResponse = $this->actingAs($this->user)->post("/brangkas/surat-tanah/{$surat->id}/delete");
         $deleteResponse->assertRedirect('/brangkas/surat-tanah');
         $this->assertDatabaseMissing('surat_tanah', ['id' => $surat->id]);
@@ -131,10 +132,11 @@ class BrangkasDigitalTest extends TestCase
         $akta = AktaNotaris::where('nomor_dokumen', '99/AN/2026')->first();
         $this->assertNotNull($akta);
         $this->assertEquals('Akta Notaris', $akta->jenis_dokumen);
-        $this->assertTrue(File::exists(public_path($akta->file_dokumen)));
+        $this->assertTrue(File::exists(storage_path('app/' . $akta->file_dokumen)));
+        $this->assertFalse(File::exists(public_path($akta->file_dokumen)));
 
         // Delete
-        $filePath = public_path($akta->file_dokumen);
+        $filePath = storage_path('app/' . $akta->file_dokumen);
         $this->actingAs($this->user)->post("/brangkas/akta-notaris/{$akta->id}/delete");
         $this->assertDatabaseMissing('akta_notaris', ['id' => $akta->id]);
         $this->assertFalse(File::exists($filePath));
@@ -166,10 +168,11 @@ class BrangkasDigitalTest extends TestCase
         $this->assertNotNull($aset);
         $this->assertStringStartsWith('AST-LPM-', $aset->nomor_registrasi);
         $this->assertEquals('Ruang Sekretariat Lt. 2', $aset->lokasi);
-        $this->assertTrue(File::exists(public_path($aset->file_dokumen)));
+        $this->assertTrue(File::exists(storage_path('app/' . $aset->file_dokumen)));
+        $this->assertFalse(File::exists(public_path($aset->file_dokumen)));
 
         // Delete
-        $filePath = public_path($aset->file_dokumen);
+        $filePath = storage_path('app/' . $aset->file_dokumen);
         $this->actingAs($this->user)->post("/brangkas/data-aset/{$aset->id}/delete");
         $this->assertDatabaseMissing('data_aset_lembaga', ['id' => $aset->id]);
         $this->assertFalse(File::exists($filePath));

@@ -112,6 +112,33 @@ Route::middleware('mustlogin')->group(function () {
             return redirect()->route('handover.index');
         });
     });
+
+    /**
+     * Secure Document Serving (Authenticated Users Only + Anti-Indexing)
+     */
+    Route::get('/uploads/{path}', function ($path) {
+        if (str_contains($path, '..')) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $file = null;
+        if (file_exists(storage_path('app/uploads/' . $path))) {
+            $file = storage_path('app/uploads/' . $path);
+        } elseif (file_exists(storage_path('app/' . $path))) {
+            $file = storage_path('app/' . $path);
+        } elseif (file_exists(public_path('uploads/' . $path))) {
+            $file = public_path('uploads/' . $path);
+        }
+
+        if (!$file) {
+            abort(404);
+        }
+
+        $res = response()->file($file);
+        $res->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet');
+        $res->headers->set('Cache-Control', 'no-cache, private, no-store, must-revalidate');
+        return $res;
+    })->where('path', '.*')->name('secure.uploads');
 });
 
 /**
@@ -123,22 +150,3 @@ Route::prefix("auth")->group(function () {
     Route::get('reset/{token}', [ForgotPasswordController::class, 'showResetPasswordForm'])->name('reset');
     Route::post('reset', [ForgotPasswordController::class, 'submitResetPasswordForm'])->name('reset.send');
 });
-
-/**
- * Fallback route untuk serving uploaded documents (mencegah 404 pada file di storage maupun public)
- */
-Route::get('/uploads/{path}', function ($path) {
-    $publicFile = public_path('uploads/' . $path);
-    if (file_exists($publicFile)) {
-        return response()->file($publicFile);
-    }
-    $storageFile = storage_path('app/uploads/' . $path);
-    if (file_exists($storageFile)) {
-        return response()->file($storageFile);
-    }
-    $storageDirect = storage_path('app/' . $path);
-    if (file_exists($storageDirect)) {
-        return response()->file($storageDirect);
-    }
-    abort(404);
-})->where('path', '.*');

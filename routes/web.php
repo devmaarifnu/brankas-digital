@@ -59,6 +59,14 @@ Route::middleware('mustlogin')->group(function () {
     Route::post('/brangkas/akta-notaris/{id}/update', [BrangkasController::class, 'updateAktaNotaris'])->name('brangkas.akta-notaris.update');
     Route::post('/brangkas/akta-notaris/{id}/delete', [BrangkasController::class, 'destroyAktaNotaris'])->name('brangkas.akta-notaris.destroy');
 
+    Route::get('/brangkas/surat-kendaraan', [BrangkasController::class, 'suratKendaraan'])->name('brangkas.surat-kendaraan');
+    Route::get('/brangkas/surat-kendaraan/export', [BrangkasController::class, 'exportSuratKendaraan'])->name('brangkas.surat-kendaraan.export');
+    Route::get('/brangkas/surat-kendaraan/kendaraan-list', [BrangkasController::class, 'getKendaraanList'])->name('brangkas.surat-kendaraan.kendaraan-list');
+    Route::post('/brangkas/surat-kendaraan', [BrangkasController::class, 'storeSuratKendaraan'])->name('brangkas.surat-kendaraan.store');
+    Route::get('/brangkas/surat-kendaraan/{id}/edit', [BrangkasController::class, 'editSuratKendaraan'])->name('brangkas.surat-kendaraan.edit');
+    Route::post('/brangkas/surat-kendaraan/{id}/update', [BrangkasController::class, 'updateSuratKendaraan'])->name('brangkas.surat-kendaraan.update');
+    Route::post('/brangkas/surat-kendaraan/{id}/delete', [BrangkasController::class, 'destroySuratKendaraan'])->name('brangkas.surat-kendaraan.destroy');
+
     // Data Aset Lembaga
     Route::get('/brangkas/data-aset', [BrangkasController::class, 'dataAset'])->name('brangkas.data-aset');
     Route::get('/brangkas/data-aset/export', [BrangkasController::class, 'exportDataAset'])->name('brangkas.data-aset.export');

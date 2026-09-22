@@ -203,4 +203,60 @@ class BrangkasDigitalTest extends TestCase
         $this->assertEquals('Dipinjam', $surat->status_handover);
         $this->assertTrue($surat->warna_merah);
     }
+
+    public function test_surat_kendaraan_crud_and_asset_linking()
+    {
+        // 1. Create a vehicle asset
+        $aset = DataAsetLembaga::create([
+            'nama_aset' => 'Toyota Innova Zenix',
+            'nama_barang' => 'Toyota Innova Zenix',
+            'jenis_barang' => 'Mobil',
+            'merek' => 'Toyota',
+            'nomor_seri_model' => 'SN-ZENIX-2024',
+            'nomor_registrasi' => 'AST-LPM-202609-0099',
+            'kondisi_aset' => 'Sangat Baik',
+            'posisi_aset' => 'Kantor',
+            'user_id' => $this->user->id_user,
+        ]);
+
+        // 2. Create BPKB for this vehicle
+        $bpkbFile = UploadedFile::fake()->create('bpkb_innova.pdf', 100, 'application/pdf');
+        $bpkbData = [
+            'jenis_surat' => 'BPKB',
+            'data_aset_id' => $aset->id,
+            'nama_kendaraan' => 'Toyota Innova Zenix',
+            'nama_pemilik' => 'Yayasan LP Ma\'arif NU',
+            'no_plat' => 'B 1926 NUX',
+            'no_rangka' => 'MHKB123456789',
+            'no_mesin' => '1TR987654321',
+            'keterangan' => 'Dokumen Asli Ada',
+            'file_dokumen' => $bpkbFile,
+        ];
+
+        $response = $this->actingAs($this->user)->post('/brangkas/surat-kendaraan', $bpkbData);
+        $response->assertRedirect('/brangkas/surat-kendaraan');
+        $response->assertSessionHas('success');
+
+        // 3. Verify BPKB record
+        $bpkb = \App\Models\SuratKendaraan::where('no_plat', 'B 1926 NUX')->first();
+        $this->assertNotNull($bpkb);
+        $this->assertEquals('BPKB', $bpkb->jenis_surat);
+        $this->assertEquals($aset->id, $bpkb->data_aset_id);
+
+        // 4. Verify linking on DataAsetLembaga model
+        $aset->refresh();
+        $this->assertNotNull($aset->bpkb_record);
+        $this->assertEquals('BPKB', $aset->bpkb_record->jenis_surat);
+        $this->assertNull($aset->stnk_record);
+
+        // 5. Test JSON kendaraan list API
+        $apiRes = $this->actingAs($this->user)->get('/brangkas/surat-kendaraan/kendaraan-list');
+        $apiRes->assertOk();
+        $apiRes->assertJsonFragment(['nama_barang' => 'Toyota Innova Zenix']);
+
+        // 6. Delete BPKB
+        $deleteRes = $this->actingAs($this->user)->post("/brangkas/surat-kendaraan/{$bpkb->id}/delete");
+        $deleteRes->assertRedirect('/brangkas/surat-kendaraan');
+        $this->assertDatabaseMissing('surat_kendaraan', ['id' => $bpkb->id]);
+    }
 }

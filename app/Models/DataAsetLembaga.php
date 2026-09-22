@@ -68,4 +68,19 @@ class DataAsetLembaga extends Model
     {
         return $this->hasMany(RecordOfHandover::class, 'ref_id')->where('kategori', 'Data Aset Lembaga')->orderBy('created_at', 'desc');
     }
+
+    public function suratKendaraan()
+    {
+        return $this->hasMany(SuratKendaraan::class, 'data_aset_id');
+    }
+
+    public function getBpkbRecordAttribute()
+    {
+        return $this->suratKendaraan->where('jenis_surat', 'BPKB')->first();
+    }
+
+    public function getStnkRecordAttribute()
+    {
+        return $this->suratKendaraan->where('jenis_surat', 'STNK')->first();
+    }
 }

@@ -40,6 +40,13 @@
                         <span class="hide-menu">Akta Notaris</span>
                     </a>
                 </li>
+                <li class="sidebar-item">
+                    <a href="{{ route('brangkas.surat-kendaraan') }}"
+                       class="sidebar-link {{ request()->routeIs('brangkas.surat-kendaraan') ? 'active' : '' }}">
+                        <span><i class="ti ti-car"></i></span>
+                        <span class="hide-menu">Surat Kendaraan</span>
+                    </a>
+                </li>
             </ul>
         </li>
 

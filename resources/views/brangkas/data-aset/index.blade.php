@@ -99,14 +99,22 @@
                             <th>Nama Petugas</th>
                             <th>Tgl Input</th>
                             <th>Foto/PDF</th>
+                            <th>BPKB</th>
+                            <th>STNK</th>
                             <th>Keterangan</th>
                             <th class="text-center pe-3" width="120">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($data as $i => $item)
+                        @php
+                            $jenisLower = strtolower($item->jenis_barang ?? ($item->jenis_aset ?? ''));
+                            $isKendaraan = in_array($jenisLower, ['mobil', 'sepeda motor', 'motor', 'kendaraan']) || str_contains($jenisLower, 'mobil') || str_contains($jenisLower, 'motor');
+                            $bpkb = $item->bpkb_record;
+                            $stnk = $item->stnk_record;
+                        @endphp
                         <tr class="{{ $item->warna_merah ? 'table-danger' : '' }}">
-                            <td class="ps-3">{{ $i+1 }}</td>
+                            <td class="ps-3">{{ $data->firstItem() + $i }}</td>
                             <td><span class="badge bg-light text-dark border">{{ $item->jenis_barang ?? ($item->jenis_aset ?? '-') }}</span></td>
                             <td class="fw-semibold text-dark">{{ $item->nama_barang ?? $item->nama_aset }}</td>
                             <td>{{ $item->merek ?? '-' }}</td>
@@ -161,6 +169,52 @@
                                             title="Lihat {{ $isImg ? 'Foto' : 'Dokumen PDF' }}">
                                         <i class="ti {{ $isImg ? 'ti-photo' : 'ti-file-text' }} me-1"></i>{{ $isImg ? 'Foto' : 'PDF' }}
                                     </button>
+                                @else
+                                    <span class="text-muted small">-</span>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                @if($bpkb)
+                                    <button type="button" class="btn btn-sm btn-outline-success px-2 py-1 shadow-sm btn-show-surat"
+                                            data-jenis="BPKB"
+                                            data-nama="{{ $bpkb->nama_kendaraan }}"
+                                            data-pemilik="{{ $bpkb->nama_pemilik ?? '-' }}"
+                                            data-plat="{{ $bpkb->no_plat ?? '-' }}"
+                                            data-rangka="{{ $bpkb->no_rangka ?? '-' }}"
+                                            data-mesin="{{ $bpkb->no_mesin ?? '-' }}"
+                                            data-status="{{ $bpkb->status_handover ?? 'Tersedia' }}"
+                                            data-ket="{{ $bpkb->keterangan ?? '-' }}"
+                                            data-petugas="{{ $bpkb->petugas_name }}"
+                                            data-tgl="{{ $bpkb->tgl_input ? $bpkb->tgl_input->format('d/m/Y') : '-' }}"
+                                            data-url="{{ $bpkb->file_dokumen ? asset($bpkb->file_dokumen) : '' }}"
+                                            title="Lihat Detail BPKB">
+                                        <i class="ti ti-certificate me-1"></i>Ada
+                                    </button>
+                                @elseif($isKendaraan)
+                                    <span class="badge bg-light text-muted border">Belum Ada</span>
+                                @else
+                                    <span class="text-muted small">-</span>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                @if($stnk)
+                                    <button type="button" class="btn btn-sm btn-outline-info px-2 py-1 shadow-sm btn-show-surat"
+                                            data-jenis="STNK"
+                                            data-nama="{{ $stnk->nama_kendaraan }}"
+                                            data-pemilik="{{ $stnk->nama_pemilik ?? '-' }}"
+                                            data-plat="{{ $stnk->no_plat ?? '-' }}"
+                                            data-rangka="{{ $stnk->no_rangka ?? '-' }}"
+                                            data-mesin="{{ $stnk->no_mesin ?? '-' }}"
+                                            data-status="{{ $stnk->status_handover ?? 'Tersedia' }}"
+                                            data-ket="{{ $stnk->keterangan ?? '-' }}"
+                                            data-petugas="{{ $stnk->petugas_name }}"
+                                            data-tgl="{{ $stnk->tgl_input ? $stnk->tgl_input->format('d/m/Y') : '-' }}"
+                                            data-url="{{ $stnk->file_dokumen ? asset($stnk->file_dokumen) : '' }}"
+                                            title="Lihat Detail STNK">
+                                        <i class="ti ti-file-certificate me-1"></i>Ada
+                                    </button>
+                                @elseif($isKendaraan)
+                                    <span class="badge bg-light text-muted border">Belum Ada</span>
                                 @else
                                     <span class="text-muted small">-</span>
                                 @endif
@@ -768,6 +822,120 @@ $(document).ready(function() {
 
         showPage(1);
     }
+
+    // Modal Show Surat (BPKB / STNK) from Data Aset
+    $(document).on('click', '.btn-show-surat', function() {
+        var jenis = $(this).data('jenis');
+        var nama = $(this).data('nama');
+        var pemilik = $(this).data('pemilik');
+        var plat = $(this).data('plat');
+        var rangka = $(this).data('rangka');
+        var mesin = $(this).data('mesin');
+        var status = $(this).data('status');
+        var ket = $(this).data('ket');
+        var petugas = $(this).data('petugas');
+        var tgl = $(this).data('tgl');
+        var url = $(this).data('url');
+
+        $('#sk_title').text('Detail ' + jenis + ' - ' + nama);
+        $('#sk_jenis').text(jenis);
+        $('#sk_nama').text(nama);
+        $('#sk_pemilik').text(pemilik);
+        $('#sk_plat').text(plat);
+        $('#sk_rangka').text(rangka);
+        $('#sk_mesin').text(mesin);
+        $('#sk_petugas').text(petugas);
+        $('#sk_tgl').text(tgl);
+
+        if (status === 'Dipinjam' || status === 'Diagunkan' || status === 'Dihibahkan') {
+            $('#sk_status').attr('class', 'badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fs-3').text(ket || status);
+        } else {
+            $('#sk_status').attr('class', 'badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 fs-3').text(ket || 'Tersedia');
+        }
+
+        if (url) {
+            $('#sk_file_link').attr('href', url);
+            $('#sk_file_wrapper').show();
+        } else {
+            $('#sk_file_wrapper').hide();
+        }
+
+        new bootstrap.Modal(document.getElementById('modalSuratKendaraanFromAset')).show();
+    });
 });
 </script>
+
+{{-- MODAL DETAIL SURAT KENDARAAN (DARI DATA ASET) --}}
+<div class="modal fade" id="modalSuratKendaraanFromAset" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light py-3">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="sk_title">
+                    <i class="ti ti-car text-primary fs-5"></i> Detail Surat Kendaraan
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3 bg-light border">
+                            <small class="text-muted d-block fw-semibold mb-1">JENIS SURAT</small>
+                            <span id="sk_jenis" class="fw-bold fs-4 text-primary"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3 bg-light border">
+                            <small class="text-muted d-block fw-semibold mb-1">STATUS DOKUMEN</small>
+                            <span id="sk_status" class="badge"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Nama Kendaraan</small>
+                        <span id="sk_nama" class="fw-semibold text-dark fs-3"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Nama Pemilik (STNK/BPKB)</small>
+                        <span id="sk_pemilik" class="fw-semibold text-dark"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Nomor Plat (No. Polisi)</small>
+                        <span id="sk_plat" class="badge bg-dark text-white fw-bold px-2 py-1"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Nomor Rangka (VIN)</small>
+                        <code id="sk_rangka" class="fs-3"></code>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Nomor Mesin</small>
+                        <code id="sk_mesin" class="fs-3"></code>
+                    </div>
+
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Petugas Input</small>
+                        <span id="sk_petugas" class="fw-semibold"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Tanggal Input</small>
+                        <span id="sk_tgl" class="fw-semibold"></span>
+                    </div>
+
+                    <div class="col-12" id="sk_file_wrapper" style="display:none;">
+                        <small class="text-muted d-block mb-1">Berkas Foto / PDF Dokumen</small>
+                        <a id="sk_file_link" href="#" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="ti ti-download me-1"></i> Buka / Unduh Berkas Surat Kendaraan
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-2">
+                <a href="{{ route('brangkas.surat-kendaraan') }}" class="btn btn-primary btn-sm me-auto">
+                    <i class="ti ti-external-link me-1"></i> Buka Menu Surat Kendaraan
+                </a>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

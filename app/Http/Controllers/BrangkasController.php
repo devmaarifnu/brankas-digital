@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\SuratTanah;
 use App\Models\AktaNotaris;
 use App\Models\DataAsetLembaga;
+use App\Models\SuratKendaraan;
 use App\Exports\SuratTanahExport;
 use App\Exports\AktaNotarisExport;
 use App\Exports\DataAsetExport;
+use App\Exports\SuratKendaraanExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -483,7 +485,7 @@ class BrangkasController extends Controller
         // Free‑text search across key columns
        // Apply unified filters and pagination
         $data = $this->applyRecordFilters($query, $request, 'jenis_aset')
-                      ->with(['user', 'handovers.user'])
+                      ->with(['user', 'handovers.user', 'suratKendaraan'])
                       ->orderBy('created_at', 'desc')
                       ->paginate(10)
                       ->withQueryString();
@@ -676,5 +678,201 @@ class BrangkasController extends Controller
 
         $filename = 'Rekap-Data-Aset-' . date('Y-m-d_His') . '.xlsx';
         return Excel::download(new DataAsetExport($query), $filename);
+    }
+
+    // ==========================================
+    // ARSIP SURAT KENDARAAN
+    // ==========================================
+    public function suratKendaraan(Request $request)
+    {
+        $query = SuratKendaraan::query();
+
+        $data = $this->applyRecordFilters($query, $request, 'jenis_surat')
+                      ->with(['user', 'dataAset', 'handovers.user'])
+                      ->orderBy('created_at', 'desc')
+                      ->paginate(10)
+                      ->withQueryString();
+
+        $jenisSuratList = collect(['BPKB', 'STNK']);
+        $defaultStatus = ['Tersedia', 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan'];
+        $dbStatus = SuratKendaraan::whereNotNull('status_handover')->where('status_handover', '!=', '')->distinct()->pluck('status_handover')->toArray();
+        $statusList = collect(array_values(array_filter(array_unique(array_merge($defaultStatus, $dbStatus)))));
+        $officers = \App\Models\User::select('id_user as id', 'name')->orderBy('name')->get();
+
+        $kendaraanList = DataAsetLembaga::where(function($q) {
+            $q->whereIn('jenis_barang', ['Mobil', 'Sepeda Motor', 'Motor', 'Kendaraan'])
+              ->orWhereIn('jenis_aset', ['Mobil', 'Sepeda Motor', 'Motor', 'Kendaraan'])
+              ->orWhere('jenis_barang', 'LIKE', '%mobil%')
+              ->orWhere('jenis_barang', 'LIKE', '%motor%')
+              ->orWhere('jenis_aset', 'LIKE', '%mobil%')
+              ->orWhere('jenis_aset', 'LIKE', '%motor%');
+        })->get();
+
+        return view('brangkas.surat-kendaraan.index', compact('data', 'jenisSuratList', 'statusList', 'officers', 'kendaraanList'))
+            ->with('title', 'Arsip Surat Kendaraan');
+    }
+
+    public function getKendaraanList()
+    {
+        $kendaraanList = DataAsetLembaga::where(function($q) {
+            $q->whereIn('jenis_barang', ['Mobil', 'Sepeda Motor', 'Motor', 'Kendaraan'])
+              ->orWhereIn('jenis_aset', ['Mobil', 'Sepeda Motor', 'Motor', 'Kendaraan'])
+              ->orWhere('jenis_barang', 'LIKE', '%mobil%')
+              ->orWhere('jenis_barang', 'LIKE', '%motor%')
+              ->orWhere('jenis_aset', 'LIKE', '%mobil%')
+              ->orWhere('jenis_aset', 'LIKE', '%motor%');
+        })->get(['id', 'nama_barang', 'nama_aset', 'merek', 'nomor_registrasi', 'nomor_seri_model']);
+
+        return response()->json($kendaraanList);
+    }
+
+    public function storeSuratKendaraan(Request $request)
+    {
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.surat-kendaraan')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat menambah data.');
+        }
+
+        $request->validate([
+            'jenis_surat'    => 'required|in:BPKB,STNK',
+            'data_aset_id'   => 'nullable|exists:data_aset_lembaga,id',
+            'nama_kendaraan' => 'required|string|max:255',
+            'file_dokumen'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
+        ], [
+            'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
+            'file_dokumen.max'   => 'Ukuran berkas dokumen tidak boleh melebihi 20 MB.',
+        ]);
+
+        $payload = $request->except('file_dokumen');
+        $payload['tgl_input'] = $request->tgl_input ?? date('Y-m-d');
+        $payload['user_id'] = auth()->id();
+        $payload['nama_petugas'] = $request->nama_petugas ?? (auth()->user()->name ?: auth()->user()->username);
+
+        if ($request->filled('data_aset_id')) {
+            $aset = DataAsetLembaga::find($request->data_aset_id);
+            if ($aset) {
+                $payload['nama_kendaraan'] = ($aset->nama_barang ?: $aset->nama_aset) . ($aset->merek ? ' (' . $aset->merek . ')' : '');
+            }
+        }
+
+        $statusInfo = $this->resolveStatusFields($payload['keterangan'] ?? 'Tersedia');
+        $payload['keterangan'] = $statusInfo['keterangan'];
+        $payload['status_handover'] = $statusInfo['status_handover'];
+        $payload['warna_merah'] = $statusInfo['warna_merah'];
+
+        if ($request->hasFile('file_dokumen')) {
+            $file = $request->file('file_dokumen');
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+            $destDir = storage_path('app/uploads/surat-kendaraan');
+            if (!file_exists($destDir)) {
+                @mkdir($destDir, 0755, true);
+            }
+            $file->move($destDir, $filename);
+            $payload['file_dokumen'] = 'uploads/surat-kendaraan/' . $filename;
+        }
+
+        SuratKendaraan::create($payload);
+
+        return redirect()->route('brangkas.surat-kendaraan')->with('success', 'Data Surat Kendaraan berhasil ditambahkan.');
+    }
+
+    public function editSuratKendaraan($id)
+    {
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.surat-kendaraan')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
+        }
+        $item = SuratKendaraan::findOrFail($id);
+        $kendaraanList = DataAsetLembaga::where(function($q) {
+            $q->whereIn('jenis_barang', ['Mobil', 'Sepeda Motor', 'Motor', 'Kendaraan'])
+              ->orWhereIn('jenis_aset', ['Mobil', 'Sepeda Motor', 'Motor', 'Kendaraan'])
+              ->orWhere('jenis_barang', 'LIKE', '%mobil%')
+              ->orWhere('jenis_barang', 'LIKE', '%motor%')
+              ->orWhere('jenis_aset', 'LIKE', '%mobil%')
+              ->orWhere('jenis_aset', 'LIKE', '%motor%');
+        })->get();
+
+        return view('brangkas.surat-kendaraan.edit', compact('item', 'kendaraanList'))->with('title', 'Edit Surat Kendaraan');
+    }
+
+    public function updateSuratKendaraan(Request $request, $id)
+    {
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.surat-kendaraan')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
+        }
+        $item = SuratKendaraan::findOrFail($id);
+
+        $request->validate([
+            'jenis_surat'    => 'required|in:BPKB,STNK',
+            'data_aset_id'   => 'nullable|exists:data_aset_lembaga,id',
+            'nama_kendaraan' => 'required|string|max:255',
+            'file_dokumen'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
+        ], [
+            'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
+            'file_dokumen.max'   => 'Ukuran berkas dokumen tidak boleh melebihi 20 MB.',
+        ]);
+
+        $payload = $request->except('file_dokumen');
+
+        if ($request->filled('data_aset_id')) {
+            $aset = DataAsetLembaga::find($request->data_aset_id);
+            if ($aset) {
+                $payload['nama_kendaraan'] = ($aset->nama_barang ?: $aset->nama_aset) . ($aset->merek ? ' (' . $aset->merek . ')' : '');
+            }
+        }
+
+        $statusInfo = $this->resolveStatusFields($payload['keterangan'] ?? 'Tersedia');
+        $payload['keterangan'] = $statusInfo['keterangan'];
+        $payload['status_handover'] = $statusInfo['status_handover'];
+        $payload['warna_merah'] = $statusInfo['warna_merah'];
+
+        if ($request->hasFile('file_dokumen')) {
+            if ($item->file_dokumen) {
+                if (file_exists(storage_path('app/' . $item->file_dokumen))) {
+                    @unlink(storage_path('app/' . $item->file_dokumen));
+                } elseif (file_exists(public_path($item->file_dokumen))) {
+                    @unlink(public_path($item->file_dokumen));
+                }
+            }
+            $file = $request->file('file_dokumen');
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+            $destDir = storage_path('app/uploads/surat-kendaraan');
+            if (!file_exists($destDir)) {
+                @mkdir($destDir, 0755, true);
+            }
+            $file->move($destDir, $filename);
+            $payload['file_dokumen'] = 'uploads/surat-kendaraan/' . $filename;
+        }
+
+        $item->update($payload);
+
+        return redirect()->route('brangkas.surat-kendaraan')->with('success', 'Data Surat Kendaraan berhasil diperbarui.');
+    }
+
+    public function destroySuratKendaraan($id)
+    {
+        if (!auth()->user()->isSuperAdmin()) {
+            return redirect()->route('brangkas.surat-kendaraan')->with('error', 'Akses ditolak: Tombol dan aksi hapus hanya dapat dilakukan oleh Super admin.');
+        }
+        $item = SuratKendaraan::findOrFail($id);
+        if ($item->file_dokumen) {
+            if (Storage::exists($item->file_dokumen)) {
+                Storage::delete($item->file_dokumen);
+            } elseif (File::exists(storage_path('app/' . $item->file_dokumen))) {
+                File::delete(storage_path('app/' . $item->file_dokumen));
+            } elseif (File::exists(public_path($item->file_dokumen))) {
+                File::delete(public_path($item->file_dokumen));
+            }
+        }
+        $item->delete();
+        return redirect()->route('brangkas.surat-kendaraan')->with('success', 'Data Surat Kendaraan berhasil dihapus.');
+    }
+
+    public function exportSuratKendaraan(Request $request)
+    {
+        $query = SuratKendaraan::query();
+        $this->applyRecordFilters($query, $request, 'jenis_surat')
+             ->orderBy('created_at', 'desc');
+
+        $filename = 'Rekap-Surat-Kendaraan-' . date('Y-m-d_His') . '.xlsx';
+        return Excel::download(new SuratKendaraanExport($query), $filename);
     }
 }

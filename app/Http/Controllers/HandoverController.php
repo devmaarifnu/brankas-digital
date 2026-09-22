@@ -24,6 +24,8 @@ class HandoverController extends Controller
         // Filter Enumerasi: Status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        } elseif ($request->filled('status_handover')) {
+            $query->where('status', $request->status_handover);
         }
 
         // Pencarian Free-Text (Keyword nama dokumen, pihak terkait, bank, dll)

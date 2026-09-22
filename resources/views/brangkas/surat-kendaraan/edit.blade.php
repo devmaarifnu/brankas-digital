@@ -125,7 +125,7 @@
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label fw-semibold">Upload Berkas / Foto Dokumen Baru (PDF, JPG, PNG)</label>
+                                <label class="form-label fw-semibold">Upload Berkas / Foto Dokumen Baru</label>
                                 @if($item->file_dokumen)
                                     @php
                                         $ext = strtolower(pathinfo($item->file_dokumen, PATHINFO_EXTENSION));
@@ -133,12 +133,25 @@
                                     @endphp
                                     <div class="mb-2">
                                         <a href="{{ asset($item->file_dokumen) }}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2">
-                                            Lihat {{ $isImg ? 'Foto' : 'PDF' }} Saat Ini
+                                            <i class="ti ti-eye me-1"></i>Lihat {{ $isImg ? 'Foto' : 'PDF' }} Saat Ini
                                         </a>
                                     </div>
                                 @endif
-                                <input type="file" name="file_dokumen" class="form-control" accept=".pdf,image/*">
-                                <small class="text-muted fs-2">Biarkan kosong jika tidak ingin mengganti file yang ada.</small>
+                                <div class="card border bg-light p-3 rounded-3 mb-1">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-md-7">
+                                            <label class="form-label small fw-semibold text-dark mb-1"><i class="ti ti-file-upload me-1 text-primary"></i>Pilih File (Galeri Foto / PDF)</label>
+                                            <input type="file" name="file_dokumen" id="input_file_dokumen_edit" class="form-control form-control-sm" accept="image/*,application/pdf,.pdf">
+                                        </div>
+                                        <div class="col-md-5">
+                                            <label class="form-label small fw-semibold text-dark mb-1"><i class="ti ti-camera me-1 text-success"></i>Ambil Foto dari Kamera</label>
+                                            <input type="file" id="input_camera_dokumen_edit" class="form-control form-control-sm" accept="image/*" capture="environment">
+                                        </div>
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block mt-1">
+                                    <i class="ti ti-info-circle me-1 text-info"></i>Pilihan file: <span class="fw-semibold text-dark">Kamera Langsung</span>, <span class="fw-semibold text-dark">Foto Galeri (JPG/PNG)</span>, atau <span class="fw-semibold text-dark">Dokumen PDF</span> — <strong>Maksimal 20 MB</strong>. Biarkan kosong jika tidak ingin mengganti file yang ada.
+                                </small>
                             </div>
                         </div>
 
@@ -181,6 +194,38 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (sn && inputRangka && !inputRangka.value) {
                     inputRangka.value = sn;
                 }
+            }
+        });
+    }
+
+    // File size validation (20 MB) & Camera Capture Sync
+    const mainFileEdit = document.getElementById("input_file_dokumen_edit");
+    const cameraFileEdit = document.getElementById("input_camera_dokumen_edit");
+
+    function checkFileSize(input) {
+        if (input.files && input.files[0]) {
+            const sizeMB = input.files[0].size / (1024 * 1024);
+            if (sizeMB > 20) {
+                alert("Ukuran berkas (" + sizeMB.toFixed(1) + " MB) melebihi batas maksimal 20 MB. Harap pilih berkas yang lebih kecil.");
+                input.value = "";
+                return false;
+            }
+        }
+        return true;
+    }
+
+    if (mainFileEdit) {
+        mainFileEdit.addEventListener("change", function() {
+            checkFileSize(this);
+        });
+    }
+
+    if (cameraFileEdit && mainFileEdit) {
+        cameraFileEdit.addEventListener("change", function() {
+            if (checkFileSize(this) && this.files && this.files[0]) {
+                const dt = new DataTransfer();
+                dt.items.add(this.files[0]);
+                mainFileEdit.files = dt.files;
             }
         });
     }

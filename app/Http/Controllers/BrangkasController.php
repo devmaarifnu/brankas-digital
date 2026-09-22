@@ -739,6 +739,7 @@ class BrangkasController extends Controller
             'file_dokumen'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
         ], [
             'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
+            'file_dokumen.max'   => 'Ukuran berkas dokumen tidak boleh melebihi 20 MB.',
         ]);
 
         $payload = $request->except('file_dokumen');
@@ -806,6 +807,7 @@ class BrangkasController extends Controller
             'file_dokumen'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
         ], [
             'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
+            'file_dokumen.max'   => 'Ukuran berkas dokumen tidak boleh melebihi 20 MB.',
         ]);
 
         $payload = $request->except('file_dokumen');

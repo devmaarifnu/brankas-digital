@@ -86,20 +86,20 @@ class BrangkasDigitalTest extends TestCase
         $updateData = [
             'jenis_sertifikat' => 'SHM',
             'nomor_sertifikat' => 'SHM-8899/2026',
-            'luas'             => '2500',
-            'nama_sertifikat'  => 'Sertifikat Tanah Yayasan Al-Maarif (Updated)',
-            'desa_kelurahan'   => 'Pegangsaan',
+            'luas'             => '3000',
+            'nama_sertifikat'  => 'Sertifikat Tanah Yayasan Al-Maarif',
+            'desa_kelurahan'   => 'Pegangsaan Baru',
             'kecamatan'        => 'Menteng',
             'kabupaten_kota'   => 'Jakarta Pusat',
             'provinsi'         => 'DKI Jakarta',
-            'keterangan'       => 'Diagunkan',
         ];
         $updateResponse = $this->actingAs($this->user)->post("/brangkas/surat-tanah/{$surat->id}/update", $updateData);
         $updateResponse->assertRedirect('/brangkas/surat-tanah');
 
         $surat->refresh();
-        $this->assertEquals('Diagunkan', $surat->status_handover);
-        $this->assertTrue($surat->warna_merah);
+        $this->assertEquals('3000', $surat->luas);
+        $this->assertEquals('Pegangsaan Baru', $surat->desa_kelurahan);
+        $this->assertEquals('Dokumen Asli Ada', $surat->keterangan);
 
         // Delete
         $filePath = storage_path('app/' . $surat->file_dokumen);
@@ -249,7 +249,11 @@ class BrangkasDigitalTest extends TestCase
         $this->assertEquals('BPKB', $aset->bpkb_record->jenis_surat);
         $this->assertNull($aset->stnk_record);
 
-        // 5. Test JSON kendaraan list API
+        // 5. Test search filter & JSON kendaraan list API
+        $searchRes = $this->actingAs($this->user)->get('/brangkas/surat-kendaraan?q=Innova');
+        $searchRes->assertOk();
+        $searchRes->assertSee('B 1926 NUX');
+
         $apiRes = $this->actingAs($this->user)->get('/brangkas/surat-kendaraan/kendaraan-list');
         $apiRes->assertOk();
         $apiRes->assertJsonFragment(['nama_barang' => 'Toyota Innova Zenix']);

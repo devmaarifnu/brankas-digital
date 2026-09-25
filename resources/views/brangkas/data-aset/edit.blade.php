@@ -54,31 +54,32 @@
                     <form action="{{ route('brangkas.data-aset.update', $item->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         
-                        {{-- 1. Jenis Barang & 2. Nama Barang --}}
+                        {{-- 1. Jenis Barang & 2. Nama Barang (LOCKED ON EDIT) --}}
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">1. Jenis Barang <span class="text-danger">*</span></label>
-                                <select class="form-select" name="jenis_barang" required>
+                                <label class="form-label fw-semibold">1. Jenis Barang <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
+                                <select class="form-select bg-light" disabled>
                                     @foreach(['Mobil', 'Sepeda Motor', 'Laptop', 'PC', 'Printer', 'TV', 'Lainnya'] as $jns)
                                         <option value="{{ $jns }}" {{ old('jenis_barang', $item->jenis_barang ?? $item->jenis_aset) == $jns ? 'selected' : '' }}>{{ $jns }}</option>
                                     @endforeach
                                 </select>
+                                <input type="hidden" name="jenis_barang" value="{{ $item->jenis_barang ?? $item->jenis_aset }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">2. Nama Barang <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="nama_barang" value="{{ old('nama_barang', $item->nama_barang ?? $item->nama_aset) }}" required>
+                                <label class="form-label fw-semibold">2. Nama Barang <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
+                                <input type="text" class="form-control bg-light" name="nama_barang" value="{{ old('nama_barang', $item->nama_barang ?? $item->nama_aset) }}" readonly>
                             </div>
                         </div>
 
-                        {{-- 3. Merek & 4. Seri/Model --}}
+                        {{-- 3. Merek & 4. Seri/Model (LOCKED ON EDIT) --}}
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">3. Merek</label>
-                                <input type="text" class="form-control" name="merek" value="{{ old('merek', $item->merek) }}">
+                                <label class="form-label fw-semibold">3. Merek <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
+                                <input type="text" class="form-control bg-light" name="merek" value="{{ old('merek', $item->merek) }}" readonly>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">4. Nomor Seri / Model</label>
-                                <input type="text" class="form-control" name="nomor_seri_model" value="{{ old('nomor_seri_model', $item->nomor_seri_model) }}">
+                                <label class="form-label fw-semibold">4. Nomor Seri / Model <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
+                                <input type="text" class="form-control bg-light" name="nomor_seri_model" value="{{ old('nomor_seri_model', $item->nomor_seri_model) }}" readonly>
                             </div>
                         </div>
 
@@ -115,12 +116,13 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">10. Posisi Aset <span class="text-danger">*</span></label>
-                                <select class="form-select" name="posisi_aset" id="edit_posisi_aset" required>
+                                <label class="form-label fw-semibold">10. Posisi Aset <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
+                                <select class="form-select bg-light" disabled>
                                     @foreach(['Kantor', 'Dipinjam', 'Dihibahkan'] as $pos)
                                         <option value="{{ $pos }}" {{ old('posisi_aset', $item->posisi_aset) == $pos ? 'selected' : '' }}>{{ $pos }}</option>
                                     @endforeach
                                 </select>
+                                <input type="hidden" name="posisi_aset" value="{{ $item->posisi_aset }}">
                             </div>
                         </div>
 
@@ -197,10 +199,10 @@
                             </div>
                         </div>
 
-                        {{-- 15. Status --}}
+                        {{-- 15. Status (LOCKED - Dikelola via Record of Transfer) --}}
                         <div class="mb-4">
-                            <label class="form-label fw-semibold">15. Status <span class="text-danger">*</span></label>
-                            <select class="form-select" name="keterangan" id="ast_keterangan_edit" required>
+                            <label class="form-label fw-semibold">15. Status Dokumen / Aset <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
+                            <select class="form-select bg-light" disabled>
                                 @foreach(['Tersedia', 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan', 'Rusak / Perbaikan'] as $st)
                                     <option value="{{ $st }}" {{ old('keterangan', $item->status_handover ?: $item->keterangan) == $st ? 'selected' : '' }}>{{ $st }}</option>
                                 @endforeach
@@ -208,6 +210,8 @@
                                     <option value="{{ $item->keterangan }}" selected>{{ $item->keterangan }}</option>
                                 @endif
                             </select>
+                            <input type="hidden" name="keterangan" value="{{ $item->keterangan }}">
+                            <small class="text-muted d-block mt-1"><i class="ti ti-lock me-1"></i>Status dokumen/aset dikelola otomatis secara terintegrasi melalui menu <strong>Record of Transfer</strong>.</small>
                         </div>
 
                         <div class="d-flex justify-content-end gap-2">

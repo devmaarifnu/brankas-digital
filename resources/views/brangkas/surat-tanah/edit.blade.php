@@ -56,19 +56,20 @@
                         
                         {{-- 1. Jenis Sertifikat --}}
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">1. Jenis Sertifikat <span class="text-danger">*</span></label>
-                            <select class="form-select" name="jenis_sertifikat" required>
+                            <label class="form-label fw-semibold">1. Jenis Sertifikat <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
+                            <select class="form-select bg-light" disabled>
                                 @foreach(['SHM', 'Wakaf', 'Hibah', 'SHGB', 'SHGU', 'Hak Guna Pakai'] as $jns)
                                     <option value="{{ $jns }}" {{ old('jenis_sertifikat', $item->jenis_sertifikat) == $jns ? 'selected' : '' }}>{{ $jns }}</option>
                                 @endforeach
                             </select>
+                            <input type="hidden" name="jenis_sertifikat" value="{{ $item->jenis_sertifikat }}">
                         </div>
 
                         {{-- 2. Nomor Sertifikat & 3. Luas --}}
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">2. Nomor Sertifikat <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="nomor_sertifikat" value="{{ old('nomor_sertifikat', $item->nomor_sertifikat) }}" required>
+                                <label class="form-label fw-semibold">2. Nomor Sertifikat <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
+                                <input type="text" class="form-control bg-light text-muted" name="nomor_sertifikat" value="{{ old('nomor_sertifikat', $item->nomor_sertifikat) }}" readonly>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">3. Luas Sertifikat (M2) <span class="text-danger">*</span></label>
@@ -78,8 +79,8 @@
 
                         {{-- 4. Nama Sertifikat --}}
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">4. Nama Sertifikat (Atas Nama) <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="nama_sertifikat" value="{{ old('nama_sertifikat', $item->nama_sertifikat ?? $item->nama_dokumen) }}" required>
+                            <label class="form-label fw-semibold">4. Nama Sertifikat (Atas Nama) <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
+                            <input type="text" class="form-control bg-light text-muted" name="nama_sertifikat" value="{{ old('nama_sertifikat', $item->nama_sertifikat ?? $item->nama_dokumen) }}" readonly>
                         </div>
 
                         {{-- 5. Desa & 6. Kecamatan --}}
@@ -164,8 +165,8 @@
 
                         {{-- 12. Status --}}
                         <div class="mb-4">
-                            <label class="form-label fw-semibold">12. Status <span class="text-danger">*</span></label>
-                            <select class="form-select" name="keterangan" required>
+                            <label class="form-label fw-semibold">12. Status <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
+                            <select class="form-select bg-light" disabled>
                                 @foreach(['Tersedia', 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan', 'Hanya Fotocopy'] as $ket)
                                     <option value="{{ $ket }}" {{ old('keterangan', $item->status_handover ?: $item->keterangan) == $ket ? 'selected' : '' }}>{{ $ket }}</option>
                                 @endforeach
@@ -173,6 +174,8 @@
                                     <option value="{{ $item->keterangan }}" selected>{{ $item->keterangan }}</option>
                                 @endif
                             </select>
+                            <input type="hidden" name="keterangan" value="{{ $item->status_handover ?: $item->keterangan }}">
+                            <small class="text-muted d-block mt-1"><i class="ti ti-info-circle me-1"></i>Status dokumen hanya dapat diubah melalui menu Record of Transfer.</small>
                         </div>
 
                         <div class="d-flex justify-content-end gap-2">

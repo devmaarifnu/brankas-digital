@@ -6,6 +6,7 @@ use App\Models\RecordOfHandover;
 use App\Models\SuratTanah;
 use App\Models\AktaNotaris;
 use App\Models\DataAsetLembaga;
+use App\Models\SuratKendaraan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -120,6 +121,28 @@ class HandoverController extends Controller
                     'is_borrowed' => (bool)$i->warna_merah,
                 ];
             });
+        } elseif ($kategori === 'Arsip Surat Kendaraan') {
+            $query = SuratKendaraan::query();
+            if ($status === 'Dikembalikan') {
+                $query->where(function($q) {
+                    $q->whereIn('status_handover', ['Dipinjam', 'Diagunkan'])
+                      ->orWhere('warna_merah', true);
+                });
+            } elseif (in_array($status, ['Dipinjam', 'Diagunkan', 'Dihibahkan'])) {
+                $query->where(function($q) {
+                    $q->whereNotIn('status_handover', ['Dipinjam', 'Diagunkan'])
+                      ->where('warna_merah', false);
+                });
+            }
+            $items = $query->get()->map(function($i) {
+                $statusTag = $i->warna_merah ? ' [Sedang ' . ($i->status_handover ?: 'Dipinjam') . ']' : '';
+                return [
+                    'id' => $i->id,
+                    'nama_dokumen' => $i->jenis_surat . ' - ' . $i->nama_kendaraan . ($i->no_plat ? ' (' . $i->no_plat . ')' : '') . $statusTag,
+                    'status_handover' => $i->status_handover,
+                    'is_borrowed' => (bool)$i->warna_merah,
+                ];
+            });
         }
 
         return response()->json($items);
@@ -132,7 +155,7 @@ class HandoverController extends Controller
         }
 
         $request->validate([
-            'kategori'        => 'required|in:Arsip Surat Tanah,Akta Notaris,Data Aset Lembaga',
+            'kategori'        => 'required|in:Arsip Surat Tanah,Akta Notaris,Data Aset Lembaga,Arsip Surat Kendaraan',
             'ref_id'          => 'required|integer',
             'nama_dokumen'    => 'required|string',
             'status'          => 'required|in:Dipinjam,Diagunkan,Dihibahkan,Dikembalikan',
@@ -148,6 +171,8 @@ class HandoverController extends Controller
             $sourceModel = AktaNotaris::find($request->ref_id);
         } elseif ($request->kategori === 'Data Aset Lembaga') {
             $sourceModel = DataAsetLembaga::find($request->ref_id);
+        } elseif ($request->kategori === 'Arsip Surat Kendaraan') {
+            $sourceModel = SuratKendaraan::find($request->ref_id);
         }
 
         if (!$sourceModel) {

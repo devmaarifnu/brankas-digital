@@ -82,6 +82,7 @@
                         <option value="Arsip Surat Tanah" {{ request('kategori') === 'Arsip Surat Tanah' ? 'selected' : '' }}>Arsip Surat Tanah</option>
                         <option value="Akta Notaris" {{ request('kategori') === 'Akta Notaris' ? 'selected' : '' }}>Akta Notaris</option>
                         <option value="Data Aset Lembaga" {{ request('kategori') === 'Data Aset Lembaga' ? 'selected' : '' }}>Data Aset Lembaga</option>
+                        <option value="Arsip Surat Kendaraan" {{ request('kategori') === 'Arsip Surat Kendaraan' ? 'selected' : '' }}>Arsip Surat Kendaraan</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -217,6 +218,7 @@
                                 <option value="Arsip Surat Tanah">Arsip Surat Tanah</option>
                                 <option value="Akta Notaris">Akta Notaris</option>
                                 <option value="Data Aset Lembaga">Data Aset Lembaga</option>
+                                <option value="Arsip Surat Kendaraan">Arsip Surat Kendaraan</option>
                             </select>
                         </div>
 

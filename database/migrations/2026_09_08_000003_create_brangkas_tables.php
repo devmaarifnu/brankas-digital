@@ -48,7 +48,7 @@ return new class extends Migration
 
         Schema::create("record_of_handover", function (Blueprint $table) {
             $table->id();
-            $table->enum("kategori", ["Arsip Surat Tanah","Akta Notaris","Data Aset Lembaga"]);
+            $table->string("kategori");
             $table->string("nama_dokumen");
             $table->unsignedBigInteger("ref_id");
             $table->enum("status", ["Dipinjam","Diagunkan","Dihibahkan"]);

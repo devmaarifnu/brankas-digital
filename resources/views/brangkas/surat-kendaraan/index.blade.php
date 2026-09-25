@@ -258,7 +258,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Nama Petugas Input</label>
-                            <input type="text" name="nama_petugas" class="form-control" value="{{ auth()->user()->name ?: auth()->user()->username }}">
+                            <input type="text" name="nama_petugas" class="form-control bg-light text-dark fw-semibold" value="{{ auth()->user()->name ?: auth()->user()->username }}" readonly>
                         </div>
 
                         <div class="col-12">

@@ -181,4 +181,59 @@ class HandoverStatusFlowTest extends TestCase
         $suratAvailable->delete();
         $suratBorrowed->delete();
     }
+
+    public function test_handover_surat_kendaraan_flow()
+    {
+        $sk = \App\Models\SuratKendaraan::create([
+            'jenis_surat' => 'BPKB',
+            'nama_kendaraan' => 'Isuzu Elf Ambulans',
+            'no_plat' => 'B 1926 HVR',
+            'status_handover' => 'Tersedia',
+            'warna_merah' => false,
+        ]);
+
+        // 1. Pinjam BPKB
+        $resBorrow = $this->actingAs($this->admin)->post(route('handover.store'), [
+            'kategori' => 'Arsip Surat Kendaraan',
+            'ref_id' => $sk->id,
+            'nama_dokumen' => $sk->nama_kendaraan,
+            'status' => 'Dipinjam',
+            'nama_peminjam' => 'Drs. Ahmad',
+            'no_telp_peminjam' => '081122334455',
+            'tgl_serahterima' => '2026-09-25',
+        ]);
+        $resBorrow->assertSessionHas('success');
+
+        $sk->refresh();
+        $this->assertEquals('Dipinjam', $sk->status_handover);
+        $this->assertTrue((bool)$sk->warna_merah);
+
+        // 2. Filter AJAX getItemsByKategori untuk status Dikembalikan
+        $resItems = $this->actingAs($this->admin)->getJson(route('handover.items', [
+            'kategori' => 'Arsip Surat Kendaraan',
+            'status' => 'Dikembalikan',
+        ]));
+        $resItems->assertStatus(200);
+        $ids = array_column($resItems->json(), 'id');
+        $this->assertContains($sk->id, $ids);
+
+        // 3. Kembalikan
+        $resReturn = $this->actingAs($this->admin)->post(route('handover.store'), [
+            'kategori' => 'Arsip Surat Kendaraan',
+            'ref_id' => $sk->id,
+            'nama_dokumen' => $sk->nama_kendaraan,
+            'status' => 'Dikembalikan',
+            'nama_peminjam' => 'Drs. Ahmad (Pengembalian)',
+            'tgl_serahterima' => '2026-09-26',
+        ]);
+        $resReturn->assertSessionHas('success');
+
+        $sk->refresh();
+        $this->assertEquals('Tersedia', $sk->status_handover);
+        $this->assertFalse((bool)$sk->warna_merah);
+
+        // Clean up
+        RecordOfHandover::where('ref_id', $sk->id)->where('kategori', 'Arsip Surat Kendaraan')->delete();
+        $sk->delete();
+    }
 }

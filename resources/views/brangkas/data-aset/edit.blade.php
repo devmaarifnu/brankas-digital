@@ -57,7 +57,7 @@
                         {{-- 1. Jenis Barang & 2. Nama Barang (LOCKED ON EDIT) --}}
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">1. Jenis Barang <span class="badge bg-secondary ms-1 fs-1">Terkunci</span></label>
+                                <label class="form-label fw-semibold">1. Jenis Barang <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                                 <select class="form-select bg-light" disabled>
                                     @foreach(['Mobil', 'Sepeda Motor', 'Laptop', 'PC', 'Printer', 'TV', 'Lainnya'] as $jns)
                                         <option value="{{ $jns }}" {{ old('jenis_barang', $item->jenis_barang ?? $item->jenis_aset) == $jns ? 'selected' : '' }}>{{ $jns }}</option>
@@ -66,7 +66,7 @@
                                 <input type="hidden" name="jenis_barang" value="{{ $item->jenis_barang ?? $item->jenis_aset }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">2. Nama Barang <span class="badge bg-secondary ms-1 fs-1">Terkunci</span></label>
+                                <label class="form-label fw-semibold">2. Nama Barang <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                                 <input type="text" class="form-control bg-light" name="nama_barang" value="{{ old('nama_barang', $item->nama_barang ?? $item->nama_aset) }}" readonly>
                             </div>
                         </div>
@@ -74,11 +74,11 @@
                         {{-- 3. Merek & 4. Seri/Model (LOCKED ON EDIT) --}}
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">3. Merek <span class="badge bg-secondary ms-1 fs-1">Terkunci</span></label>
+                                <label class="form-label fw-semibold">3. Merek <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                                 <input type="text" class="form-control bg-light" name="merek" value="{{ old('merek', $item->merek) }}" readonly>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">4. Nomor Seri / Model <span class="badge bg-secondary ms-1 fs-1">Terkunci</span></label>
+                                <label class="form-label fw-semibold">4. Nomor Seri / Model <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                                 <input type="text" class="form-control bg-light" name="nomor_seri_model" value="{{ old('nomor_seri_model', $item->nomor_seri_model) }}" readonly>
                             </div>
                         </div>
@@ -116,7 +116,7 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">10. Posisi Aset <span class="badge bg-secondary ms-1 fs-1">Terkunci</span></label>
+                                <label class="form-label fw-semibold">10. Posisi Aset <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                                 <select class="form-select bg-light" disabled>
                                     @foreach(['Kantor', 'Dipinjam', 'Dihibahkan'] as $pos)
                                         <option value="{{ $pos }}" {{ old('posisi_aset', $item->posisi_aset) == $pos ? 'selected' : '' }}>{{ $pos }}</option>
@@ -201,7 +201,7 @@
 
                         {{-- 15. Status (LOCKED - Dikelola via Record of Transfer) --}}
                         <div class="mb-4">
-                            <label class="form-label fw-semibold">15. Status Dokumen / Aset <span class="badge bg-secondary ms-1 fs-1">Terkunci</span></label>
+                            <label class="form-label fw-semibold">15. Status Dokumen / Aset <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                             <select class="form-select bg-light" disabled>
                                 @foreach(['Tersedia', 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan', 'Rusak / Perbaikan'] as $st)
                                     <option value="{{ $st }}" {{ old('keterangan', $item->status_handover ?: $item->keterangan) == $st ? 'selected' : '' }}>{{ $st }}</option>

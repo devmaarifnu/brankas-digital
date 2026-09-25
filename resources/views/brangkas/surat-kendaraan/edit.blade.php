@@ -56,7 +56,7 @@
                         
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Jenis Surat <span class="badge bg-secondary ms-1"><i class="ti ti-lock me-1"></i>Terkunci</span></label>
+                                <label class="form-label fw-semibold">Jenis Surat <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                                 <select class="form-select bg-light" disabled>
                                     <option value="BPKB" {{ old('jenis_surat', $item->jenis_surat) === 'BPKB' ? 'selected' : '' }}>BPKB (Buku Pemilik Kendaraan Bermotor)</option>
                                     <option value="STNK" {{ old('jenis_surat', $item->jenis_surat) === 'STNK' ? 'selected' : '' }}>STNK (Surat Tanda Nomor Kendaraan)</option>
@@ -64,7 +64,7 @@
                                 <input type="hidden" name="jenis_surat" value="{{ $item->jenis_surat }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Hubungan ke Data Aset Lembaga <span class="badge bg-secondary ms-1"><i class="ti ti-lock me-1"></i>Terkunci</span></label>
+                                <label class="form-label fw-semibold">Hubungan ke Data Aset Lembaga <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                                 <select id="select_data_aset_id" class="form-select bg-light" disabled>
                                     <option value="">-- Tidak Terhubung / Mandiri --</option>
                                     @foreach($kendaraanList as $k)
@@ -77,7 +77,7 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Nama Kendaraan <span class="badge bg-secondary ms-1"><i class="ti ti-lock me-1"></i>Terkunci</span></label>
+                                <label class="form-label fw-semibold">Nama Kendaraan <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                                 <input type="text" name="nama_kendaraan" id="input_nama_kendaraan" class="form-control bg-light text-muted" value="{{ old('nama_kendaraan', $item->nama_kendaraan) }}" readonly>
                             </div>
                             <div class="col-md-6">
@@ -86,15 +86,15 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Nomor Plat (No. Polisi) <span class="badge bg-secondary ms-1"><i class="ti ti-lock me-1"></i>Terkunci</span></label>
+                                <label class="form-label fw-semibold">Nomor Plat (No. Polisi) <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                                 <input type="text" name="no_plat" class="form-control bg-light text-muted" value="{{ old('no_plat', $item->no_plat) }}" readonly>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Nomor Rangka (VIN) <span class="badge bg-secondary ms-1"><i class="ti ti-lock me-1"></i>Terkunci</span></label>
+                                <label class="form-label fw-semibold">Nomor Rangka (VIN) <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                                 <input type="text" name="no_rangka" id="input_no_rangka" class="form-control bg-light text-muted" value="{{ old('no_rangka', $item->no_rangka) }}" readonly>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Nomor Mesin <span class="badge bg-secondary ms-1"><i class="ti ti-lock me-1"></i>Terkunci</span></label>
+                                <label class="form-label fw-semibold">Nomor Mesin <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                                 <input type="text" name="no_mesin" class="form-control bg-light text-muted" value="{{ old('no_mesin', $item->no_mesin) }}" readonly>
                             </div>
 
@@ -103,7 +103,7 @@
                                 $isCustomKet = !in_array($item->keterangan, $presetKet);
                             @endphp
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Status / Keterangan <span class="badge bg-secondary ms-1"><i class="ti ti-lock me-1"></i>Terkunci</span></label>
+                                <label class="form-label fw-semibold">Status / Keterangan <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                                 <select class="form-select bg-light" disabled>
                                     <option value="Dokumen Asli Ada" {{ !$isCustomKet && $item->keterangan === 'Dokumen Asli Ada' ? 'selected' : '' }}>Tersedia (Dokumen Asli Ada)</option>
                                     <option value="Dipinjam" {{ !$isCustomKet && $item->keterangan === 'Dipinjam' ? 'selected' : '' }}>Dipinjam</option>
@@ -115,7 +115,7 @@
                                 <small class="text-muted d-block mt-1"><i class="ti ti-info-circle me-1"></i>Status hanya dapat diubah melalui menu Record of Transfer.</small>
                             </div>
                             <div class="col-md-6" id="wrapper_keterangan_custom" style="{{ $isCustomKet ? 'display:block;' : 'display:none;' }}">
-                                <label class="form-label fw-semibold">Keterangan Custom <span class="badge bg-secondary ms-1"><i class="ti ti-lock me-1"></i>Terkunci</span></label>
+                                <label class="form-label fw-semibold">Keterangan Custom <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                                 <input type="text" name="keterangan_custom" class="form-control bg-light text-muted" value="{{ $isCustomKet ? $item->keterangan : '' }}" readonly>
                             </div>
 

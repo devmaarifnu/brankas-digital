@@ -56,7 +56,7 @@
                         
                         {{-- 1. Jenis Sertifikat --}}
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">1. Jenis Sertifikat <span class="badge bg-secondary ms-1"><i class="ti ti-lock me-1"></i>Terkunci</span></label>
+                            <label class="form-label fw-semibold">1. Jenis Sertifikat <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                             <select class="form-select bg-light" disabled>
                                 @foreach(['SHM', 'Wakaf', 'Hibah', 'SHGB', 'SHGU', 'Hak Guna Pakai'] as $jns)
                                     <option value="{{ $jns }}" {{ old('jenis_sertifikat', $item->jenis_sertifikat) == $jns ? 'selected' : '' }}>{{ $jns }}</option>
@@ -68,7 +68,7 @@
                         {{-- 2. Nomor Sertifikat & 3. Luas --}}
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">2. Nomor Sertifikat <span class="badge bg-secondary ms-1"><i class="ti ti-lock me-1"></i>Terkunci</span></label>
+                                <label class="form-label fw-semibold">2. Nomor Sertifikat <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                                 <input type="text" class="form-control bg-light text-muted" name="nomor_sertifikat" value="{{ old('nomor_sertifikat', $item->nomor_sertifikat) }}" readonly>
                             </div>
                             <div class="col-md-6">
@@ -79,7 +79,7 @@
 
                         {{-- 4. Nama Sertifikat --}}
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">4. Nama Sertifikat (Atas Nama) <span class="badge bg-secondary ms-1"><i class="ti ti-lock me-1"></i>Terkunci</span></label>
+                            <label class="form-label fw-semibold">4. Nama Sertifikat (Atas Nama) <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                             <input type="text" class="form-control bg-light text-muted" name="nama_sertifikat" value="{{ old('nama_sertifikat', $item->nama_sertifikat ?? $item->nama_dokumen) }}" readonly>
                         </div>
 
@@ -165,7 +165,7 @@
 
                         {{-- 12. Status --}}
                         <div class="mb-4">
-                            <label class="form-label fw-semibold">12. Status <span class="badge bg-secondary ms-1"><i class="ti ti-lock me-1"></i>Terkunci</span></label>
+                            <label class="form-label fw-semibold">12. Status <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>
                             <select class="form-select bg-light" disabled>
                                 @foreach(['Tersedia', 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan', 'Hanya Fotocopy'] as $ket)
                                     <option value="{{ $ket }}" {{ old('keterangan', $item->status_handover ?: $item->keterangan) == $ket ? 'selected' : '' }}>{{ $ket }}</option>

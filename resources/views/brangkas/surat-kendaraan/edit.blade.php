@@ -121,7 +121,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Nama Petugas Input</label>
-                                <input type="text" name="nama_petugas" class="form-control" value="{{ old('nama_petugas', $item->nama_petugas ?? auth()->user()->name) }}">
+                                <input type="text" name="nama_petugas" class="form-control bg-light text-dark fw-semibold" value="{{ old('nama_petugas', $item->nama_petugas ?? auth()->user()->name) }}" readonly>
                             </div>
 
                             <div class="col-12">

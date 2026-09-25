@@ -388,9 +388,15 @@ class BrangkasController extends Controller
                       ->orWhere('nomor_registrasi', 'like', "%{$search}%")
                       ->orWhere('lokasi', 'like', "%{$search}%")
                       ->orWhere('keterangan', 'like', "%{$search}%");
-                } else {
-                    $q->where('nama_dokumen', 'like', "%{$search}%")
+                } elseif ($categoryColumn === 'jenis_surat') {
+                    $q->where('nama_kendaraan', 'like', "%{$search}%")
+                      ->orWhere('nama_pemilik', 'like', "%{$search}%")
+                      ->orWhere('no_plat', 'like', "%{$search}%")
+                      ->orWhere('no_rangka', 'like', "%{$search}%")
+                      ->orWhere('no_mesin', 'like', "%{$search}%")
                       ->orWhere('keterangan', 'like', "%{$search}%");
+                } else {
+                    $q->where('keterangan', 'like', "%{$search}%");
                 }
             });
         }

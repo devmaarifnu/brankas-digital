@@ -249,7 +249,11 @@ class BrangkasDigitalTest extends TestCase
         $this->assertEquals('BPKB', $aset->bpkb_record->jenis_surat);
         $this->assertNull($aset->stnk_record);
 
-        // 5. Test JSON kendaraan list API
+        // 5. Test search filter & JSON kendaraan list API
+        $searchRes = $this->actingAs($this->user)->get('/brangkas/surat-kendaraan?q=Innova');
+        $searchRes->assertOk();
+        $searchRes->assertSee('B 1926 NUX');
+
         $apiRes = $this->actingAs($this->user)->get('/brangkas/surat-kendaraan/kendaraan-list');
         $apiRes->assertOk();
         $apiRes->assertJsonFragment(['nama_barang' => 'Toyota Innova Zenix']);

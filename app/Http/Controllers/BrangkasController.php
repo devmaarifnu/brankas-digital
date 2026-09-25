@@ -122,33 +122,24 @@ class BrangkasController extends Controller
         $item = SuratTanah::findOrFail($id);
 
         $request->validate([
-            'jenis_sertifikat' => 'required|string|max:100',
-            'nomor_sertifikat' => 'required|string|max:100',
-            'luas'             => 'required|string|max:50',
-            'nama_sertifikat'  => 'required|string|max:255',
-            'file_dokumen'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
+            'luas'         => 'required|string|max:50',
+            'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
         ], [
             'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
         ]);
 
-        $payload = $request->except('file_dokumen');
-        $payload['nama_dokumen'] = $request->nama_sertifikat;
-        $payload['atas_nama'] = $request->nama_sertifikat;
-        $payload['alamat'] = trim(($request->desa_kelurahan ? $request->desa_kelurahan . ', ' : '') . ($request->kecamatan ? $request->kecamatan . ', ' : '') . ($request->kabupaten_kota ? $request->kabupaten_kota . ', ' : '') . ($request->provinsi ?? ''), ' ,');
-        $payload['lokasi'] = $payload['alamat'];
+        $payload = $request->except(['file_dokumen', 'jenis_sertifikat', 'nomor_sertifikat', 'nama_sertifikat', 'keterangan']);
+        $payload['jenis_sertifikat'] = $item->jenis_sertifikat;
+        $payload['nomor_sertifikat'] = $item->nomor_sertifikat;
+        $payload['nama_sertifikat']  = $item->nama_sertifikat ?: $item->nama_dokumen;
+        $payload['nama_dokumen']     = $payload['nama_sertifikat'];
+        $payload['atas_nama']        = $payload['nama_sertifikat'];
+        $payload['alamat']           = trim(($request->desa_kelurahan ? $request->desa_kelurahan . ', ' : '') . ($request->kecamatan ? $request->kecamatan . ', ' : '') . ($request->kabupaten_kota ? $request->kabupaten_kota . ', ' : '') . ($request->provinsi ?? ''), ' ,');
+        $payload['lokasi']           = $payload['alamat'];
 
-        if ($request->keterangan === 'Isi Sendiri' && $request->filled('keterangan_custom')) {
-            $payload['keterangan'] = $request->keterangan_custom;
-        }
-
-        if ($request->jenis_sertifikat === 'Isi Sendiri' && $request->filled('jenis_sertifikat_custom')) {
-            $payload['jenis_sertifikat'] = $request->jenis_sertifikat_custom;
-        }
-
-        $statusInfo = $this->resolveStatusFields($payload['keterangan'] ?? 'Tersedia');
-        $payload['keterangan'] = $statusInfo['keterangan'];
-        $payload['status_handover'] = $statusInfo['status_handover'];
-        $payload['warna_merah'] = $statusInfo['warna_merah'];
+        $payload['keterangan']      = $item->keterangan;
+        $payload['status_handover'] = $item->status_handover;
+        $payload['warna_merah']     = $item->warna_merah;
 
         if ($request->hasFile('file_dokumen')) {
             if ($item->file_dokumen) {
@@ -298,33 +289,24 @@ class BrangkasController extends Controller
         $item = AktaNotaris::findOrFail($id);
 
         $request->validate([
-            'jenis_dokumen' => 'required|string|max:100',
-            'nomor_dokumen' => 'required|string|max:100',
-            'nama_dokumen'  => 'required|string|max:255',
-            'file_dokumen'  => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
+            'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
         ], [
             'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
         ]);
 
-        $payload = $request->except('file_dokumen');
-        $payload['nomor_akta'] = $request->nomor_dokumen;
-        $payload['nomor_sertifikat'] = $request->nomor_dokumen;
-        $payload['nama_sertifikat'] = $request->nama_dokumen;
-        $payload['alamat'] = $request->alamat_notaris;
-        $payload['tanggal_akta'] = $request->tgl_dokumen;
+        $payload = $request->except(['file_dokumen', 'jenis_dokumen', 'nomor_dokumen', 'nama_dokumen', 'keterangan']);
+        $payload['jenis_dokumen']    = $item->jenis_dokumen ?: $item->jenis_sertifikat;
+        $payload['nomor_dokumen']    = $item->nomor_dokumen ?: $item->nomor_akta;
+        $payload['nomor_akta']       = $payload['nomor_dokumen'];
+        $payload['nomor_sertifikat'] = $payload['nomor_dokumen'];
+        $payload['nama_dokumen']     = $item->nama_dokumen ?: $item->nama_sertifikat;
+        $payload['nama_sertifikat']  = $payload['nama_dokumen'];
+        $payload['alamat']           = $request->alamat_notaris;
+        $payload['tanggal_akta']     = $request->tgl_dokumen;
 
-        if ($request->keterangan === 'Isi Sendiri' && $request->filled('keterangan_custom')) {
-            $payload['keterangan'] = $request->keterangan_custom;
-        }
-
-        if ($request->jenis_dokumen === 'Isi Sendiri' && $request->filled('jenis_dokumen_custom')) {
-            $payload['jenis_dokumen'] = $request->jenis_dokumen_custom;
-        }
-
-        $statusInfo = $this->resolveStatusFields($payload['keterangan'] ?? 'Tersedia');
-        $payload['keterangan'] = $statusInfo['keterangan'];
-        $payload['status_handover'] = $statusInfo['status_handover'];
-        $payload['warna_merah'] = $statusInfo['warna_merah'];
+        $payload['keterangan']      = $item->keterangan;
+        $payload['status_handover'] = $item->status_handover;
+        $payload['warna_merah']     = $item->warna_merah;
 
         if ($request->hasFile('file_dokumen')) {
             if ($item->file_dokumen) {
@@ -588,25 +570,23 @@ class BrangkasController extends Controller
         $item = DataAsetLembaga::findOrFail($id);
 
         $request->validate([
-            'nama_barang'  => 'required|string|max:255',
             'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
         ], [
             'file_dokumen.mimes' => 'Foto/Berkas aset wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
         ]);
 
-        $payload = $request->except('file_dokumen');
-        $payload['nama_aset'] = $request->nama_barang;
-        $payload['jenis_aset'] = $request->jenis_barang;
-        $payload['lokasi'] = $request->posisi_aset === 'Kantor' ? ($request->nama_ruangan ?? 'Kantor') : ($request->nama_penerima ?? $request->posisi_aset);
+        $payload = $request->except(['file_dokumen', 'jenis_barang', 'nama_barang', 'merek', 'nomor_seri_model', 'keterangan']);
+        $payload['nama_barang']      = $item->nama_barang ?: $item->nama_aset;
+        $payload['nama_aset']        = $payload['nama_barang'];
+        $payload['jenis_barang']     = $item->jenis_barang ?: $item->jenis_aset;
+        $payload['jenis_aset']       = $payload['jenis_barang'];
+        $payload['merek']            = $item->merek;
+        $payload['nomor_seri_model'] = $item->nomor_seri_model;
+        $payload['lokasi']           = $request->posisi_aset === 'Kantor' ? ($request->nama_ruangan ?? 'Kantor') : ($request->nama_penerima ?? $request->posisi_aset);
 
-        if ($request->keterangan === 'Isi Sendiri' && $request->filled('keterangan_custom')) {
-            $payload['keterangan'] = $request->keterangan_custom;
-        }
-
-        $statusInfo = $this->resolveStatusFields($payload['keterangan'] ?? 'Tersedia');
-        $payload['keterangan'] = $statusInfo['keterangan'];
-        $payload['status_handover'] = $statusInfo['status_handover'];
-        $payload['warna_merah'] = $statusInfo['warna_merah'];
+        $payload['keterangan']      = $item->keterangan;
+        $payload['status_handover'] = $item->status_handover;
+        $payload['warna_merah']     = $item->warna_merah;
 
         if ($request->hasFile('file_dokumen')) {
             if ($item->file_dokumen) {
@@ -801,28 +781,23 @@ class BrangkasController extends Controller
         $item = SuratKendaraan::findOrFail($id);
 
         $request->validate([
-            'jenis_surat'    => 'required|in:BPKB,STNK',
-            'data_aset_id'   => 'nullable|exists:data_aset_lembaga,id',
-            'nama_kendaraan' => 'required|string|max:255',
-            'file_dokumen'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
+            'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
         ], [
             'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
             'file_dokumen.max'   => 'Ukuran berkas dokumen tidak boleh melebihi 20 MB.',
         ]);
 
-        $payload = $request->except('file_dokumen');
+        $payload = $request->except(['file_dokumen', 'jenis_surat', 'data_aset_id', 'nama_kendaraan', 'no_plat', 'no_rangka', 'no_mesin', 'keterangan']);
+        $payload['jenis_surat']    = $item->jenis_surat;
+        $payload['data_aset_id']   = $item->data_aset_id;
+        $payload['nama_kendaraan'] = $item->nama_kendaraan;
+        $payload['no_plat']        = $item->no_plat;
+        $payload['no_rangka']      = $item->no_rangka;
+        $payload['no_mesin']       = $item->no_mesin;
 
-        if ($request->filled('data_aset_id')) {
-            $aset = DataAsetLembaga::find($request->data_aset_id);
-            if ($aset) {
-                $payload['nama_kendaraan'] = ($aset->nama_barang ?: $aset->nama_aset) . ($aset->merek ? ' (' . $aset->merek . ')' : '');
-            }
-        }
-
-        $statusInfo = $this->resolveStatusFields($payload['keterangan'] ?? 'Tersedia');
-        $payload['keterangan'] = $statusInfo['keterangan'];
-        $payload['status_handover'] = $statusInfo['status_handover'];
-        $payload['warna_merah'] = $statusInfo['warna_merah'];
+        $payload['keterangan']      = $item->keterangan;
+        $payload['status_handover'] = $item->status_handover;
+        $payload['warna_merah']     = $item->warna_merah;
 
         if ($request->hasFile('file_dokumen')) {
             if ($item->file_dokumen) {

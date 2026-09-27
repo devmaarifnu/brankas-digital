@@ -507,6 +507,17 @@ $(document).ready(function() {
         }
     });
 
+    // Helper: format tanggal YYYY-MM-DD → DD/MM/YYYY
+    function formatTgl(val) {
+        if (!val) return '-';
+        var s = String(val).trim().substring(0, 10);
+        var parts = s.split('-');
+        if (parts.length === 3 && parts[0].length === 4) {
+            return parts[2] + '/' + parts[1] + '/' + parts[0];
+        }
+        return val;
+    }
+
     // Detail Modal
     $('.btn-detail').on('click', function() {
         console.log('btn-detail clicked (akta)');
@@ -521,12 +532,12 @@ $(document).ready(function() {
         $('#dt_an_jenis').text(item.jenis_dokumen || item.jenis_sertifikat || '-');
         $('#dt_an_nomor').text(item.nomor_dokumen || item.nomor_akta || '-');
         $('#dt_an_nama').text(item.nama_dokumen || item.nama_sertifikat || '-');
-        $('#dt_an_tgldok').text(item.tgl_dokumen || item.tanggal_akta || '-');
+        $('#dt_an_tgldok').text(formatTgl(item.tgl_dokumen || item.tanggal_akta));
         $('#dt_an_notaris').text(item.nama_notaris || '-');
         $('#dt_an_alamat').text(item.alamat_notaris || item.alamat || '-');
         $('#dt_an_telp').text(item.telp_notaris || '-');
         $('#dt_an_petugas').text(item.nama_petugas || (item.user ? item.user.name : '-'));
-        $('#dt_an_tgl').text(item.tgl_input || '-');
+        $('#dt_an_tgl').text(formatTgl(item.tgl_input || item.created_at));
         $('#dt_an_keterangan').html(item.warna_merah ? '<span class="badge bg-danger">' + (item.keterangan || 'Status Khusus') + '</span>' : '<span class="badge bg-success">' + (item.keterangan || 'Dokumen Asli Ada') + '</span>');
         
         if (fileUrl) {
@@ -570,7 +581,7 @@ $(document).ready(function() {
                     pihak = '<div><strong>Dari: ' + (h.nama_peminjam || h.nama_penerima || '-') + '</strong></div><small class="text-muted">' + (h.no_telp_peminjam || h.no_telp_penerima || '') + '</small>';
                 }
 
-                var tgl = h.tgl_serahterima ? h.tgl_serahterima.substring(0, 10) : '-';
+                var tgl = formatTgl(h.tgl_serahterima);
                 var petugas = (h.user && h.user.name) ? h.user.name : (h.nama_petugas || '-');
                 var bukti = h.file_bukti ? '<a href="/' + h.file_bukti.replace(/^\//, '') + '" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2" title="Lihat Bukti"><i class="ti ti-eye"></i></a>' : '<span class="text-muted">-</span>';
 

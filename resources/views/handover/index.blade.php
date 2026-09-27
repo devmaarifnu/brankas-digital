@@ -128,7 +128,7 @@
                         <tr>
                             <td class="ps-3">{{ $records->firstItem() + $i }}</td>
                             <td><span class="badge bg-light text-dark border">{{ $rec->kategori }}</span></td>
-                            <td class="fw-semibold text-dark">{{ $rec->nama_dokumen }}</td>
+                            <td class="fw-semibold text-dark">{{ preg_replace('/\s*\[Sedang[^\]]*\]/', '', $rec->nama_dokumen) }}</td>
                             <td>
                                 @if($rec->status === 'Dipinjam')
                                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25"><i class="ti ti-hand-stop me-1"></i>Dipinjam</span>
@@ -384,7 +384,7 @@ $(document).ready(function() {
                 } else {
                     $refSelect.append('<option value="">-- Pilih Dokumen / Aset --</option>');
                     $.each(res, function(i, item) {
-                        $refSelect.append('<option value="' + item.id + '" data-nama="' + item.nama_dokumen + '">' + item.nama_dokumen + '</option>');
+                        $refSelect.append('<option value="' + item.id + '" data-nama="' + item.nama_dokumen + '">' + item.display_name + '</option>');
                     });
                     $refSelect.prop('disabled', false);
 

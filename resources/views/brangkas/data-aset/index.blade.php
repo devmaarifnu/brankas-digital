@@ -687,6 +687,17 @@ $(document).ready(function() {
         }
     });
 
+    // Helper: format tanggal YYYY-MM-DD → DD/MM/YYYY
+    function formatTgl(val) {
+        if (!val) return '-';
+        var s = String(val).trim().substring(0, 10);
+        var parts = s.split('-');
+        if (parts.length === 3 && parts[0].length === 4) {
+            return parts[2] + '/' + parts[1] + '/' + parts[0];
+        }
+        return val;
+    }
+
     // Detail Modal
     $('.btn-detail').on('click', function() {
         console.log('btn-detail clicked (aset)');
@@ -704,13 +715,13 @@ $(document).ready(function() {
         $('#dt_ast_nama').text(item.nama_barang || item.nama_aset || '-');
         $('#dt_ast_merek').text((item.merek || '-') + ' / ' + (item.nomor_seri_model || '-'));
         $('#dt_ast_sumber').text(item.sumber_perolehan || '-');
-        $('#dt_ast_tglperolehan').text(item.tgl_perolehan || '-');
+        $('#dt_ast_tglperolehan').text(formatTgl(item.tgl_perolehan));
         $('#dt_ast_usia').text(usia || '-');
         $('#dt_ast_kondisi').text(item.kondisi_aset || '-');
         $('#dt_ast_posisi').text(item.posisi_aset || '-');
         $('#dt_ast_lokasi').text(item.posisi_aset === 'Kantor' ? (item.nama_ruangan || item.lokasi || 'Kantor') : (item.nama_penerima || item.lokasi || '-'));
         $('#dt_ast_petugas').text(item.nama_petugas || (item.user ? item.user.name : '-'));
-        $('#dt_ast_tglinput').text(item.tgl_input || '-');
+        $('#dt_ast_tglinput').text(formatTgl(item.tgl_input || item.created_at));
         $('#dt_ast_keterangan').html(item.warna_merah ? '<span class="badge bg-danger">' + (item.keterangan || 'Status Khusus') + '</span>' : '<span class="badge bg-success">' + (item.keterangan || 'Operasional Kantor') + '</span>');
         
         if (fileUrl) {
@@ -754,7 +765,7 @@ $(document).ready(function() {
                     pihak = '<div><strong>Dari: ' + (h.nama_peminjam || h.nama_penerima || '-') + '</strong></div><small class="text-muted">' + (h.no_telp_peminjam || h.no_telp_penerima || '') + '</small>';
                 }
 
-                var tgl = h.tgl_serahterima ? h.tgl_serahterima.substring(0, 10) : '-';
+                var tgl = formatTgl(h.tgl_serahterima);
                 var petugas = (h.user && h.user.name) ? h.user.name : (h.nama_petugas || '-');
                 var bukti = h.file_bukti ? '<a href="/' + h.file_bukti.replace(/^\//, '') + '" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2" title="Lihat Bukti"><i class="ti ti-eye"></i></a>' : '<span class="text-muted">-</span>';
 

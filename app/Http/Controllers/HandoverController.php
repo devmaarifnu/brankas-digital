@@ -70,9 +70,11 @@ class HandoverController extends Controller
             }
             $items = $query->get()->map(function($i) {
                 $statusTag = $i->warna_merah ? ' [Sedang ' . ($i->status_handover ?: 'Dipinjam') . ']' : '';
+                $rawName = ($i->nama_sertifikat ?: ($i->nama_dokumen ?: 'Surat Tanah')) . ' (' . ($i->nomor_sertifikat ?: '-') . ')';
                 return [
                     'id' => $i->id,
-                    'nama_dokumen' => ($i->nama_sertifikat ?: ($i->nama_dokumen ?: 'Surat Tanah')) . ' (' . ($i->nomor_sertifikat ?: '-') . ')' . $statusTag,
+                    'nama_dokumen' => $rawName,
+                    'display_name' => $rawName . $statusTag,
                     'status_handover' => $i->status_handover,
                     'is_borrowed' => (bool)$i->warna_merah,
                 ];
@@ -92,9 +94,11 @@ class HandoverController extends Controller
             }
             $items = $query->get()->map(function($i) {
                 $statusTag = $i->warna_merah ? ' [Sedang ' . ($i->status_handover ?: 'Dipinjam') . ']' : '';
+                $rawName = ($i->nama_dokumen ?: 'Akta Notaris') . ' (' . ($i->nomor_dokumen ?: ($i->nomor_akta ?: '-')) . ')';
                 return [
                     'id' => $i->id,
-                    'nama_dokumen' => ($i->nama_dokumen ?: 'Akta Notaris') . ' (' . ($i->nomor_dokumen ?: ($i->nomor_akta ?: '-')) . ')' . $statusTag,
+                    'nama_dokumen' => $rawName,
+                    'display_name' => $rawName . $statusTag,
                     'status_handover' => $i->status_handover,
                     'is_borrowed' => (bool)$i->warna_merah,
                 ];
@@ -114,9 +118,11 @@ class HandoverController extends Controller
             }
             $items = $query->get()->map(function($i) {
                 $statusTag = $i->warna_merah ? ' [Sedang ' . ($i->status_handover ?: 'Dipinjam') . ']' : '';
+                $rawName = ($i->nama_barang ?: ($i->nama_aset ?: 'Aset')) . ' [' . ($i->nomor_registrasi ?: '-') . ']';
                 return [
                     'id' => $i->id,
-                    'nama_dokumen' => ($i->nama_barang ?: ($i->nama_aset ?: 'Aset')) . ' [' . ($i->nomor_registrasi ?: '-') . ']' . $statusTag,
+                    'nama_dokumen' => $rawName,
+                    'display_name' => $rawName . $statusTag,
                     'status_handover' => $i->status_handover,
                     'is_borrowed' => (bool)$i->warna_merah,
                 ];

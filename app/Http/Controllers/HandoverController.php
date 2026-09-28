@@ -156,8 +156,8 @@ class HandoverController extends Controller
 
     public function store(Request $request)
     {
-        if (!auth()->user()->isSuperAdmin()) {
-            return redirect()->route('handover.index')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat memproses serah terima dokumen.');
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('handover.index')->with('error', 'Akses ditolak: Hanya Super Admin dan Admin yang dapat memproses serah terima dokumen.');
         }
 
         $request->validate([

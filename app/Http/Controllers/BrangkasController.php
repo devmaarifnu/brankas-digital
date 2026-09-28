@@ -46,8 +46,8 @@ class BrangkasController extends Controller
 
     public function storeSuratTanah(Request $request)
     {
-        if (!auth()->user()->isSuperAdmin()) {
-            return redirect()->route('brangkas.surat-tanah')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat menambah data.');
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.surat-tanah')->with('error', 'Akses ditolak: Hanya Super Admin dan Admin yang dapat menambah data.');
         }
         $request->validate([
             'jenis_sertifikat' => 'required|string|max:100',
@@ -213,8 +213,8 @@ class BrangkasController extends Controller
 
     public function storeAktaNotaris(Request $request)
     {
-        if (!auth()->user()->isSuperAdmin()) {
-            return redirect()->route('brangkas.akta-notaris')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat menambah data.');
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.akta-notaris')->with('error', 'Akses ditolak: Hanya Super Admin dan Admin yang dapat menambah data.');
         }
 
         $request->validate([
@@ -502,8 +502,8 @@ class BrangkasController extends Controller
 
     public function storeDataAset(Request $request)
     {
-        if (!auth()->user()->isSuperAdmin()) {
-            return redirect()->route('brangkas.data-aset')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat menambah data.');
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.data-aset')->with('error', 'Akses ditolak: Hanya Super Admin dan Admin yang dapat menambah data.');
         }
 
         $request->validate([
@@ -714,8 +714,8 @@ class BrangkasController extends Controller
 
     public function storeSuratKendaraan(Request $request)
     {
-        if (!auth()->user()->isSuperAdmin()) {
-            return redirect()->route('brangkas.surat-kendaraan')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat menambah data.');
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('brangkas.surat-kendaraan')->with('error', 'Akses ditolak: Hanya Super Admin dan Admin yang dapat menambah data.');
         }
 
         $request->validate([

@@ -344,10 +344,92 @@
                             <input type="date" class="form-control" name="tgl_serahterima" value="{{ date('Y-m-d') }}" required>
                         </div>
 
-                        {{-- Upload Bukti File --}}
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark">Bukti Berkas / Foto Serah Terima</label>
-                            <input type="file" class="form-control" name="file_bukti" accept="image/*,application/pdf">
+                        {{-- Upload Bukti Serah Terima: Opsi Kamera, Foto, dan PDF --}}
+                        <div class="col-12">
+                            <label class="form-label fw-semibold text-dark mb-1">
+                                Bukti Berkas / Foto Serah Terima
+                            </label>
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                                    <span class="small text-muted">Pilih metode pengambilan bukti dokumen:</span>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {{-- 1. Tombol Kamera --}}
+                                        <button type="button" class="btn btn-sm btn-outline-primary fw-semibold d-inline-flex align-items-center gap-1 shadow-sm" id="btnTriggerCamera">
+                                            <i class="ti ti-camera fs-5"></i>
+                                            <span>Kamera (Ambil Foto)</span>
+                                        </button>
+
+                                        {{-- 2. Tombol Foto Galeri --}}
+                                        <button type="button" class="btn btn-sm btn-outline-success fw-semibold d-inline-flex align-items-center gap-1 shadow-sm" id="btnTriggerPhoto">
+                                            <i class="ti ti-photo fs-5"></i>
+                                            <span>Pilih Foto</span>
+                                        </button>
+
+                                        {{-- 3. Tombol PDF --}}
+                                        <button type="button" class="btn btn-sm btn-outline-danger fw-semibold d-inline-flex align-items-center gap-1 shadow-sm" id="btnTriggerPdf">
+                                            <i class="ti ti-file-type-pdf fs-5"></i>
+                                            <span>Pilih Dokumen PDF</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- Hidden file inputs for each specific mode --}}
+                                <input type="file" id="inputCaptureKamera" accept="image/*" capture="environment" class="d-none">
+                                <input type="file" id="inputUploadFoto" accept="image/jpeg,image/png,image/webp,image/jpg" class="d-none">
+                                <input type="file" id="inputUploadPdf" accept="application/pdf" class="d-none">
+
+                                {{-- Actual input submitted with form --}}
+                                <input type="file" name="file_bukti" id="inputRealFileBukti" class="d-none" accept="image/*,application/pdf">
+
+                                {{-- Live Camera View Container (untuk webcam di Desktop / Laptop) --}}
+                                <div id="cameraLiveContainer" class="border rounded-3 p-3 bg-dark text-white text-center mb-2" style="display:none;">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-danger d-inline-flex align-items-center gap-1">
+                                            <i class="ti ti-camera"></i> Live Kamera
+                                        </span>
+                                        <button type="button" class="btn btn-sm btn-outline-light py-0 px-2" id="btnCloseCamera">
+                                            <i class="ti ti-x"></i> Tutup Kamera
+                                        </button>
+                                    </div>
+                                    <div class="position-relative d-inline-block w-100" style="max-width: 440px;">
+                                        <video id="cameraVideo" autoplay playsinline class="w-100 rounded border border-secondary" style="max-height: 260px; object-fit: cover; background: #000;"></video>
+                                        <canvas id="cameraCanvas" class="d-none"></canvas>
+                                    </div>
+                                    <div class="mt-2 d-flex justify-content-center gap-2">
+                                        <button type="button" class="btn btn-primary fw-semibold px-4" id="btnCapturePhoto">
+                                            <i class="ti ti-camera me-1"></i> Jepret Foto
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- Preview Area --}}
+                                <div id="previewBuktiArea" class="border rounded-2 p-2 bg-white" style="display:none;">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                            <div id="previewIconOrThumb" style="width: 48px; height: 48px;" class="d-flex align-items-center justify-content-center bg-light rounded border flex-shrink-0 overflow-hidden">
+                                                <!-- Image thumbnail or PDF icon rendered here -->
+                                            </div>
+                                            <div class="text-truncate">
+                                                <div id="previewFileName" class="fw-semibold text-dark small text-truncate">file_name.jpg</div>
+                                                <div class="d-flex align-items-center gap-2 mt-1">
+                                                    <span id="previewFileTypeBadge" class="badge bg-primary">Foto</span>
+                                                    <span id="previewFileSize" class="text-muted small">0 KB</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex-shrink-0 ms-2">
+                                            <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2" id="btnRemoveBukti" title="Hapus Bukti">
+                                                <i class="ti ti-trash me-1"></i>Hapus
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Placeholder when empty --}}
+                                <div id="previewEmptyPlaceholder" class="text-center py-2 text-muted small">
+                                    <i class="ti ti-paperclip me-1"></i> Belum ada file bukti dipilih. Klik <strong>Kamera</strong>, <strong>Pilih Foto</strong>, atau <strong>Pilih Dokumen PDF</strong> di atas. (Maksimal 20MB)
+                                </div>
+                            </div>
                         </div>
 
                         {{-- Catatan --}}
@@ -457,6 +539,154 @@ $(document).ready(function() {
             $('#nama_peminjam').val($('#nama_peminjam_kembali').val());
             $('#no_telp_peminjam').val($('#no_telp_peminjam_kembali').val());
         }
+    });
+
+    // ==========================================
+    // UPLOAD BUKTI: KAMERA, FOTO, PDF HANDLERS
+    // ==========================================
+    var cameraStream = null;
+
+    function stopCameraStream() {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(function(track) {
+                track.stop();
+            });
+            cameraStream = null;
+        }
+        $('#cameraLiveContainer').hide();
+    }
+
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        var k = 1024;
+        var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        var i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function applyFileToInput(file, badgeText, badgeClass) {
+        try {
+            var dt = new DataTransfer();
+            dt.items.add(file);
+            document.getElementById('inputRealFileBukti').files = dt.files;
+        } catch (e) {
+            console.warn('DataTransfer not supported, using direct assignment', e);
+        }
+
+        $('#previewFileName').text(file.name);
+        $('#previewFileSize').text(formatBytes(file.size));
+        $('#previewFileTypeBadge').text(badgeText).removeClass().addClass('badge ' + badgeClass);
+
+        var $thumbContainer = $('#previewIconOrThumb');
+        $thumbContainer.empty();
+
+        if (file.type.startsWith('image/')) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $thumbContainer.html('<img src="' + e.target.result + '" style="width:100%; height:100%; object-fit:cover;" class="rounded">');
+            };
+            reader.readAsDataURL(file);
+        } else if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+            $thumbContainer.html('<i class="ti ti-file-type-pdf text-danger fs-2"></i>');
+        } else {
+            $thumbContainer.html('<i class="ti ti-file text-secondary fs-2"></i>');
+        }
+
+        $('#previewEmptyPlaceholder').hide();
+        $('#previewBuktiArea').slideDown(200);
+    }
+
+    // 1. Opsi Kamera
+    $('#btnTriggerCamera').on('click', function() {
+        var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (isMobile || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            // Gunakan native camera capture bawaan HP
+            $('#inputCaptureKamera').click();
+        } else {
+            // Tampilkan live webcam di browser desktop
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(function(stream) {
+                    cameraStream = stream;
+                    var videoEl = document.getElementById('cameraVideo');
+                    videoEl.srcObject = stream;
+                    $('#cameraLiveContainer').slideDown(200);
+                })
+                .catch(function(err) {
+                    console.warn('Gagal akses webcam, menggunakan input capture fallback:', err);
+                    $('#inputCaptureKamera').click();
+                });
+        }
+    });
+
+    // Jepret Foto dari Live Webcam
+    $('#btnCapturePhoto').on('click', function() {
+        var videoEl = document.getElementById('cameraVideo');
+        var canvas = document.getElementById('cameraCanvas');
+        if (!videoEl.videoWidth) return;
+
+        canvas.width = videoEl.videoWidth;
+        canvas.height = videoEl.videoHeight;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(function(blob) {
+            if (!blob) return;
+            var fileName = 'bukti_kamera_' + Date.now() + '.jpg';
+            var file = new File([blob], fileName, { type: 'image/jpeg' });
+            applyFileToInput(file, 'Kamera', 'bg-primary');
+            stopCameraStream();
+        }, 'image/jpeg', 0.92);
+    });
+
+    // Tutup Live Kamera
+    $('#btnCloseCamera').on('click', function() {
+        stopCameraStream();
+    });
+
+    // Kamera Fallback / Mobile File Input Change
+    $('#inputCaptureKamera').on('change', function() {
+        if (this.files && this.files[0]) {
+            applyFileToInput(this.files[0], 'Kamera', 'bg-primary');
+        }
+    });
+
+    // 2. Opsi Pilih Foto Galeri
+    $('#btnTriggerPhoto').on('click', function() {
+        stopCameraStream();
+        $('#inputUploadFoto').click();
+    });
+
+    $('#inputUploadFoto').on('change', function() {
+        if (this.files && this.files[0]) {
+            applyFileToInput(this.files[0], 'Foto', 'bg-success');
+        }
+    });
+
+    // 3. Opsi Pilih Dokumen PDF
+    $('#btnTriggerPdf').on('click', function() {
+        stopCameraStream();
+        $('#inputUploadPdf').click();
+    });
+
+    $('#inputUploadPdf').on('change', function() {
+        if (this.files && this.files[0]) {
+            applyFileToInput(this.files[0], 'PDF', 'bg-danger');
+        }
+    });
+
+    // Hapus File Bukti
+    $('#btnRemoveBukti').on('click', function() {
+        document.getElementById('inputRealFileBukti').value = '';
+        $('#inputCaptureKamera').val('');
+        $('#inputUploadFoto').val('');
+        $('#inputUploadPdf').val('');
+        $('#previewBuktiArea').hide();
+        $('#previewEmptyPlaceholder').slideDown(200);
+    });
+
+    // Bersihkan stream jika modal ditutup
+    $('#modalTambahHandover').on('hidden.bs.modal', function() {
+        stopCameraStream();
     });
 });
 </script>

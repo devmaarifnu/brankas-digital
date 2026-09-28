@@ -178,8 +178,8 @@
   <script src="{{ asset('assets/js/sidebarmenu.js') }}"></script>
   <script src="{{ asset('assets/js/app.min.js') }}"></script>
   <script>
-      $(".password-toggle").click(function() {
-          var passwordField = $(this).parent().find("input");
+      $(document).on("click", ".password-toggle", function() {
+          var passwordField = $(this).closest(".input-group").find("input");
           var toggleIcon = $(this).find("i");
 
           if (passwordField.attr("type") === "password") {

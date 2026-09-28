@@ -216,9 +216,25 @@
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <div class="mb-2">
-                                                        <label class="form-label fw-semibold">Ganti Password <small class="text-muted fw-normal">(Kosongkan jika tidak diubah)</small></label>
-                                                        <input type="password" class="form-control" name="password" placeholder="Minimal 6 karakter">
+                                                    <div class="row g-2 mb-2">
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-semibold">Ganti Password <small class="text-muted fw-normal">(Opsional)</small></label>
+                                                            <div class="input-group">
+                                                                <input type="password" class="form-control" name="password" id="edit_pass_{{ $user->id_user ?? $user->id }}" placeholder="Minimal 6 karakter">
+                                                                <button class="btn btn-outline-secondary password-toggle" type="button" tabindex="-1">
+                                                                    <i class="ti ti-eye-off"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-semibold">Konfirmasi Password Baru</label>
+                                                            <div class="input-group">
+                                                                <input type="password" class="form-control" name="password_confirmation" id="edit_pass_confirm_{{ $user->id_user ?? $user->id }}" placeholder="Ulangi password baru">
+                                                                <button class="btn btn-outline-secondary password-toggle" type="button" tabindex="-1">
+                                                                    <i class="ti ti-eye-off"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer py-3 px-4 bg-light border-top">
@@ -284,9 +300,25 @@
                         <label class="form-label fw-semibold">Email</label>
                         <input type="email" class="form-control" name="email" placeholder="email@maarifnu.or.id (opsional)" value="{{ old('email') }}">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
-                        <input type="password" class="form-control" name="password" placeholder="Minimal 6 karakter" required>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" name="password" id="tambah_password" placeholder="Minimal 6 karakter" required>
+                                <button class="btn btn-outline-secondary password-toggle" type="button" tabindex="-1">
+                                    <i class="ti ti-eye-off"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Konfirmasi Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" name="password_confirmation" id="tambah_password_confirmation" placeholder="Ulangi password" required>
+                                <button class="btn btn-outline-secondary password-toggle" type="button" tabindex="-1">
+                                    <i class="ti ti-eye-off"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div class="row g-2">
                         <div class="col-md-6">

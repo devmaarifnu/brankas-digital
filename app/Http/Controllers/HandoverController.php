@@ -278,4 +278,90 @@ class HandoverController extends Controller
         $filename = 'Rekap-Record-of-Transfer-' . date('Y-m-d_His') . '.xlsx';
         return Excel::download(new RecordOfHandoverExport($query), $filename);
     }
+
+    public function destroy($id)
+    {
+        if (!auth()->user()->canManageData()) {
+            return redirect()->route('handover.index')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat menghapus data serah terima.');
+        }
+
+        $handover = RecordOfHandover::findOrFail($id);
+        $kategori = $handover->kategori;
+        $refId = $handover->ref_id;
+
+        // Cari model sumber
+        $sourceModel = null;
+        if ($kategori === 'Arsip Surat Tanah') {
+            $sourceModel = SuratTanah::find($refId);
+        } elseif ($kategori === 'Akta Notaris') {
+            $sourceModel = AktaNotaris::find($refId);
+        } elseif ($kategori === 'Data Aset Lembaga') {
+            $sourceModel = DataAsetLembaga::find($refId);
+        } elseif ($kategori === 'Arsip Surat Kendaraan') {
+            $sourceModel = SuratKendaraan::find($refId);
+        }
+
+        // Hapus file bukti jika ada
+        if ($handover->file_bukti) {
+            if (Storage::exists($handover->file_bukti)) {
+                Storage::delete($handover->file_bukti);
+            } elseif (file_exists(storage_path('app/' . $handover->file_bukti))) {
+                @unlink(storage_path('app/' . $handover->file_bukti));
+            } elseif (file_exists(public_path($handover->file_bukti))) {
+                @unlink(public_path($handover->file_bukti));
+            }
+        }
+
+        $handover->delete();
+
+        // Sinkronisasi status dokumen/aset sumber dengan riwayat serah terima terakhir yang tersisa
+        if ($sourceModel) {
+            $latest = RecordOfHandover::where('kategori', $kategori)
+                ->where('ref_id', $refId)
+                ->orderBy('created_at', 'desc')
+                ->orderBy('id', 'desc')
+                ->first();
+
+            if ($latest) {
+                $tglFormat = date('d/m/Y', strtotime($latest->tgl_serahterima));
+                if ($latest->status === 'Dikembalikan') {
+                    $payload = [
+                        'status_handover' => 'Tersedia',
+                        'keterangan'      => 'Dokumen Asli Ada (Dikembalikan tgl ' . $tglFormat . ')',
+                        'warna_merah'     => false,
+                    ];
+                    if ($kategori === 'Data Aset Lembaga') {
+                        $payload['posisi_aset'] = 'Kantor';
+                        $payload['nama_penerima'] = null;
+                    }
+                    $sourceModel->update($payload);
+                } else {
+                    $payload = [
+                        'status_handover' => $latest->status,
+                        'keterangan'      => $latest->status . ' (Tgl: ' . $tglFormat . ')',
+                        'warna_merah'     => true,
+                    ];
+                    if ($kategori === 'Data Aset Lembaga') {
+                        $payload['posisi_aset'] = $latest->status;
+                        $payload['nama_penerima'] = $latest->nama_peminjam ?: ($latest->nama_penerima ?: $latest->penanggung_agunan);
+                    }
+                    $sourceModel->update($payload);
+                }
+            } else {
+                // Tidak ada riwayat serah terima lagi, kembalikan status ke Tersedia
+                $payload = [
+                    'status_handover' => 'Tersedia',
+                    'keterangan'      => 'Dokumen Asli Ada',
+                    'warna_merah'     => false,
+                ];
+                if ($kategori === 'Data Aset Lembaga') {
+                    $payload['posisi_aset'] = 'Kantor';
+                    $payload['nama_penerima'] = null;
+                }
+                $sourceModel->update($payload);
+            }
+        }
+
+        return redirect()->route('handover.index')->with('success', 'Data Record of Transfer berhasil dihapus.');
+    }
 }

@@ -220,7 +220,7 @@
                                                         <div class="col-md-6">
                                                             <label class="form-label fw-semibold">Ganti Password <small class="text-muted fw-normal">(Opsional)</small></label>
                                                             <div class="input-group">
-                                                                <input type="password" class="form-control" name="password" id="edit_pass_{{ $user->id_user ?? $user->id }}" placeholder="Minimal 6 karakter">
+                                                                <input type="password" class="form-control input-pass-main" name="password" id="edit_pass_{{ $user->id_user ?? $user->id }}" placeholder="Minimal 6 karakter">
                                                                 <button class="btn btn-outline-secondary password-toggle" type="button" tabindex="-1">
                                                                     <i class="ti ti-eye-off"></i>
                                                                 </button>
@@ -229,17 +229,22 @@
                                                         <div class="col-md-6">
                                                             <label class="form-label fw-semibold">Konfirmasi Password Baru</label>
                                                             <div class="input-group">
-                                                                <input type="password" class="form-control" name="password_confirmation" id="edit_pass_confirm_{{ $user->id_user ?? $user->id }}" placeholder="Ulangi password baru">
+                                                                <input type="password" class="form-control input-pass-confirm" name="password_confirmation" id="edit_pass_confirm_{{ $user->id_user ?? $user->id }}" placeholder="Ulangi password baru">
                                                                 <button class="btn btn-outline-secondary password-toggle" type="button" tabindex="-1">
                                                                     <i class="ti ti-eye-off"></i>
                                                                 </button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="pass-match-feedback text-danger small mt-1" style="display: none;">
+                                                                <i class="ti ti-alert-circle me-1"></i><span>Password tidak cocok!</span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer py-3 px-4 bg-light border-top">
                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                                    <button type="submit" class="btn btn-primary fw-semibold"><i class="ti ti-device-floppy me-1"></i>Simpan Perubahan</button>
+                                                    <button type="submit" class="btn btn-primary fw-semibold btn-submit-user"><i class="ti ti-device-floppy me-1"></i>Simpan Perubahan</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -304,7 +309,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <input type="password" class="form-control" name="password" id="tambah_password" placeholder="Minimal 6 karakter" required>
+                                <input type="password" class="form-control input-pass-main" name="password" id="tambah_password" placeholder="Minimal 6 karakter" required>
                                 <button class="btn btn-outline-secondary password-toggle" type="button" tabindex="-1">
                                     <i class="ti ti-eye-off"></i>
                                 </button>
@@ -313,10 +318,15 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Konfirmasi Password <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <input type="password" class="form-control" name="password_confirmation" id="tambah_password_confirmation" placeholder="Ulangi password" required>
+                                <input type="password" class="form-control input-pass-confirm" name="password_confirmation" id="tambah_password_confirmation" placeholder="Ulangi password" required>
                                 <button class="btn btn-outline-secondary password-toggle" type="button" tabindex="-1">
                                     <i class="ti ti-eye-off"></i>
                                 </button>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="pass-match-feedback text-danger small mt-1" style="display: none;">
+                                <i class="ti ti-alert-circle me-1"></i><span>Password tidak cocok!</span>
                             </div>
                         </div>
                     </div>
@@ -341,10 +351,84 @@
                 </div>
                 <div class="modal-footer py-3 px-4 bg-light border-top">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary fw-semibold"><i class="ti ti-device-floppy me-1"></i>Simpan User Baru</button>
+                    <button type="submit" class="btn btn-primary fw-semibold btn-submit-user"><i class="ti ti-device-floppy me-1"></i>Simpan User Baru</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+@endsection
+
+@section("scripts")
+<script>
+$(document).ready(function() {
+    function validatePasswordMatch(form) {
+        var $form = $(form);
+        var $passMain = $form.find('.input-pass-main');
+        var $passConfirm = $form.find('.input-pass-confirm');
+        var $feedback = $form.find('.pass-match-feedback');
+        var $btnSubmit = $form.find('.btn-submit-user');
+
+        if ($passMain.length === 0 || $passConfirm.length === 0) return true;
+
+        var pass = $passMain.val();
+        var confirmPass = $passConfirm.val();
+
+        // Di form edit, jika password kosong (opsional), tidak perlu validasi
+        if (pass.length === 0 && confirmPass.length === 0) {
+            $feedback.hide();
+            $passConfirm.removeClass('is-invalid is-valid');
+            $passMain.removeClass('is-invalid is-valid');
+            $btnSubmit.prop('disabled', false);
+            return true;
+        }
+
+        if (confirmPass.length > 0 || pass.length > 0) {
+            if (pass !== confirmPass) {
+                $feedback.show();
+                $passConfirm.addClass('is-invalid').removeClass('is-valid');
+                $btnSubmit.prop('disabled', true);
+                return false;
+            } else {
+                $feedback.hide();
+                $passConfirm.removeClass('is-invalid').addClass('is-valid');
+                $passMain.removeClass('is-invalid');
+                $btnSubmit.prop('disabled', false);
+                return true;
+            }
+        }
+
+        $feedback.hide();
+        $btnSubmit.prop('disabled', false);
+        return true;
+    }
+
+    $(document).on('keyup change input', '.input-pass-main, .input-pass-confirm', function() {
+        var form = $(this).closest('form');
+        validatePasswordMatch(form);
+    });
+
+    $(document).on('submit', 'form', function(e) {
+        if ($(this).find('.input-pass-main').length > 0) {
+            var isValid = validatePasswordMatch(this);
+            if (!isValid) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $feedback = $(this).find('.pass-match-feedback');
+                $feedback.show();
+                $(this).find('.input-pass-confirm').focus();
+                return false;
+            }
+        }
+    });
+
+    // Reset error feedback saat modal ditutup
+    $('.modal').on('hidden.bs.modal', function() {
+        var $form = $(this).find('form');
+        $form.find('.pass-match-feedback').hide();
+        $form.find('.input-pass-main, .input-pass-confirm').removeClass('is-invalid is-valid');
+        $form.find('.btn-submit-user').prop('disabled', false);
+    });
+});
+</script>
 @endsection

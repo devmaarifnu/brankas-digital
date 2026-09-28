@@ -86,7 +86,7 @@ class RoleAccessTest extends TestCase
             'luas' => '350',
         ]);
         $postRes->assertRedirect(route('brangkas.surat-tanah'));
-        $postRes->assertSessionHas('success');
+        $postRes->assertSessionHas('error');
 
         $hoRes = $this->actingAs($this->admin)->post(route('handover.store'), [
             'kategori' => 'Arsip Surat Tanah',
@@ -96,7 +96,7 @@ class RoleAccessTest extends TestCase
             'tgl_serahterima' => '2026-09-15',
         ]);
         $hoRes->assertRedirect();
-        $hoRes->assertSessionHas('success');
+        $hoRes->assertSessionHas('error');
 
         $delRes = $this->actingAs($this->admin)->post(route('brangkas.surat-tanah.destroy', $surat->id));
         $delRes->assertSessionHas('error');

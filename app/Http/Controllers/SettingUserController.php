@@ -53,7 +53,7 @@ class SettingUserController extends Controller
         $rules = [
             'name'          => 'required|string|max:100',
             'username'      => 'required|string|max:50|unique:users,username',
-            'password'      => 'required|string|min:6|confirmed',
+            'password'      => 'required|string|min:6',
             'role'          => 'required|in:super admin,admin,viewer,aproval',
             'status_active' => 'required|in:active,block',
         ];
@@ -63,10 +63,9 @@ class SettingUserController extends Controller
         }
 
         $request->validate($rules, [
-            'username.unique'    => 'Username tersebut sudah terdaftar, gunakan username lain.',
-            'email.unique'       => 'Email tersebut sudah terdaftar.',
-            'password.min'       => 'Password minimal 6 karakter.',
-            'password.confirmed' => 'Konfirmasi password tidak cocok dengan password yang diketik.',
+            'username.unique' => 'Username tersebut sudah terdaftar, gunakan username lain.',
+            'email.unique'    => 'Email tersebut sudah terdaftar.',
+            'password.min'    => 'Password minimal 6 karakter.',
         ]);
 
         $userData = [
@@ -99,7 +98,7 @@ class SettingUserController extends Controller
             'username'      => 'required|string|max:50|unique:users,username,' . $user->id_user . ',id_user',
             'role'          => 'required|in:super admin,admin,viewer,aproval',
             'status_active' => 'required|in:active,block',
-            'password'      => 'nullable|string|min:6|confirmed',
+            'password'      => 'nullable|string|min:6',
         ];
 
         if (Schema::hasColumn('users', 'email')) {
@@ -107,9 +106,8 @@ class SettingUserController extends Controller
         }
 
         $request->validate($rules, [
-            'username.unique'    => 'Username tersebut sudah digunakan oleh user lain.',
-            'password.min'       => 'Password baru minimal 6 karakter.',
-            'password.confirmed' => 'Konfirmasi password tidak cocok dengan password baru.',
+            'username.unique' => 'Username tersebut sudah digunakan oleh user lain.',
+            'password.min'    => 'Password baru minimal 6 karakter.',
         ]);
 
         $user->name = $request->name;

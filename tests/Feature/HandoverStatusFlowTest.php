@@ -19,9 +19,9 @@ class HandoverStatusFlowTest extends TestCase
 
         $this->admin = User::firstOrCreate(
             ['username' => 'test_admin_handover'],
-            ['name' => 'Admin Handover', 'email' => 'admin_handover@test.com', 'password' => bcrypt('password'), 'role' => 'admin', 'status_active' => 'active']
+            ['name' => 'Admin Handover', 'email' => 'admin_handover@test.com', 'password' => bcrypt('password'), 'role' => 'super admin', 'status_active' => 'active']
         );
-        $this->admin->role = 'admin';
+        $this->admin->role = 'super admin';
         $this->admin->status_active = 'active';
         $this->admin->save();
     }

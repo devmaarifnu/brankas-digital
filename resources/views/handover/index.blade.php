@@ -31,7 +31,7 @@
                     <i class="ti ti-file-spreadsheet fs-5"></i>
                     <span>Export Excel</span>
                 </a>
-                @if(auth()->user()->canManageData())
+                @if(auth()->user()->isSuperAdmin())
                 <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahHandover">
                     <i class="ti ti-plus me-1"></i>Tambah Record of Transfer
                 </button>
@@ -121,7 +121,7 @@
                             <th>Petugas Input</th>
                             <th>Tgl Serah Terima</th>
                             <th>Bukti File</th>
-                            @if(auth()->user()->canManageData())
+                            @if(auth()->user()->isSuperAdmin())
                             <th class="text-center pe-3" width="90">Aksi</th>
                             @endif
                         </tr>
@@ -171,7 +171,7 @@
                                     <span class="text-muted small">-</span>
                                 @endif
                             </td>
-                            @if(auth()->user()->canManageData())
+                            @if(auth()->user()->isSuperAdmin())
                             <td class="text-center pe-3">
                                 <form action="{{ route('handover.destroy', $rec->id) }}" method="POST" class="d-inline m-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data serah terima ini?')">
                                     @csrf
@@ -184,7 +184,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="{{ auth()->user()->canManageData() ? 9 : 8 }}" class="text-center text-muted py-5">
+                            <td colspan="{{ auth()->user()->isSuperAdmin() ? 9 : 8 }}" class="text-center text-muted py-5">
                                 <i class="ti ti-inbox fs-2 d-block mb-2 text-muted"></i>
                                 Belum ada data perpindahan dokumen / aset yang sesuai pencarian.
                             </td>
@@ -203,7 +203,7 @@
 </div>
 
 {{-- MODAL TAMBAH RECORD OF TRANSFER --}}
-@if(auth()->user()->canManageData())
+@if(auth()->user()->isSuperAdmin())
 <div class="modal fade" id="modalTambahHandover" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow">

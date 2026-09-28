@@ -27,7 +27,7 @@
                     <i class="ti ti-file-spreadsheet fs-5"></i>
                     <span>Export Excel</span>
                 </a>
-                @if(auth()->user()->canManageData())
+                @if(auth()->user()->isSuperAdmin())
                 <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahAktaNotaris">
                     <i class="ti ti-plus me-1"></i>Tambah Akta Notaris
                 </button>
@@ -146,7 +146,7 @@
                                     </button>
 
                                     {{-- Edit --}}
-                                    @if(auth()->user()->canManageData())
+                                    @if(auth()->user()->isSuperAdmin())
                                     <a href="{{ route('brangkas.akta-notaris.edit', $item->id) }}" class="btn btn-sm btn-outline-warning w-100 py-1 px-2 d-inline-flex align-items-center justify-content-center gap-1 text-nowrap shadow-sm" title="Edit Data">
                                         <i class="ti ti-pencil"></i> Edit
                                     </a>
@@ -507,7 +507,7 @@ $(document).ready(function() {
         }
     });
 
-    // Helper: format tanggal YYYY-MM-DD → DD/MM/YYYY
+    // Helper: format tanggal YYYY-MM-DD â†’ DD/MM/YYYY
     function formatTgl(val) {
         if (!val) return '-';
         var s = String(val).trim().substring(0, 10);

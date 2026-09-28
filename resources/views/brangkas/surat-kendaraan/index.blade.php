@@ -27,7 +27,7 @@
                     <i class="ti ti-file-spreadsheet fs-5"></i>
                     <span>Export Excel</span>
                 </a>
-                @if(auth()->user()->canManageData())
+                @if(auth()->user()->isSuperAdmin())
                 <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahSuratKendaraan">
                     <i class="ti ti-plus me-1"></i>Tambah Surat Kendaraan
                 </button>
@@ -142,7 +142,7 @@
                                     </button>
 
                                     {{-- Edit --}}
-                                    @if(auth()->user()->canManageData())
+                                    @if(auth()->user()->isSuperAdmin())
                                     <a href="{{ route('brangkas.surat-kendaraan.edit', $item->id) }}" class="btn btn-sm btn-outline-warning w-100 py-1 px-2 d-inline-flex align-items-center justify-content-center gap-1 text-nowrap shadow-sm" title="Edit Surat Kendaraan">
                                         <i class="ti ti-pencil"></i> Edit
                                     </a>
@@ -181,7 +181,7 @@
 </div>
 
 {{-- MODAL TAMBAH --}}
-@if(auth()->user()->canManageData())
+@if(auth()->user()->isSuperAdmin())
 <div class="modal fade" id="modalTambahSuratKendaraan" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow">
@@ -276,7 +276,7 @@
                                 </div>
                             </div>
                             <small class="text-muted d-block mt-1">
-                                <i class="ti ti-info-circle me-1 text-info"></i>Pilihan file: <span class="fw-semibold text-dark">Kamera Langsung</span>, <span class="fw-semibold text-dark">Foto Galeri (JPG/PNG)</span>, atau <span class="fw-semibold text-dark">Dokumen PDF</span> — <strong>Maksimal 20 MB</strong>.
+                                <i class="ti ti-info-circle me-1 text-info"></i>Pilihan file: <span class="fw-semibold text-dark">Kamera Langsung</span>, <span class="fw-semibold text-dark">Foto Galeri (JPG/PNG)</span>, atau <span class="fw-semibold text-dark">Dokumen PDF</span> â€” <strong>Maksimal 20 MB</strong>.
                             </small>
                         </div>
                     </div>
@@ -514,3 +514,4 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 @endsection
+

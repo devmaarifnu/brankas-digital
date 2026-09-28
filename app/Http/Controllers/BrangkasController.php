@@ -46,7 +46,7 @@ class BrangkasController extends Controller
 
     public function storeSuratTanah(Request $request)
     {
-        if (!auth()->user()->canManageData()) {
+        if (!auth()->user()->isSuperAdmin()) {
             return redirect()->route('brangkas.surat-tanah')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat menambah data.');
         }
         $request->validate([
@@ -107,7 +107,7 @@ class BrangkasController extends Controller
 
     public function editSuratTanah($id)
     {
-        if (!auth()->user()->canManageData()) {
+        if (!auth()->user()->isSuperAdmin()) {
             return redirect()->route('brangkas.surat-tanah')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
         }
         $item = SuratTanah::findOrFail($id);
@@ -116,7 +116,7 @@ class BrangkasController extends Controller
 
     public function updateSuratTanah(Request $request, $id)
     {
-        if (!auth()->user()->canManageData()) {
+        if (!auth()->user()->isSuperAdmin()) {
             return redirect()->route('brangkas.surat-tanah')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
         }
         $item = SuratTanah::findOrFail($id);
@@ -213,7 +213,7 @@ class BrangkasController extends Controller
 
     public function storeAktaNotaris(Request $request)
     {
-        if (!auth()->user()->canManageData()) {
+        if (!auth()->user()->isSuperAdmin()) {
             return redirect()->route('brangkas.akta-notaris')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat menambah data.');
         }
 
@@ -274,7 +274,7 @@ class BrangkasController extends Controller
 
     public function editAktaNotaris($id)
     {
-        if (!auth()->user()->canManageData()) {
+        if (!auth()->user()->isSuperAdmin()) {
             return redirect()->route('brangkas.akta-notaris')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
         }
         $item = AktaNotaris::findOrFail($id);
@@ -283,7 +283,7 @@ class BrangkasController extends Controller
 
     public function updateAktaNotaris(Request $request, $id)
     {
-        if (!auth()->user()->canManageData()) {
+        if (!auth()->user()->isSuperAdmin()) {
             return redirect()->route('brangkas.akta-notaris')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
         }
         $item = AktaNotaris::findOrFail($id);
@@ -360,7 +360,7 @@ class BrangkasController extends Controller
      */
     private function applyRecordFilters($query, $request, $categoryColumn)
     {
-        // Free‑text search across key columns
+        // Freeâ€‘text search across key columns
         if ($request->filled('q')) {
             $search = trim($request->q);
             $query->where(function ($q) use ($search, $categoryColumn) {
@@ -470,7 +470,7 @@ class BrangkasController extends Controller
     {
         $query = DataAsetLembaga::query();
 
-        // Free‑text search across key columns
+        // Freeâ€‘text search across key columns
        // Apply unified filters and pagination
         $data = $this->applyRecordFilters($query, $request, 'jenis_aset')
                       ->with(['user', 'handovers.user', 'suratKendaraan'])
@@ -502,7 +502,7 @@ class BrangkasController extends Controller
 
     public function storeDataAset(Request $request)
     {
-        if (!auth()->user()->canManageData()) {
+        if (!auth()->user()->isSuperAdmin()) {
             return redirect()->route('brangkas.data-aset')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat menambah data.');
         }
 
@@ -561,7 +561,7 @@ class BrangkasController extends Controller
 
     public function editDataAset($id)
     {
-        if (!auth()->user()->canManageData()) {
+        if (!auth()->user()->isSuperAdmin()) {
             return redirect()->route('brangkas.data-aset')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
         }
         $item = DataAsetLembaga::findOrFail($id);
@@ -570,7 +570,7 @@ class BrangkasController extends Controller
 
     public function updateDataAset(Request $request, $id)
     {
-        if (!auth()->user()->canManageData()) {
+        if (!auth()->user()->isSuperAdmin()) {
             return redirect()->route('brangkas.data-aset')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
         }
         $item = DataAsetLembaga::findOrFail($id);
@@ -714,7 +714,7 @@ class BrangkasController extends Controller
 
     public function storeSuratKendaraan(Request $request)
     {
-        if (!auth()->user()->canManageData()) {
+        if (!auth()->user()->isSuperAdmin()) {
             return redirect()->route('brangkas.surat-kendaraan')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat menambah data.');
         }
 
@@ -763,7 +763,7 @@ class BrangkasController extends Controller
 
     public function editSuratKendaraan($id)
     {
-        if (!auth()->user()->canManageData()) {
+        if (!auth()->user()->isSuperAdmin()) {
             return redirect()->route('brangkas.surat-kendaraan')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
         }
         $item = SuratKendaraan::findOrFail($id);
@@ -781,7 +781,7 @@ class BrangkasController extends Controller
 
     public function updateSuratKendaraan(Request $request, $id)
     {
-        if (!auth()->user()->canManageData()) {
+        if (!auth()->user()->isSuperAdmin()) {
             return redirect()->route('brangkas.surat-kendaraan')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
         }
         $item = SuratKendaraan::findOrFail($id);

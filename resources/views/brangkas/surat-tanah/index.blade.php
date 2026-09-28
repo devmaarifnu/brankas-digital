@@ -27,7 +27,7 @@
                     <i class="ti ti-file-spreadsheet fs-5"></i>
                     <span>Export Excel</span>
                 </a>
-                @if(auth()->user()->canManageData())
+                @if(auth()->user()->isSuperAdmin())
                 <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahSuratTanah">
                     <i class="ti ti-plus me-1"></i>Tambah Surat Tanah
                 </button>
@@ -108,7 +108,7 @@
                             <td class="ps-3">{{ $i+1 }}</td>
                             <td><span class="badge bg-light text-dark border">{{ $item->jenis_sertifikat ?? 'SHM' }}</span></td>
                             <td><code class="fw-semibold">{{ $item->nomor_sertifikat ?? '-' }}</code></td>
-                            <td>{{ $item->luas ? $item->luas . ' m²' : '-' }}</td>
+                            <td>{{ $item->luas ? $item->luas . ' mÂ²' : '-' }}</td>
                             <td class="fw-semibold text-dark">{{ $item->nama_sertifikat ?? $item->nama_dokumen }}</td>
                             <td><small>{{ $item->desa_kelurahan ?? '-' }}</small></td>
                             <td><small>{{ $item->kecamatan ?? '-' }}</small></td>
@@ -150,7 +150,7 @@
                                     </button>
 
                                     {{-- Edit --}}
-                                    @if(auth()->user()->canManageData())
+                                    @if(auth()->user()->isSuperAdmin())
                                     <a href="{{ route('brangkas.surat-tanah.edit', $item->id) }}" class="btn btn-sm btn-outline-warning w-100 py-1 px-2 d-inline-flex align-items-center justify-content-center gap-1 text-nowrap shadow-sm" title="Edit Data">
                                         <i class="ti ti-pencil"></i> Edit
                                     </a>
@@ -551,7 +551,7 @@ $(document).ready(function() {
         }
     });
 
-    // Helper: format tanggal YYYY-MM-DD → DD/MM/YYYY
+    // Helper: format tanggal YYYY-MM-DD â†’ DD/MM/YYYY
     function formatTgl(val) {
         if (!val) return '-';
         var s = String(val).trim().substring(0, 10);
@@ -575,7 +575,7 @@ $(document).ready(function() {
 
         $('#dt_jenis').text(item.jenis_sertifikat || '-');
         $('#dt_nomor').text(item.nomor_sertifikat || '-');
-        $('#dt_luas').text((item.luas || '-') + ' m²');
+        $('#dt_luas').text((item.luas || '-') + ' mÂ²');
         $('#dt_nama').text(item.nama_sertifikat || item.nama_dokumen || '-');
         $('#dt_desa').text(item.desa_kelurahan || '-');
         $('#dt_kecamatan').text(item.kecamatan || '-');

@@ -156,7 +156,7 @@ class HandoverController extends Controller
 
     public function store(Request $request)
     {
-        if (!auth()->user()->canManageData()) {
+        if (!auth()->user()->isSuperAdmin()) {
             return redirect()->route('handover.index')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat memproses serah terima dokumen.');
         }
 
@@ -281,8 +281,8 @@ class HandoverController extends Controller
 
     public function destroy($id)
     {
-        if (!auth()->user()->canManageData()) {
-            return redirect()->route('handover.index')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat menghapus data serah terima.');
+        if (!auth()->user()->isSuperAdmin()) {
+            return redirect()->route('handover.index')->with('error', 'Akses ditolak: Tombol dan aksi hapus hanya dapat dilakukan oleh Super admin.');
         }
 
         $handover = RecordOfHandover::findOrFail($id);

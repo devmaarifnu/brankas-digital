@@ -27,7 +27,7 @@
                     <i class="ti ti-file-spreadsheet fs-5"></i>
                     <span>Export Excel</span>
                 </a>
-                @if(auth()->user()->isSuperAdmin())
+                @if(auth()->user()->canManageData())
                 <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahAset">
                     <i class="ti ti-plus me-1"></i>Tambah Data Aset
                 </button>

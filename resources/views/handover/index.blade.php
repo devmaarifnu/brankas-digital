@@ -31,7 +31,7 @@
                     <i class="ti ti-file-spreadsheet fs-5"></i>
                     <span>Export Excel</span>
                 </a>
-                @if(auth()->user()->isSuperAdmin())
+                @if(auth()->user()->canManageData())
                 <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahHandover">
                     <i class="ti ti-plus me-1"></i>Tambah Record of Transfer
                 </button>
@@ -208,7 +208,7 @@
 </div>
 
 {{-- MODAL TAMBAH RECORD OF TRANSFER --}}
-@if(auth()->user()->isSuperAdmin())
+@if(auth()->user()->canManageData())
 <div class="modal fade" id="modalTambahHandover" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow">

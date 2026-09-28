@@ -39,6 +39,7 @@ Route::middleware('mustlogin')->group(function () {
     Route::get('/handover', [HandoverController::class, 'index'])->name('handover.index');
     Route::get('/handover/export', [HandoverController::class, 'export'])->name('handover.export');
     Route::post('/handover', [HandoverController::class, 'store'])->name('handover.store');
+    Route::post('/handover/{id}/delete', [HandoverController::class, 'destroy'])->name('handover.destroy');
     Route::get('/handover/get-items', [HandoverController::class, 'getItemsByKategori'])->name('handover.get-items');
     Route::get('/handover/items', [HandoverController::class, 'getItemsByKategori'])->name('handover.items');
 

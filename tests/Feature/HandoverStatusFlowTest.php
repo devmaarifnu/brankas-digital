@@ -236,4 +236,49 @@ class HandoverStatusFlowTest extends TestCase
         RecordOfHandover::where('ref_id', $sk->id)->where('kategori', 'Arsip Surat Kendaraan')->delete();
         $sk->delete();
     }
+
+    public function test_handover_destroy_and_resync_status()
+    {
+        $surat = SuratTanah::create([
+            'nama_dokumen' => 'Sertifikat Uji Hapus',
+            'nama_sertifikat' => 'Sertifikat Uji Hapus',
+            'nomor_sertifikat' => 'SHM-TEST-DEL-01',
+            'jenis_sertifikat' => 'SHM',
+            'luas' => '300',
+            'status_handover' => 'Tersedia',
+            'warna_merah' => false,
+        ]);
+
+        // 1. Pinjam dokumen
+        $this->actingAs($this->admin)->post(route('handover.store'), [
+            'kategori' => 'Arsip Surat Tanah',
+            'ref_id' => $surat->id,
+            'nama_dokumen' => $surat->nama_sertifikat,
+            'status' => 'Dipinjam',
+            'nama_peminjam' => 'Budi Santoso',
+            'tgl_serahterima' => '2026-09-28',
+        ]);
+
+        $surat->refresh();
+        $this->assertEquals('Dipinjam', $surat->status_handover);
+        $this->assertTrue((bool)$surat->warna_merah);
+
+        $handover = RecordOfHandover::where('ref_id', $surat->id)->where('kategori', 'Arsip Surat Tanah')->latest()->first();
+        $this->assertNotNull($handover);
+
+        // 2. Hapus handover record
+        $resDelete = $this->actingAs($this->admin)->post(route('handover.destroy', $handover->id));
+        $resDelete->assertRedirect(route('handover.index'));
+        $resDelete->assertSessionHas('success');
+
+        // 3. Verifikasi record terhapus dan status surat kembali Tersedia
+        $this->assertDatabaseMissing('record_of_handover', ['id' => $handover->id]);
+        $surat->refresh();
+        $this->assertEquals('Tersedia', $surat->status_handover);
+        $this->assertFalse((bool)$surat->warna_merah);
+
+        // Clean up
+        $surat->delete();
+    }
 }
+

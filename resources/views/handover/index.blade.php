@@ -121,6 +121,9 @@
                             <th>Petugas Input</th>
                             <th>Tgl Serah Terima</th>
                             <th>Bukti File</th>
+                            @if(auth()->user()->canManageData())
+                            <th class="text-center pe-3" width="90">Aksi</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -159,7 +162,7 @@
                             </td>
                             <td><small class="text-muted">{{ $rec->user->name ?? ($rec->nama_petugas ?? '-') }}</small></td>
                             <td><small class="text-muted">{{ $rec->tgl_serahterima ? $rec->tgl_serahterima->format('d/m/Y') : '-' }}</small></td>
-                            <td class="pe-3">
+                            <td>
                                 @if($rec->file_bukti)
                                     <a href="{{ asset($rec->file_bukti) }}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2" title="Lihat Bukti Dokumen">
                                         <i class="ti ti-eye me-1"></i>Lihat Bukti
@@ -168,10 +171,20 @@
                                     <span class="text-muted small">-</span>
                                 @endif
                             </td>
+                            @if(auth()->user()->canManageData())
+                            <td class="text-center pe-3">
+                                <form action="{{ route('handover.destroy', $rec->id) }}" method="POST" class="d-inline m-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data serah terima ini?')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2 d-inline-flex align-items-center gap-1 shadow-sm" title="Hapus Data">
+                                        <i class="ti ti-trash"></i> Hapus
+                                    </button>
+                                </form>
+                            </td>
+                            @endif
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-5">
+                            <td colspan="{{ auth()->user()->canManageData() ? 9 : 8 }}" class="text-center text-muted py-5">
                                 <i class="ti ti-inbox fs-2 d-block mb-2 text-muted"></i>
                                 Belum ada data perpindahan dokumen / aset yang sesuai pencarian.
                             </td>

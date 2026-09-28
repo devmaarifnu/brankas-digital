@@ -73,7 +73,12 @@
                 <div class="col-md-4">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-light"><i class="ti ti-search"></i></span>
-                        <input type="text" class="form-control" name="q" value="{{ request('q') }}" placeholder="Cari nama dokumen, peminjam, penerima, catatan...">
+                        <input type="search" class="form-control input-search-live" name="q" value="{{ request('q') }}" placeholder="Cari nama dokumen, peminjam, penerima, catatan..." autocomplete="off">
+                        @if(request('q'))
+                        <a href="{{ route('handover.index', array_merge(request()->except('q'), ['page' => 1])) }}" class="input-group-text bg-white text-muted text-decoration-none" title="Hapus pencarian">
+                            <i class="ti ti-x"></i>
+                        </a>
+                        @endif
                     </div>
                 </div>
                 <div class="col-md-3">

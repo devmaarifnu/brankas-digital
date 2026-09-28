@@ -212,6 +212,24 @@
                 message.hide();
             }
         });
+
+      // Global: clean ?q= from URL when search input is emptied via keyboard
+      $(document).on('input keyup', 'input[name="q"], .input-search-live', function() {
+          if ($(this).val().trim() === '') {
+              var url = new URL(window.location.href);
+              if (url.searchParams.has('q')) {
+                  url.searchParams.delete('q');
+                  url.searchParams.delete('page');
+                  window.history.replaceState({}, '', url.toString());
+              }
+          }
+      });
+      // Global: auto-submit form when native X clear button is clicked on type="search"
+      $(document).on('search', 'input[name="q"], .input-search-live', function() {
+          if ($(this).val() === '') {
+              $(this).closest('form').submit();
+          }
+      });
   </script>
 
   <script src="{{ asset('assets/libs/select2/select2.min.js') }}"></script>

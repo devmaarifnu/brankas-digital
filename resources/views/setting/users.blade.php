@@ -62,7 +62,12 @@
                 <div class="col-md-4">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-light"><i class="ti ti-search"></i></span>
-                        <input type="text" class="form-control" name="q" value="{{ request('q') }}" placeholder="Cari nama, username, email...">
+                        <input type="search" class="form-control" name="q" id="inputSearchUser" value="{{ request('q') }}" placeholder="Cari nama, username, email..." autocomplete="off">
+                        @if(request('q'))
+                        <a href="{{ route('setting.users', array_merge(request()->except('q'), ['page' => 1])) }}" class="input-group-text bg-white text-muted text-decoration-none" title="Hapus pencarian">
+                            <i class="ti ti-x"></i>
+                        </a>
+                        @endif
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -384,8 +389,17 @@ $(document).ready(function() {
         }
 
         if (confirmPass.length > 0 || pass.length > 0) {
+            if (pass.length < 6) {
+                $feedback.html('<i class="ti ti-alert-circle me-1"></i><span>Password minimal 6 karakter!</span>').show();
+                $passMain.addClass('is-invalid');
+                $btnSubmit.prop('disabled', true);
+                return false;
+            } else {
+                $passMain.removeClass('is-invalid');
+            }
+
             if (pass !== confirmPass) {
-                $feedback.show();
+                $feedback.html('<i class="ti ti-alert-circle me-1"></i><span>Konfirmasi password tidak cocok!</span>').show();
                 $passConfirm.addClass('is-invalid').removeClass('is-valid');
                 $btnSubmit.prop('disabled', true);
                 return false;
@@ -422,12 +436,31 @@ $(document).ready(function() {
         }
     });
 
-    // Reset error feedback saat modal ditutup
-    $('.modal').on('hidden.bs.modal', function() {
+    // Reset saat modal dibuka atau ditutup
+    $('.modal').on('show.bs.modal hidden.bs.modal', function() {
         var $form = $(this).find('form');
         $form.find('.pass-match-feedback').hide();
         $form.find('.input-pass-main, .input-pass-confirm').removeClass('is-invalid is-valid');
-        $form.find('.btn-submit-user').prop('disabled', false);
+    });
+
+    // Sinkronisasi URL jika kolom pencarian dihapus secara manual (backspace/delete)
+    $('#inputSearchUser').on('input keyup search', function() {
+        if ($(this).val().trim() === '') {
+            // Bersihkan ?q= dari URL browser tanpa perlu refresh halaman
+            var url = new URL(window.location.href);
+            if (url.searchParams.has('q')) {
+                url.searchParams.delete('q');
+                url.searchParams.delete('page');
+                window.history.replaceState({}, '', url.toString());
+            }
+        }
+    });
+
+    // Jika pengguna mengosongkan teks lalu menekan Enter, langsung submit form yang sudah bersih
+    $('#inputSearchUser').on('search', function() {
+        if ($(this).val() === '') {
+            $(this).closest('form').submit();
+        }
     });
 });
 </script>

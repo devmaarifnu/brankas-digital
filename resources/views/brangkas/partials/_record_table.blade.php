@@ -16,7 +16,12 @@ $searchPlaceholder = $placeholder ?? 'Cari nama, pihak terkait, catatan...';
             <div class="col-md-4">
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-light"><i class="ti ti-search"></i></span>
-                    <input type="text" class="form-control" name="q" value="{{ request('q') }}" placeholder="{{ $searchPlaceholder }}">
+                    <input type="search" class="form-control input-search-live" name="q" value="{{ request('q') }}" placeholder="{{ $searchPlaceholder }}" autocomplete="off">
+                    @if(request('q'))
+                    <a href="{{ $currentUrl }}?{{ http_build_query(request()->except(['q', 'page'])) }}" class="input-group-text bg-white text-muted text-decoration-none" title="Hapus pencarian">
+                        <i class="ti ti-x"></i>
+                    </a>
+                    @endif
                 </div>
             </div>
 

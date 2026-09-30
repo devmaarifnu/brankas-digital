@@ -22,6 +22,26 @@ jobs:
               cd /var/www/brankas-digital/
               sudo git pull origin main
 
+              # 1. Konfigurasi Upload Limit di PHP Server (50 MB)
+              echo "Configuring PHP upload limit..."
+              sudo find /etc/php/ -name "php.ini" -exec sed -i 's/^upload_max_filesize = .*/upload_max_filesize = 50M/' {} + 2>/dev/null || true
+              sudo find /etc/php/ -name "php.ini" -exec sed -i 's/^post_max_size = .*/post_max_size = 50M/' {} + 2>/dev/null || true
+              sudo systemctl restart php*-fpm 2>/dev/null || true
+              sudo systemctl reload apache2 2>/dev/null || true
+
+              # 2. Konfigurasi Upload Limit di Nginx (50 MB) jika server menggunakan Nginx
+              if command -v nginx > /dev/null 2>&1; then
+                echo "Configuring Nginx upload limit..."
+                echo "client_max_body_size 50M;" | sudo tee /etc/nginx/conf.d/upload_size.conf > /dev/null
+                sudo nginx -t && sudo systemctl reload nginx || true
+              fi
+
+              # 3. Clear Laravel Cache
+              echo "Clearing cache..."
+              sudo php artisan config:clear || true
+              sudo php artisan cache:clear || true
+              echo "Deploy finished successfully!"
+
             else
               echo "Unknown branch: ${{ github.ref_name }}"
               exit 1

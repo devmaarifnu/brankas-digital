@@ -230,6 +230,22 @@
               $(this).closest('form').submit();
           }
       });
+
+      // Global: Validasi ukuran file maksimal 20 MB saat dipilih di browser
+      $(document).on('change', 'input[type="file"]', function() {
+          var maxBytes = 20 * 1024 * 1024; // 20 MB
+          if (this.files && this.files[0]) {
+              var file = this.files[0];
+              if (file.size > maxBytes) {
+                  var sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                  alert('Ukuran berkas "' + file.name + '" (' + sizeMB + ' MB) melebihi batas maksimal 20 MB.\nSilakan pilih file yang lebih kecil atau kompres terlebih dahulu.');
+                  $(this).val('');
+                  if ($('#btnRemoveBukti').length) {
+                      $('#btnRemoveBukti').click();
+                  }
+              }
+          }
+      });
   </script>
 
   <script src="{{ asset('assets/libs/select2/select2.min.js') }}"></script>

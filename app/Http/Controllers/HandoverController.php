@@ -52,23 +52,17 @@ class HandoverController extends Controller
     public function getItemsByKategori(Request $request)
     {
         $kategori = $request->get('kategori');
-        $status = $request->get('status'); // 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan', or null
+        $status = $request->get('status'); // Status di Record of Transfer: Dipinjam, Diagunkan, Dihibahkan, Dikembalikan
         $items = collect();
 
         if ($kategori === 'Arsip Surat Tanah') {
             $query = SuratTanah::query();
+            // Untuk "Dikembalikan": hanya tampilkan yg sedang dipinjam/diagunkan (warna_merah=true)
             if ($status === 'Dikembalikan') {
-                $query->where(function($q) {
-                    $q->whereIn('status_handover', ['Dipinjam', 'Diagunkan'])
-                      ->orWhere('warna_merah', true);
-                });
-            } elseif (in_array($status, ['Dipinjam', 'Diagunkan', 'Dihibahkan'])) {
-                $query->where(function($q) {
-                    $q->whereNotIn('status_handover', ['Dipinjam', 'Diagunkan'])
-                      ->where('warna_merah', false);
-                });
+                $query->where('warna_merah', true);
             }
-            $items = $query->get()->map(function($i) {
+            // Untuk Dipinjam/Diagunkan/Dihibahkan: tampilkan SEMUA (sudah tersedia maupun belum)
+            $items = $query->orderBy('created_at', 'desc')->get()->map(function($i) {
                 $statusTag = $i->warna_merah ? ' [Sedang ' . ($i->status_handover ?: 'Dipinjam') . ']' : '';
                 $rawName = ($i->nama_sertifikat ?: ($i->nama_dokumen ?: 'Surat Tanah')) . ' (' . ($i->nomor_sertifikat ?: '-') . ')';
                 return [
@@ -82,17 +76,9 @@ class HandoverController extends Controller
         } elseif ($kategori === 'Akta Notaris') {
             $query = AktaNotaris::query();
             if ($status === 'Dikembalikan') {
-                $query->where(function($q) {
-                    $q->whereIn('status_handover', ['Dipinjam', 'Diagunkan'])
-                      ->orWhere('warna_merah', true);
-                });
-            } elseif (in_array($status, ['Dipinjam', 'Diagunkan', 'Dihibahkan'])) {
-                $query->where(function($q) {
-                    $q->whereNotIn('status_handover', ['Dipinjam', 'Diagunkan'])
-                      ->where('warna_merah', false);
-                });
+                $query->where('warna_merah', true);
             }
-            $items = $query->get()->map(function($i) {
+            $items = $query->orderBy('created_at', 'desc')->get()->map(function($i) {
                 $statusTag = $i->warna_merah ? ' [Sedang ' . ($i->status_handover ?: 'Dipinjam') . ']' : '';
                 $rawName = ($i->nama_dokumen ?: 'Akta Notaris') . ' (' . ($i->nomor_dokumen ?: ($i->nomor_akta ?: '-')) . ')';
                 return [
@@ -106,17 +92,9 @@ class HandoverController extends Controller
         } elseif ($kategori === 'Data Aset Lembaga') {
             $query = DataAsetLembaga::query();
             if ($status === 'Dikembalikan') {
-                $query->where(function($q) {
-                    $q->whereIn('status_handover', ['Dipinjam', 'Diagunkan'])
-                      ->orWhere('warna_merah', true);
-                });
-            } elseif (in_array($status, ['Dipinjam', 'Diagunkan', 'Dihibahkan'])) {
-                $query->where(function($q) {
-                    $q->whereNotIn('status_handover', ['Dipinjam', 'Diagunkan'])
-                      ->where('warna_merah', false);
-                });
+                $query->where('warna_merah', true);
             }
-            $items = $query->get()->map(function($i) {
+            $items = $query->orderBy('created_at', 'desc')->get()->map(function($i) {
                 $statusTag = $i->warna_merah ? ' [Sedang ' . ($i->status_handover ?: 'Dipinjam') . ']' : '';
                 $rawName = ($i->nama_barang ?: ($i->nama_aset ?: 'Aset')) . ' [' . ($i->nomor_registrasi ?: '-') . ']';
                 return [
@@ -130,21 +108,15 @@ class HandoverController extends Controller
         } elseif ($kategori === 'Arsip Surat Kendaraan') {
             $query = SuratKendaraan::query();
             if ($status === 'Dikembalikan') {
-                $query->where(function($q) {
-                    $q->whereIn('status_handover', ['Dipinjam', 'Diagunkan'])
-                      ->orWhere('warna_merah', true);
-                });
-            } elseif (in_array($status, ['Dipinjam', 'Diagunkan', 'Dihibahkan'])) {
-                $query->where(function($q) {
-                    $q->whereNotIn('status_handover', ['Dipinjam', 'Diagunkan'])
-                      ->where('warna_merah', false);
-                });
+                $query->where('warna_merah', true);
             }
-            $items = $query->get()->map(function($i) {
+            $items = $query->orderBy('created_at', 'desc')->get()->map(function($i) {
                 $statusTag = $i->warna_merah ? ' [Sedang ' . ($i->status_handover ?: 'Dipinjam') . ']' : '';
+                $displayName = $i->jenis_surat . ' - ' . $i->nama_kendaraan . ($i->no_plat ? ' (' . $i->no_plat . ')' : '') . $statusTag;
                 return [
                     'id' => $i->id,
-                    'nama_dokumen' => $i->jenis_surat . ' - ' . $i->nama_kendaraan . ($i->no_plat ? ' (' . $i->no_plat . ')' : '') . $statusTag,
+                    'nama_dokumen' => $i->jenis_surat . ' - ' . $i->nama_kendaraan . ($i->no_plat ? ' (' . $i->no_plat . ')' : ''),
+                    'display_name' => $displayName,
                     'status_handover' => $i->status_handover,
                     'is_borrowed' => (bool)$i->warna_merah,
                 ];

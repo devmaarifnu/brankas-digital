@@ -43,19 +43,14 @@ $searchPlaceholder = $placeholder ?? 'Cari nama, pihak terkait, catatan...';
             <div class="col-md-3">
                 <select class="form-select form-select-sm" name="status_handover">
                     <option value="">-- Semua Status --</option>
-                    @if(isset($statusList) && count($statusList) > 0)
-                        @foreach($statusList as $st)
-                            @if(!empty($st))
-                                <option value="{{ $st }}" {{ request('status_handover') == $st ? 'selected' : '' }}>{{ $st }}</option>
-                            @endif
-                        @endforeach
-                    @else
-                        <option value="Tersedia" {{ request('status_handover') === 'Tersedia' ? 'selected' : '' }}>Tersedia</option>
-                        <option value="Dipinjam" {{ request('status_handover') === 'Dipinjam' ? 'selected' : '' }}>Dipinjam</option>
-                        <option value="Diagunkan" {{ request('status_handover') === 'Diagunkan' ? 'selected' : '' }}>Diagunkan</option>
-                        <option value="Dihibahkan" {{ request('status_handover') === 'Dihibahkan' ? 'selected' : '' }}>Dihibahkan</option>
-                        <option value="Dikembalikan" {{ request('status_handover') === 'Dikembalikan' ? 'selected' : '' }}>Dikembalikan</option>
-                    @endif
+                    @php
+                        $listStatus = $statusList ?? $statusOptions ?? ['Tersedia', 'Isi Sendiri'];
+                    @endphp
+                    @foreach($listStatus as $st)
+                        @if(!empty($st))
+                            <option value="{{ $st }}" {{ request('status_handover') == $st ? 'selected' : '' }}>{{ $st }}</option>
+                        @endif
+                    @endforeach
                 </select>
             </div>
 

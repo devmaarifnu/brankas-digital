@@ -101,7 +101,7 @@
                             <th>Foto/PDF</th>
                             <th>BPKB</th>
                             <th>STNK</th>
-                            <th>Keterangan</th>
+                            <th>Status</th>
                             <th class="text-center pe-3" width="120">Aksi</th>
                         </tr>
                     </thead>
@@ -220,10 +220,22 @@
                                 @endif
                             </td>
                             <td>
-                                @if($item->warna_merah)
-                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">{{ $item->keterangan ?? 'Status Khusus' }}</span>
+                                @php
+                                    $rawStatus = $item->keterangan ?: ($item->status_handover ?: 'Tersedia');
+                                    $isTersedia = in_array(strtolower($rawStatus), ['tersedia', 'dokumen asli ada', 'operasional kantor']);
+                                @endphp
+                                @if($isTersedia)
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                                        <i class="ti ti-check me-1"></i>Tersedia
+                                    </span>
+                                @elseif($item->warna_merah)
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                                        <i class="ti ti-alert-triangle me-1"></i>{{ $rawStatus }}
+                                    </span>
                                 @else
-                                    <span class="badge bg-light text-dark border">{{ $item->keterangan ?? 'Operasional Kantor' }}</span>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">
+                                        <i class="ti ti-info-circle me-1"></i>{{ $rawStatus }}
+                                    </span>
                                 @endif
                             </td>
                             <td class="text-center pe-3" style="width: 120px;">
@@ -451,15 +463,11 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">15. Status <span class="text-danger">*</span></label>
                         <select class="form-select" name="keterangan" id="ast_keterangan" required>
-                            <option value="Tersedia" selected>Tersedia (Operasional Kantor)</option>
-                            <option value="Dipinjam">Dipinjam</option>
-                            <option value="Diagunkan">Diagunkan</option>
-                            <option value="Dihibahkan">Dihibahkan</option>
-                            <option value="Dikembalikan">Dikembalikan</option>
-                            <option value="Rusak / Perbaikan">Rusak / Perbaikan</option>
+                            <option value="Tersedia" selected>Tersedia</option>
                             <option value="Isi Sendiri">Isi Sendiri...</option>
                         </select>
                         <input type="text" class="form-control mt-2" name="keterangan_custom" id="ast_keterangan_custom" placeholder="Tuliskan status khusus..." style="display:none;">
+                        <small class="text-muted mt-1 d-block"><i class="ti ti-info-circle me-1"></i>Status peminjaman/pengagunan/hibah/pengembalian dicatat melalui menu <strong>Record of Transfer</strong>.</small>
                     </div>
                 </div>
                 <div class="modal-footer border-top px-4 py-3 bg-white">
@@ -722,7 +730,9 @@ $(document).ready(function() {
         $('#dt_ast_lokasi').text(item.posisi_aset === 'Kantor' ? (item.nama_ruangan || item.lokasi || 'Kantor') : (item.nama_penerima || item.lokasi || '-'));
         $('#dt_ast_petugas').text(item.nama_petugas || (item.user ? item.user.name : '-'));
         $('#dt_ast_tglinput').text(formatTgl(item.tgl_input || item.created_at));
-        $('#dt_ast_keterangan').html(item.warna_merah ? '<span class="badge bg-danger">' + (item.keterangan || 'Status Khusus') + '</span>' : '<span class="badge bg-success">' + (item.keterangan || 'Operasional Kantor') + '</span>');
+        var stText = item.keterangan || item.status_handover || 'Tersedia';
+        var isAvail = ['tersedia', 'dokumen asli ada', 'operasional kantor'].indexOf(stText.toLowerCase()) !== -1;
+        $('#dt_ast_keterangan').html(isAvail ? '<span class="badge bg-success"><i class="ti ti-check me-1"></i>Tersedia</span>' : (item.warna_merah ? '<span class="badge bg-danger"><i class="ti ti-alert-triangle me-1"></i>' + stText + '</span>' : '<span class="badge bg-primary"><i class="ti ti-info-circle me-1"></i>' + stText + '</span>'));
         
         if (fileUrl) {
             var ext = fileUrl.split('.').pop().toLowerCase().split('?')[0];

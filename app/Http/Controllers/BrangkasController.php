@@ -35,9 +35,7 @@ class BrangkasController extends Controller
         $dbJenis = SuratTanah::whereNotNull('jenis_sertifikat')->where('jenis_sertifikat', '!=', '')->distinct()->pluck('jenis_sertifikat')->toArray();
         $jenisList = collect(array_values(array_filter(array_unique(array_merge($defaultJenis, $dbJenis)))));
 
-        $defaultStatus = ['Tersedia', 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan'];
-        $dbStatus = SuratTanah::whereNotNull('status_handover')->where('status_handover', '!=', '')->distinct()->pluck('status_handover')->toArray();
-        $statusList = collect(array_values(array_filter(array_unique(array_merge($defaultStatus, $dbStatus)))));
+        $statusList = collect(['Tersedia', 'Isi Sendiri']);
         $officers = \App\Models\User::select('id_user as id', 'name')->orderBy('name')->get();
 
         return view('brangkas.surat-tanah.index', compact('data', 'jenisList', 'statusList', 'officers'))
@@ -206,9 +204,7 @@ class BrangkasController extends Controller
         $dbJenis = AktaNotaris::whereNotNull('jenis_dokumen')->where('jenis_dokumen', '!=', '')->distinct()->pluck('jenis_dokumen')->toArray();
         $jenisList = collect(array_values(array_filter(array_unique(array_merge($defaultJenis, $dbJenis)))));
 
-        $defaultStatus = ['Tersedia', 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan'];
-        $dbStatus = AktaNotaris::whereNotNull('status_handover')->where('status_handover', '!=', '')->distinct()->pluck('status_handover')->toArray();
-        $statusList = collect(array_values(array_filter(array_unique(array_merge($defaultStatus, $dbStatus)))));
+        $statusList = collect(['Tersedia', 'Isi Sendiri']);
         $officers = \App\Models\User::select('id_user as id', 'name')->orderBy('name')->get();
 
         return view('brangkas.akta-notaris.index', compact('data', 'jenisList', 'statusList', 'officers'))
@@ -424,11 +420,30 @@ class BrangkasController extends Controller
         // Filter Enumerasi: Status Handover / Status
         $statusVal = $request->filled('status_handover') ? $request->status_handover : ($request->filled('status') ? $request->status : null);
         if ($statusVal) {
-            $query->where(function($q) use ($statusVal) {
-                $q->where('status_handover', $statusVal)
-                  ->orWhere('keterangan', $statusVal)
-                  ->orWhere('keterangan', 'like', "%{$statusVal}%");
-            });
+            if ($statusVal === 'Isi Sendiri') {
+                $query->where(function($q) {
+                    $q->where(function($sub) {
+                        $sub->whereNotIn('keterangan', ['Tersedia', 'Dokumen Asli Ada', 'Operasional Kantor'])
+                            ->whereNotNull('keterangan')
+                            ->where('keterangan', '!=', '');
+                    })->orWhere(function($sub) {
+                        $sub->whereNotIn('status_handover', ['Tersedia', 'Dokumen Asli Ada', 'Operasional Kantor'])
+                            ->whereNotNull('status_handover')
+                            ->where('status_handover', '!=', '');
+                    });
+                });
+            } elseif ($statusVal === 'Tersedia') {
+                $query->where(function($q) {
+                    $q->whereIn('status_handover', ['Tersedia', 'Dokumen Asli Ada', 'Operasional Kantor'])
+                      ->orWhereIn('keterangan', ['Tersedia', 'Dokumen Asli Ada', 'Operasional Kantor']);
+                });
+            } else {
+                $query->where(function($q) use ($statusVal) {
+                    $q->where('status_handover', $statusVal)
+                      ->orWhere('keterangan', $statusVal)
+                      ->orWhere('keterangan', 'like', "%{$statusVal}%");
+                });
+            }
         }
 
         return $query;
@@ -439,10 +454,18 @@ class BrangkasController extends Controller
      */
     private function resolveStatusFields(?string $inputStatus = null): array
     {
-        $status = $inputStatus ?: 'Tersedia';
+        $status = trim($inputStatus ?: 'Tersedia');
         $ket = strtolower($status);
         $isRed = false;
-        $handoverStatus = 'Tersedia';
+        $handoverStatus = $status;
+
+        if ($ket === 'tersedia' || $ket === 'dokumen asli ada' || $ket === '') {
+            return [
+                'keterangan' => $status ?: 'Tersedia',
+                'status_handover' => 'Tersedia',
+                'warna_merah' => false,
+            ];
+        }
 
         if (str_contains($ket, 'diagunkan')) {
             $isRed = true;
@@ -461,7 +484,7 @@ class BrangkasController extends Controller
             $handoverStatus = $status;
         } else {
             $isRed = false;
-            $handoverStatus = 'Tersedia';
+            $handoverStatus = $status;
         }
 
         return [
@@ -495,9 +518,7 @@ class BrangkasController extends Controller
         $dbJenisAset = DataAsetLembaga::whereNotNull('jenis_aset')->where('jenis_aset', '!=', '')->distinct()->pluck('jenis_aset')->toArray();
         $jenisList = collect(array_values(array_filter(array_unique(array_merge($defaultJenis, $dbJenisBarang, $dbJenisAset)))));
 
-        $defaultStatus = ['Tersedia', 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan'];
-        $dbStatus = DataAsetLembaga::whereNotNull('status_handover')->where('status_handover', '!=', '')->distinct()->pluck('status_handover')->toArray();
-        $statusList = collect(array_values(array_filter(array_unique(array_merge($defaultStatus, $dbStatus)))));
+        $statusList = collect(['Tersedia', 'Isi Sendiri']);
 
         $kondisiList = DataAsetLembaga::select('kondisi_aset')->distinct()->pluck('kondisi_aset');
         $posisiList  = DataAsetLembaga::select('posisi_aset')->distinct()->pluck('posisi_aset');
@@ -692,9 +713,7 @@ class BrangkasController extends Controller
                       ->withQueryString();
 
         $jenisSuratList = collect(['BPKB', 'STNK']);
-        $defaultStatus = ['Tersedia', 'Dipinjam', 'Diagunkan', 'Dihibahkan', 'Dikembalikan'];
-        $dbStatus = SuratKendaraan::whereNotNull('status_handover')->where('status_handover', '!=', '')->distinct()->pluck('status_handover')->toArray();
-        $statusList = collect(array_values(array_filter(array_unique(array_merge($defaultStatus, $dbStatus)))));
+        $statusList = collect(['Tersedia', 'Isi Sendiri']);
         $officers = \App\Models\User::select('id_user as id', 'name')->orderBy('name')->get();
 
         $kendaraanList = DataAsetLembaga::where(function($q) {
@@ -751,6 +770,10 @@ class BrangkasController extends Controller
             if ($aset) {
                 $payload['nama_kendaraan'] = ($aset->nama_barang ?: $aset->nama_aset) . ($aset->merek ? ' (' . $aset->merek . ')' : '');
             }
+        }
+
+        if ($request->keterangan === 'Isi Sendiri' && $request->filled('keterangan_custom')) {
+            $payload['keterangan'] = $request->keterangan_custom;
         }
 
         $statusInfo = $this->resolveStatusFields($payload['keterangan'] ?? 'Tersedia');

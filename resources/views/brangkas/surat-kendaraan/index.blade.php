@@ -68,6 +68,7 @@
         'filterLabel' => 'Jenis Surat',
         'filterOptions' => $jenisSuratList,
         'statusOptions' => $statusList,
+        'statusList' => $statusList,
         'officers' => $officers
     ])
 
@@ -125,10 +126,22 @@
                             <td><small class="text-muted">{{ $item->user->name ?? auth()->user()->name }}</small></td>
                             <td><small class="text-muted">{{ $item->tgl_input ? $item->tgl_input->format('d/m/Y') : ($item->created_at ? $item->created_at->format('d/m/Y') : '-') }}</small></td>
                             <td>
-                                @if($item->warna_merah)
-                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">{{ $item->keterangan ?? 'Status Khusus' }}</span>
+                                @php
+                                    $rawStatus = $item->keterangan ?: ($item->status_handover ?: 'Tersedia');
+                                    $isTersedia = in_array(strtolower($rawStatus), ['tersedia', 'dokumen asli ada']);
+                                @endphp
+                                @if($isTersedia)
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                                        <i class="ti ti-check me-1"></i>Tersedia
+                                    </span>
+                                @elseif($item->warna_merah)
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                                        <i class="ti ti-alert-triangle me-1"></i>{{ $rawStatus }}
+                                    </span>
                                 @else
-                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">{{ $item->keterangan ?? 'Dokumen Asli Ada' }}</span>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">
+                                        <i class="ti ti-info-circle me-1"></i>{{ $rawStatus }}
+                                    </span>
                                 @endif
                             </td>
                             <td class="text-center pe-3" style="width: 120px;">
@@ -240,12 +253,10 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Status / Keterangan</label>
                             <select name="keterangan" id="select_keterangan_tambah" class="form-select">
-                                <option value="Dokumen Asli Ada">Tersedia (Dokumen Asli Ada)</option>
-                                <option value="Dipinjam">Dipinjam</option>
-                                <option value="Diagunkan">Diagunkan</option>
-                                <option value="Dihibahkan">Dihibahkan</option>
+                                <option value="Tersedia">Tersedia</option>
                                 <option value="Isi Sendiri">-- Isi Sendiri --</option>
                             </select>
+                            <small class="text-muted mt-1 d-block"><i class="ti ti-info-circle me-1"></i>Status peminjaman/pengagunan/hibah/pengembalian dicatat melalui menu <strong>Record of Transfer</strong>.</small>
                         </div>
                         <div class="col-md-6" id="wrapper_keterangan_custom_tambah" style="display:none;">
                             <label class="form-label fw-semibold">Keterangan Custom</label>
@@ -458,12 +469,17 @@ document.addEventListener("DOMContentLoaded", function() {
             document.getElementById("detail_tgl_input").innerText = item.tgl_input ? new Date(item.tgl_input).toLocaleDateString("id-ID") : "-";
 
             const statusEl = document.getElementById("detail_status");
-            if (item.warna_merah) {
-                statusEl.className = "badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fs-3";
-                statusEl.innerText = item.keterangan || "Sedang Dipinjam / Diagunkan";
-            } else {
+            const stText = item.keterangan || item.status_handover || "Tersedia";
+            const isTersedia = ["tersedia", "dokumen asli ada"].includes(stText.toLowerCase());
+            if (isTersedia) {
                 statusEl.className = "badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 fs-3";
-                statusEl.innerText = item.keterangan || "Dokumen Asli Ada";
+                statusEl.innerText = "Tersedia";
+            } else if (item.warna_merah) {
+                statusEl.className = "badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fs-3";
+                statusEl.innerText = stText;
+            } else {
+                statusEl.className = "badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 fs-3";
+                statusEl.innerText = stText;
             }
 
             const fileWrapper = document.getElementById("detail_file_wrapper");

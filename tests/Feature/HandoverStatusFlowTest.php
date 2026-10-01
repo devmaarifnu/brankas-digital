@@ -155,7 +155,9 @@ class HandoverStatusFlowTest extends TestCase
             'warna_merah' => true,
         ]);
 
-        // Filter untuk Dipinjam -> hanya menampilkan dokumen yang Tersedia
+        // Filter untuk Dipinjam -> SEMUA dokumen tampil (bukan hanya yg tersedia)
+        // Karena status di form brangkas sudah disederhanakan: hanya Tersedia / Isi Sendiri
+        // Track record peminjaman dicatat via Record of Transfer
         $resAvail = $this->actingAs($this->admin)->getJson(route('handover.items', [
             'kategori' => 'Arsip Surat Tanah',
             'status' => 'Dipinjam',
@@ -163,10 +165,11 @@ class HandoverStatusFlowTest extends TestCase
         $resAvail->assertStatus(200);
         $dataAvail = $resAvail->json();
         $idsAvail = array_column($dataAvail, 'id');
+        // Kedua item harus muncul — karena semua data bisa jadi track record peminjaman
         $this->assertContains($suratAvailable->id, $idsAvail);
-        $this->assertNotContains($suratBorrowed->id, $idsAvail);
+        $this->assertContains($suratBorrowed->id, $idsAvail);
 
-        // Filter untuk Dikembalikan -> hanya menampilkan dokumen yang sedang Dipinjam
+        // Filter untuk Dikembalikan -> hanya menampilkan dokumen yang sedang aktif dipinjam (warna_merah=true)
         $resReturn = $this->actingAs($this->admin)->getJson(route('handover.items', [
             'kategori' => 'Arsip Surat Tanah',
             'status' => 'Dikembalikan',
@@ -180,6 +183,47 @@ class HandoverStatusFlowTest extends TestCase
         // Bersihkan
         $suratAvailable->delete();
         $suratBorrowed->delete();
+    }
+
+    public function test_custom_status_isi_sendiri_filter_and_display()
+    {
+        // 1. Submit form dengan Isi Sendiri & keterangan_custom
+        $res = $this->actingAs($this->admin)->post(route('brangkas.surat-tanah.store'), [
+            'nama_sertifikat' => 'Tanah Kas Desa Custom',
+            'nomor_sertifikat' => 'SHM-CUSTOM-TEST-01',
+            'jenis_sertifikat' => 'SHM',
+            'luas' => '500',
+            'keterangan' => 'Isi Sendiri',
+            'keterangan_custom' => 'Arsip di Notaris',
+        ]);
+        $res->assertSessionHas('success');
+
+        $doc = SuratTanah::where('nomor_sertifikat', 'SHM-CUSTOM-TEST-01')->first();
+        $this->assertNotNull($doc);
+        $this->assertEquals('Arsip di Notaris', $doc->keterangan);
+        $this->assertEquals('Arsip di Notaris', $doc->status_handover);
+
+        // 2. Akses halaman index -> pastikan teks "Arsip di Notaris" tampil di tabel
+        $resIndex = $this->actingAs($this->admin)->get(route('brangkas.surat-tanah'));
+        $resIndex->assertStatus(200);
+        $resIndex->assertSee('Arsip di Notaris');
+
+        // 3. Filter "Isi Sendiri" -> dokumen custom harus ada di hasil
+        $resFilterIsiSendiri = $this->actingAs($this->admin)->get(route('brangkas.surat-tanah', [
+            'status_handover' => 'Isi Sendiri',
+        ]));
+        $resFilterIsiSendiri->assertStatus(200);
+        $resFilterIsiSendiri->assertSee('SHM-CUSTOM-TEST-01');
+
+        // 4. Filter "Tersedia" -> dokumen custom TIDAK boleh ada di hasil
+        $resFilterTersedia = $this->actingAs($this->admin)->get(route('brangkas.surat-tanah', [
+            'status_handover' => 'Tersedia',
+        ]));
+        $resFilterTersedia->assertStatus(200);
+        $resFilterTersedia->assertDontSee('SHM-CUSTOM-TEST-01');
+
+        // Bersihkan
+        $doc->delete();
     }
 
     public function test_handover_surat_kendaraan_flow()

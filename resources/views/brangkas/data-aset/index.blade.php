@@ -442,7 +442,7 @@
                         {{-- Input file utama --}}
                         <input type="file" class="form-control main-upload-input" name="file_dokumen" accept=".pdf,application/pdf,image/*">
                         <div class="form-text text-muted small mt-1">
-                            <i class="ti ti-info-circle me-1"></i>Mendukung <strong>PDF, Foto Kamera, atau Galeri HP</strong> (Maksimal 20MB).
+                            <i class="ti ti-info-circle me-1"></i>Mendukung <strong>PDF, Foto Kamera, atau Galeri HP</strong> (Maksimal 50MB).
                         </div>
                         <div class="preview-selected-file mt-2" style="display: none;"></div>
                     </div>

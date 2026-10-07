@@ -138,11 +138,11 @@ class HandoverController extends Controller
             'nama_dokumen'    => 'required|string',
             'status'          => 'required|in:Dipinjam,Diagunkan,Dihibahkan,Dikembalikan',
             'tgl_serahterima' => 'required|date',
-            'file_bukti'      => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:20480',
+            'file_bukti'      => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:51200',
         ], [
             'file_bukti.mimes'    => 'Berkas bukti serah terima wajib berformat JPG, JPEG, PNG, WEBP, atau PDF.',
-            'file_bukti.max'      => 'Ukuran berkas bukti serah terima tidak boleh melebihi 20 MB.',
-            'file_bukti.uploaded' => 'Berkas bukti gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 20 MB).',
+            'file_bukti.max'      => 'Ukuran berkas bukti serah terima tidak boleh melebihi 50 MB.',
+            'file_bukti.uploaded' => 'Berkas bukti gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 50 MB).',
         ]);
 
         // Cari item sumber

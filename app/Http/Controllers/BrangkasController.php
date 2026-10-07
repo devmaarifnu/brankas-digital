@@ -56,14 +56,14 @@ class BrangkasController extends Controller
             'kecamatan'        => 'nullable|string|max:100',
             'kabupaten_kota'   => 'nullable|string|max:100',
             'provinsi'         => 'nullable|string|max:100',
-            'file_dokumen'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
+            'file_dokumen'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:51200',
             'tgl_input'        => 'nullable|date',
             'keterangan'       => 'nullable|string',
         ], [
             'required' => 'Kolom :attribute wajib diisi.',
             'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
-            'file_dokumen.max' => 'Ukuran berkas dokumen tidak boleh melebihi 20 MB.',
-            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 20 MB).',
+            'file_dokumen.max' => 'Ukuran berkas dokumen tidak boleh melebihi 50 MB.',
+            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 50 MB).',
         ]);
 
         $payload = $request->except('file_dokumen');
@@ -123,11 +123,11 @@ class BrangkasController extends Controller
 
         $request->validate([
             'luas'         => 'required|string|max:50',
-            'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
+            'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:51200',
         ], [
             'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
-            'file_dokumen.max' => 'Ukuran berkas dokumen tidak boleh melebihi 20 MB.',
-            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 20 MB).',
+            'file_dokumen.max' => 'Ukuran berkas dokumen tidak boleh melebihi 50 MB.',
+            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 50 MB).',
         ]);
 
         $payload = $request->except(['file_dokumen', 'jenis_sertifikat', 'nomor_sertifikat', 'nama_sertifikat', 'keterangan']);
@@ -225,14 +225,14 @@ class BrangkasController extends Controller
             'nama_notaris'   => 'nullable|string|max:150',
             'alamat_notaris' => 'nullable|string',
             'telp_notaris'   => 'nullable|string|max:50',
-            'file_dokumen'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
+            'file_dokumen'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:51200',
             'nama_petugas'   => 'nullable|string|max:100',
             'tgl_input'      => 'nullable|date',
             'keterangan'     => 'nullable|string',
         ], [
             'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
-            'file_dokumen.max' => 'Ukuran berkas dokumen tidak boleh melebihi 20 MB.',
-            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 20 MB).',
+            'file_dokumen.max' => 'Ukuran berkas dokumen tidak boleh melebihi 50 MB.',
+            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 50 MB).',
         ]);
 
         $payload = $request->except('file_dokumen');
@@ -291,11 +291,11 @@ class BrangkasController extends Controller
         $item = AktaNotaris::findOrFail($id);
 
         $request->validate([
-            'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
+            'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:51200',
         ], [
             'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
-            'file_dokumen.max' => 'Ukuran berkas dokumen tidak boleh melebihi 20 MB.',
-            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 20 MB).',
+            'file_dokumen.max' => 'Ukuran berkas dokumen tidak boleh melebihi 50 MB.',
+            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 50 MB).',
         ]);
 
         $payload = $request->except(['file_dokumen', 'jenis_dokumen', 'nomor_dokumen', 'nama_dokumen', 'keterangan']);
@@ -544,11 +544,11 @@ class BrangkasController extends Controller
             'tgl_perolehan'      => 'nullable|date',
             'kondisi_aset'       => 'nullable|string|max:50',
             'posisi_aset'        => 'nullable|string|max:50',
-            'file_dokumen'       => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
+            'file_dokumen'       => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:51200',
         ], [
             'file_dokumen.mimes' => 'Foto/Berkas aset wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
-            'file_dokumen.max' => 'Ukuran berkas dokumen tidak boleh melebihi 20 MB.',
-            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 20 MB).',
+            'file_dokumen.max' => 'Ukuran berkas dokumen tidak boleh melebihi 50 MB.',
+            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 50 MB).',
         ]);
 
         $payload = $request->except('file_dokumen');
@@ -607,11 +607,11 @@ class BrangkasController extends Controller
         $item = DataAsetLembaga::findOrFail($id);
 
         $request->validate([
-            'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
+            'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:51200',
         ], [
             'file_dokumen.mimes' => 'Foto/Berkas aset wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
-            'file_dokumen.max' => 'Ukuran berkas dokumen tidak boleh melebihi 20 MB.',
-            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 20 MB).',
+            'file_dokumen.max' => 'Ukuran berkas dokumen tidak boleh melebihi 50 MB.',
+            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 50 MB).',
         ]);
 
         $payload = $request->except(['file_dokumen', 'jenis_barang', 'nama_barang', 'merek', 'nomor_seri_model', 'keterangan']);
@@ -753,11 +753,11 @@ class BrangkasController extends Controller
             'jenis_surat'    => 'required|in:BPKB,STNK',
             'data_aset_id'   => 'nullable|exists:data_aset_lembaga,id',
             'nama_kendaraan' => 'required|string|max:255',
-            'file_dokumen'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
+            'file_dokumen'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:51200',
         ], [
             'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
-            'file_dokumen.max'   => 'Ukuran berkas dokumen tidak boleh melebihi 20 MB.',
-            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 20 MB).',
+            'file_dokumen.max'   => 'Ukuran berkas dokumen tidak boleh melebihi 50 MB.',
+            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 50 MB).',
         ]);
 
         $payload = $request->except('file_dokumen');
@@ -823,11 +823,11 @@ class BrangkasController extends Controller
         $item = SuratKendaraan::findOrFail($id);
 
         $request->validate([
-            'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:20480',
+            'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:51200',
         ], [
             'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
-            'file_dokumen.max'   => 'Ukuran berkas dokumen tidak boleh melebihi 20 MB.',
-            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 20 MB).',
+            'file_dokumen.max'   => 'Ukuran berkas dokumen tidak boleh melebihi 50 MB.',
+            'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 50 MB).',
         ]);
 
         $payload = $request->except(['file_dokumen', 'jenis_surat', 'data_aset_id', 'nama_kendaraan', 'no_plat', 'no_rangka', 'no_mesin', 'keterangan']);

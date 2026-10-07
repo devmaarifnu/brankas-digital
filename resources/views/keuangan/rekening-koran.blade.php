@@ -54,7 +54,7 @@
                         <div class="mb-3">
                             <label class="form-label fw-semibold text-primary">File Dokumen <span class="text-danger">*</span></label>
                             <input type="file" class="form-control" name="file_path" required accept="application/pdf,image/*">
-                            <div class="form-text">Format: PDF, JPG, PNG. Maksimal 10MB.</div>
+                            <div class="form-text">Format: PDF, JPG, PNG. Maksimal 50MB.</div>
                         </div>
                         <div class="mb-4">
                             <label class="form-label fw-semibold">Keterangan</label>

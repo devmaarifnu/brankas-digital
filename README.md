@@ -56,7 +56,7 @@ Sistem ini memastikan seluruh dokumen kepemilikan aset (seperti Sertifikat Tanah
 ### 5. 📷 **Multi-Upload Cerdas (Kamera HP, Galeri, & PDF)**
 - **Akses Kamera Langsung di HP**: Form input dilengkapi tombol **Buka Kamera HP** (`capture="environment"`) untuk langsung memotret dokumen/aset fisik.
 - **Fleksibilitas Format**: Mendukung pemilihan berkas lewat **Galeri Foto** (JPG, JPEG, PNG, WEBP) maupun **Dokumen PDF**.
-- **Kapasitas Besar & Preview Real-Time**: Batas ukuran upload hingga **Maksimal 20MB** disertai pratinjau thumbnail instan sebelum data disimpan.
+- **Kapasitas Besar & Preview Real-Time**: Batas ukuran upload hingga **Maksimal 50MB** disertai pratinjau thumbnail instan sebelum data disimpan.
 - **Viewer Dokumen Terintegrasi**: Modal preview cerdas otomatis menampilkan foto gambar atau viewer dokumen PDF tanpa error 404.
 
 ### 6. 📱 **Mobile Responsive & Sticky Header**

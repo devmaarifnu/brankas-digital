@@ -287,7 +287,7 @@
                                 </div>
                             </div>
                             <small class="text-muted d-block mt-1">
-                                <i class="ti ti-info-circle me-1 text-info"></i>Pilihan file: <span class="fw-semibold text-dark">Kamera Langsung</span>, <span class="fw-semibold text-dark">Foto Galeri (JPG/PNG)</span>, atau <span class="fw-semibold text-dark">Dokumen PDF</span> â€” <strong>Maksimal 20 MB</strong>.
+                                <i class="ti ti-info-circle me-1 text-info"></i>Pilihan file: <span class="fw-semibold text-dark">Kamera Langsung</span>, <span class="fw-semibold text-dark">Foto Galeri (JPG/PNG)</span>, atau <span class="fw-semibold text-dark">Dokumen PDF</span> â€” <strong>Maksimal 50 MB</strong>.
                             </small>
                         </div>
                     </div>
@@ -496,7 +496,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    // File size validation (20 MB) & Camera Capture Sync
+    // File size validation (50 MB) & Camera Capture Sync
     const mainFileInput = document.getElementById("input_file_dokumen");
     const cameraFileInput = document.getElementById("input_camera_dokumen");
 
@@ -504,7 +504,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (input.files && input.files[0]) {
             const sizeMB = input.files[0].size / (1024 * 1024);
             if (sizeMB > 20) {
-                alert("Ukuran berkas (" + sizeMB.toFixed(1) + " MB) melebihi batas maksimal 20 MB. Harap pilih berkas yang lebih kecil.");
+                alert("Ukuran berkas (" + sizeMB.toFixed(1) + " MB) melebihi batas maksimal 50 MB. Harap pilih berkas yang lebih kecil.");
                 input.value = "";
                 return false;
             }

@@ -427,7 +427,7 @@
 
                                 {{-- Placeholder when empty --}}
                                 <div id="previewEmptyPlaceholder" class="text-center py-2 text-muted small">
-                                    <i class="ti ti-paperclip me-1"></i> Belum ada file bukti dipilih. Klik <strong>Kamera</strong>, <strong>Pilih Foto</strong>, atau <strong>Pilih Dokumen PDF</strong> di atas. (Maksimal 20MB)
+                                    <i class="ti ti-paperclip me-1"></i> Belum ada file bukti dipilih. Klik <strong>Kamera</strong>, <strong>Pilih Foto</strong>, atau <strong>Pilih Dokumen PDF</strong> di atas. (Maksimal 50MB)
                                 </div>
                             </div>
                         </div>

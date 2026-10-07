@@ -72,7 +72,7 @@ class KeuanganController extends Controller {
         if (auth()->user()->isViewer()) {
             return back()->with('error', 'Akses ditolak: Viewer tidak diizinkan mengunggah dokumen.');
         }
-        $request->validate(['jenis'=>'required','periode'=>'required','file_path'=>'required|file|mimes:pdf,jpg,jpeg,png|max:10240']);
+        $request->validate(['jenis'=>'required','periode'=>'required','file_path'=>'required|file|mimes:pdf,jpg,jpeg,png|max:51200']);
         $f = $request->file('file_path');
         $fname = time().'_'.preg_replace('/[^a-zA-Z0-9._-]/', '', $f->getClientOriginalName());
         $destDir = storage_path('app/uploads/keuangan');

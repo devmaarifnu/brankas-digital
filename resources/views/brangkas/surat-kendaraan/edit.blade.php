@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function checkFileSize(input) {
         if (input.files && input.files[0]) {
             const sizeMB = input.files[0].size / (1024 * 1024);
-            if (sizeMB > 20) {
+            if (sizeMB > 50) {
                 alert("Ukuran berkas (" + sizeMB.toFixed(1) + " MB) melebihi batas maksimal 50 MB. Harap pilih berkas yang lebih kecil.");
                 input.value = "";
                 return false;

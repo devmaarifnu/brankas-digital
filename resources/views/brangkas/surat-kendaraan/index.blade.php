@@ -28,13 +28,29 @@
                     <span>Export Excel</span>
                 </a>
                 @if(auth()->user()->canManageData())
+                @if($kendaraanList->isNotEmpty())
                 <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahSuratKendaraan">
                     <i class="ti ti-plus me-1"></i>Tambah Surat Kendaraan
                 </button>
+                @else
+                <a href="{{ route('brangkas.data-aset') }}" class="btn btn-outline-primary fw-semibold shadow-sm">
+                    <i class="ti ti-lock me-1"></i>Isi Data Aset Kendaraan Dulu
+                </a>
+                @endif
                 @endif
             </div>
         </div>
     </div>
+
+    @if($kendaraanList->isEmpty())
+    <div class="alert alert-info border-0 shadow-sm" role="alert">
+        <i class="ti ti-info-circle me-1"></i>
+        Surat kendaraan belum dapat ditambahkan karena belum ada kendaraan di Data Aset Lembaga. Isi data kendaraan terlebih dahulu.
+        @if(auth()->user()->canManageData())
+        <a href="{{ route('brangkas.data-aset') }}" class="alert-link">Buka Data Aset Lembaga</a>.
+        @endif
+    </div>
+    @endif
 
     @if(session("success"))
     <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
@@ -216,21 +232,22 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Pilih Kendaraan dari Data Aset</label>
-                            <select name="data_aset_id" id="select_data_aset_id" class="form-select">
-                                <option value="">-- Pilih Kendaraan (Opsional) --</option>
+                            <label class="form-label fw-semibold">Pilih Kendaraan dari Data Aset <span class="text-danger">*</span></label>
+                            <select name="data_aset_id" id="select_data_aset_id" class="form-select @error('data_aset_id') is-invalid @enderror" required>
+                                <option value="">-- Pilih Kendaraan --</option>
                                 @foreach($kendaraanList as $k)
                                     <option value="{{ $k->id }}" data-nama="{{ $k->nama_barang ?: $k->nama_aset }}" data-merek="{{ $k->merek }}" data-sn="{{ $k->nomor_seri_model }}">
                                         {{ $k->nama_barang ?: $k->nama_aset }} {{ $k->merek ? '('.$k->merek.')' : '' }} - [{{ $k->nomor_registrasi }}]
                                     </option>
                                 @endforeach
                             </select>
-                            <small class="text-muted fs-2">Pilih jika surat kendaraan ini berhubungan dengan Data Aset Lembaga</small>
+                            @error('data_aset_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <small class="text-muted fs-2">Daftarkan kendaraan di Data Aset Lembaga sebelum mengisi suratnya.</small>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Nama Kendaraan <span class="text-danger">*</span></label>
-                            <input type="text" name="nama_kendaraan" id="input_nama_kendaraan" class="form-control" placeholder="Contoh: Toyota Avanza Silver" required>
+                            <input type="text" name="nama_kendaraan" id="input_nama_kendaraan" class="form-control bg-light" placeholder="Terisi otomatis dari Data Aset" required readonly>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Nama Pemilik (STNK/BPKB)</label>

@@ -702,6 +702,18 @@ class BrangkasController extends Controller
     // ==========================================
     // ARSIP SURAT KENDARAAN
     // ==========================================
+    private function kendaraanAsetQuery()
+    {
+        return DataAsetLembaga::where(function ($q) {
+            $q->whereIn('jenis_barang', ['Mobil', 'Sepeda Motor', 'Motor', 'Kendaraan'])
+              ->orWhereIn('jenis_aset', ['Mobil', 'Sepeda Motor', 'Motor', 'Kendaraan'])
+              ->orWhere('jenis_barang', 'LIKE', '%mobil%')
+              ->orWhere('jenis_barang', 'LIKE', '%motor%')
+              ->orWhere('jenis_aset', 'LIKE', '%mobil%')
+              ->orWhere('jenis_aset', 'LIKE', '%motor%');
+        });
+    }
+
     public function suratKendaraan(Request $request)
     {
         $query = SuratKendaraan::query();
@@ -716,14 +728,7 @@ class BrangkasController extends Controller
         $statusList = collect(['Tersedia', 'Isi Sendiri']);
         $officers = \App\Models\User::select('id_user as id', 'name')->orderBy('name')->get();
 
-        $kendaraanList = DataAsetLembaga::where(function($q) {
-            $q->whereIn('jenis_barang', ['Mobil', 'Sepeda Motor', 'Motor', 'Kendaraan'])
-              ->orWhereIn('jenis_aset', ['Mobil', 'Sepeda Motor', 'Motor', 'Kendaraan'])
-              ->orWhere('jenis_barang', 'LIKE', '%mobil%')
-              ->orWhere('jenis_barang', 'LIKE', '%motor%')
-              ->orWhere('jenis_aset', 'LIKE', '%mobil%')
-              ->orWhere('jenis_aset', 'LIKE', '%motor%');
-        })->get();
+        $kendaraanList = $this->kendaraanAsetQuery()->get();
 
         return view('brangkas.surat-kendaraan.index', compact('data', 'jenisSuratList', 'statusList', 'officers', 'kendaraanList'))
             ->with('title', 'Arsip Surat Kendaraan');
@@ -731,14 +736,8 @@ class BrangkasController extends Controller
 
     public function getKendaraanList()
     {
-        $kendaraanList = DataAsetLembaga::where(function($q) {
-            $q->whereIn('jenis_barang', ['Mobil', 'Sepeda Motor', 'Motor', 'Kendaraan'])
-              ->orWhereIn('jenis_aset', ['Mobil', 'Sepeda Motor', 'Motor', 'Kendaraan'])
-              ->orWhere('jenis_barang', 'LIKE', '%mobil%')
-              ->orWhere('jenis_barang', 'LIKE', '%motor%')
-              ->orWhere('jenis_aset', 'LIKE', '%mobil%')
-              ->orWhere('jenis_aset', 'LIKE', '%motor%');
-        })->get(['id', 'nama_barang', 'nama_aset', 'merek', 'nomor_registrasi', 'nomor_seri_model']);
+        $kendaraanList = $this->kendaraanAsetQuery()
+            ->get(['id', 'nama_barang', 'nama_aset', 'merek', 'nomor_registrasi', 'nomor_seri_model']);
 
         return response()->json($kendaraanList);
     }
@@ -751,26 +750,31 @@ class BrangkasController extends Controller
 
         $request->validate([
             'jenis_surat'    => 'required|in:BPKB,STNK',
-            'data_aset_id'   => 'nullable|exists:data_aset_lembaga,id',
-            'nama_kendaraan' => 'required|string|max:255',
+            'data_aset_id'   => 'required|exists:data_aset_lembaga,id',
+            'nama_kendaraan' => 'nullable|string|max:255',
             'file_dokumen'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:51200',
         ], [
+            'data_aset_id.required' => 'Pilih kendaraan yang sudah terdaftar di Data Aset Lembaga.',
+            'data_aset_id.exists' => 'Kendaraan yang dipilih tidak ditemukan di Data Aset Lembaga.',
             'file_dokumen.mimes' => 'Berkas dokumen wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',
             'file_dokumen.max'   => 'Ukuran berkas dokumen tidak boleh melebihi 50 MB.',
             'file_dokumen.uploaded' => 'Berkas dokumen gagal diunggah. Ukuran file kemungkinan melebihi batas upload server (maksimal 50 MB).',
         ]);
 
+        $aset = $this->kendaraanAsetQuery()->find($request->data_aset_id);
+        if (!$aset) {
+            return back()->withInput()->withErrors([
+                'data_aset_id' => 'Pilih kendaraan yang sudah terdaftar di Data Aset Lembaga.',
+            ]);
+        }
+
         $payload = $request->except('file_dokumen');
         $payload['tgl_input'] = $request->tgl_input ?? date('Y-m-d');
         $payload['user_id'] = auth()->id();
         $payload['nama_petugas'] = $request->nama_petugas ?? (auth()->user()->name ?: auth()->user()->username);
-
-        if ($request->filled('data_aset_id')) {
-            $aset = DataAsetLembaga::find($request->data_aset_id);
-            if ($aset) {
-                $payload['nama_kendaraan'] = ($aset->nama_barang ?: $aset->nama_aset) . ($aset->merek ? ' (' . $aset->merek . ')' : '');
-            }
-        }
+        $payload['nama_kendaraan'] = ($aset->nama_barang ?: $aset->nama_aset) . ($aset->merek ? ' (' . $aset->merek . ')' : '');
+        $payload['no_plat'] = $aset->nomor_registrasi ?: $request->no_plat;
+        $payload['no_rangka'] = $aset->nomor_seri_model ?: $request->no_rangka;
 
         if ($request->keterangan === 'Isi Sendiri' && $request->filled('keterangan_custom')) {
             $payload['keterangan'] = $request->keterangan_custom;
@@ -803,14 +807,7 @@ class BrangkasController extends Controller
             return redirect()->route('brangkas.surat-kendaraan')->with('error', 'Akses ditolak: Hanya Super admin dan Admin yang dapat mengedit data.');
         }
         $item = SuratKendaraan::findOrFail($id);
-        $kendaraanList = DataAsetLembaga::where(function($q) {
-            $q->whereIn('jenis_barang', ['Mobil', 'Sepeda Motor', 'Motor', 'Kendaraan'])
-              ->orWhereIn('jenis_aset', ['Mobil', 'Sepeda Motor', 'Motor', 'Kendaraan'])
-              ->orWhere('jenis_barang', 'LIKE', '%mobil%')
-              ->orWhere('jenis_barang', 'LIKE', '%motor%')
-              ->orWhere('jenis_aset', 'LIKE', '%mobil%')
-              ->orWhere('jenis_aset', 'LIKE', '%motor%');
-        })->get();
+        $kendaraanList = $this->kendaraanAsetQuery()->get();
 
         return view('brangkas.surat-kendaraan.edit', compact('item', 'kendaraanList'))->with('title', 'Edit Surat Kendaraan');
     }

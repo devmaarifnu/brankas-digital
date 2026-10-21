@@ -543,6 +543,7 @@ class BrangkasController extends Controller
             'sumber_perolehan'   => 'nullable|string|max:50',
             'tgl_perolehan'      => 'nullable|date',
             'kondisi_aset'       => 'nullable|string|max:50',
+            'keterangan_kondisi' => 'nullable|string|max:1000',
             'posisi_aset'        => 'nullable|string|max:50',
             'file_dokumen'       => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:51200',
         ], [
@@ -607,6 +608,8 @@ class BrangkasController extends Controller
         $item = DataAsetLembaga::findOrFail($id);
 
         $request->validate([
+            'kondisi_aset'       => 'nullable|string|max:50',
+            'keterangan_kondisi' => 'nullable|string|max:1000',
             'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:51200',
         ], [
             'file_dokumen.mimes' => 'Foto/Berkas aset wajib berformat PDF, JPG, JPEG, PNG, atau WEBP.',

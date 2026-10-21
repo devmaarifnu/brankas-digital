@@ -110,10 +110,14 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">9. Kondisi Aset <span class="text-danger">*</span></label>
                                 <select class="form-select" name="kondisi_aset" required>
-                                    @foreach(['Sangat Baik', 'Rusak Ringan', 'Rusak Berat'] as $knd)
+                                    @foreach(['Sangat Baik', 'Baik', 'Rusak Ringan', 'Rusak Berat'] as $knd)
                                         <option value="{{ $knd }}" {{ old('kondisi_aset', $item->kondisi_aset) == $knd ? 'selected' : '' }}>{{ $knd }}</option>
                                     @endforeach
                                 </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Keterangan Kondisi Barang</label>
+                                <textarea class="form-control" name="keterangan_kondisi" rows="2" maxlength="1000" placeholder="Contoh: Ada goresan ringan, tetapi masih berfungsi normal.">{{ old('keterangan_kondisi', $item->keterangan_kondisi) }}</textarea>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">10. Posisi Aset <i class="ti ti-lock text-muted ms-1" title="Terkunci"></i></label>

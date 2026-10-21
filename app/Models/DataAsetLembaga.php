@@ -22,6 +22,7 @@ class DataAsetLembaga extends Model
         'sumber_perolehan',
         'tgl_perolehan',
         'kondisi_aset',
+        'keterangan_kondisi',
         'posisi_aset',
         'nama_ruangan',
         'nama_penerima',

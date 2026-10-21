@@ -30,6 +30,8 @@ class DataAsetExport implements FromCollection, WithHeadings, WithTitle, WithSty
                 'Nilai Aset' => $item->nilai_aset,
                 'Lokasi'     => $item->lokasi,
                 'Status'     => $item->status_handover ?? 'Tersedia',
+                'Kondisi Aset' => $item->kondisi_aset,
+                'Keterangan Kondisi' => $item->keterangan_kondisi,
                 'Keterangan' => $item->keterangan,
                 'Tgl Input'  => $item->tgl_input,
             ];
@@ -38,7 +40,7 @@ class DataAsetExport implements FromCollection, WithHeadings, WithTitle, WithSty
 
     public function headings(): array
     {
-        return ['No', 'Nama Aset', 'Jenis Aset', 'Nilai Aset', 'Lokasi', 'Status', 'Keterangan', 'Tgl Input'];
+        return ['No', 'Nama Aset', 'Jenis Aset', 'Nilai Aset', 'Lokasi', 'Status', 'Kondisi Aset', 'Keterangan Kondisi', 'Keterangan', 'Tgl Input'];
     }
 
     public function title(): string { return 'Data Aset Lembaga'; }

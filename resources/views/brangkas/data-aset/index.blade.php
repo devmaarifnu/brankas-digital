@@ -124,8 +124,8 @@
                             <td><small>{{ $item->tgl_perolehan ? $item->tgl_perolehan->format('d/m/Y') : '-' }}</small></td>
                             <td><small class="fw-semibold text-dark">{{ $item->usia_barang }}</small></td>
                             <td>
-                                @if($item->kondisi_aset === 'Sangat Baik')
-                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Sangat Baik</span>
+                                @if(in_array($item->kondisi_aset, ['Baik', 'Sangat Baik']))
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">{{ $item->kondisi_aset }}</span>
                                 @elseif($item->kondisi_aset === 'Rusak Ringan')
                                     <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">Rusak Ringan</span>
                                 @elseif($item->kondisi_aset === 'Rusak Berat')
@@ -379,11 +379,17 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">9. Kondisi Aset <span class="text-danger">*</span></label>
                             <select class="form-select" name="kondisi_aset" required>
-                                <option value="Sangat Baik" selected>Sangat Baik</option>
-                                <option value="Rusak Ringan">Rusak Ringan</option>
-                                <option value="Rusak Berat">Rusak Berat</option>
+                                <option value="Sangat Baik" {{ old('kondisi_aset', 'Sangat Baik') === 'Sangat Baik' ? 'selected' : '' }}>Sangat Baik</option>
+                                <option value="Baik" {{ old('kondisi_aset') === 'Baik' ? 'selected' : '' }}>Baik</option>
+                                <option value="Rusak Ringan" {{ old('kondisi_aset') === 'Rusak Ringan' ? 'selected' : '' }}>Rusak Ringan</option>
+                                <option value="Rusak Berat" {{ old('kondisi_aset') === 'Rusak Berat' ? 'selected' : '' }}>Rusak Berat</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Keterangan Kondisi Barang</label>
+                        <textarea class="form-control" name="keterangan_kondisi" rows="2" maxlength="1000" placeholder="Contoh: Ada goresan ringan di sisi kanan, tetapi masih berfungsi normal.">{{ old('keterangan_kondisi') }}</textarea>
                     </div>
 
                     {{-- 10. Posisi Aset --}}
@@ -503,6 +509,7 @@
                         <tr><th class="bg-light">Tanggal Perolehan</th><td id="dt_ast_tglperolehan">-</td></tr>
                         <tr><th class="bg-light">Usia Barang</th><td id="dt_ast_usia" class="fw-bold">-</td></tr>
                         <tr><th class="bg-light">Kondisi Aset</th><td id="dt_ast_kondisi">-</td></tr>
+                        <tr><th class="bg-light">Keterangan Kondisi Barang</th><td id="dt_ast_keterangan_kondisi">-</td></tr>
                         <tr><th class="bg-light">Posisi Aset</th><td id="dt_ast_posisi">-</td></tr>
                         <tr><th class="bg-light">Ruangan / Penerima</th><td id="dt_ast_lokasi">-</td></tr>
                         <tr><th class="bg-light">Nama Petugas</th><td id="dt_ast_petugas">-</td></tr>
@@ -726,6 +733,7 @@ $(document).ready(function() {
         $('#dt_ast_tglperolehan').text(formatTgl(item.tgl_perolehan));
         $('#dt_ast_usia').text(usia || '-');
         $('#dt_ast_kondisi').text(item.kondisi_aset || '-');
+        $('#dt_ast_keterangan_kondisi').text(item.keterangan_kondisi || '-');
         $('#dt_ast_posisi').text(item.posisi_aset || '-');
         $('#dt_ast_lokasi').text(item.posisi_aset === 'Kantor' ? (item.nama_ruangan || item.lokasi || 'Kantor') : (item.nama_penerima || item.lokasi || '-'));
         $('#dt_ast_petugas').text(item.nama_petugas || (item.user ? item.user.name : '-'));

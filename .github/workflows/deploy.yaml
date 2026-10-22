@@ -36,7 +36,11 @@ jobs:
                 sudo nginx -t && sudo systemctl reload nginx || true
               fi
 
-              # 3. Clear Laravel Cache
+              # 3. Apply database schema changes required by the deployed code
+              echo "Running database migrations..."
+              sudo php artisan migrate --force
+
+              # 4. Clear Laravel Cache
               echo "Clearing cache..."
               sudo php artisan config:clear || true
               sudo php artisan cache:clear || true

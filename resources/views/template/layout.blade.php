@@ -9,8 +9,8 @@
   <link rel="shortcut icon" type="image/jpeg" href="{{ asset('assets/images/logos/fotobrankas.jpeg') }}?v=3" />
   <link rel="stylesheet" href="{{ asset('assets/css/styles.min.css') }}" />
   <link rel="stylesheet" href="{{asset('assets/libs/datatables/dataTables.bootstrap5.min.css')}}" />
-  <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}?v={{ time() }}" />
   <link rel="stylesheet" href="{{ asset('assets/css/modern-table.css') }}" />
+  <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}?v={{ time() }}" />
   <link rel="stylesheet" href="{{ asset('assets/libs/select2/select2.min.css') }}" />
   <link rel="stylesheet" href="{{ asset('assets/libs/select2/select2-bootstrap-5-theme.min.css') }}" />
     <style>

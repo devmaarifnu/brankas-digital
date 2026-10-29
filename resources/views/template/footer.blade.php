@@ -7,7 +7,7 @@
                         <div>
                             <img src="{{ asset('assets/images/logos/Logo_NU_Putih_PNG.png') }}" width="100"
                                 alt="Logo NU">
-                            <p class="mb-0 fw-bold">Brangkas Digital</p>
+                            <p class="mb-0 fw-bold">Brankas Digital</p>
                             <p class="mb-0">Lembaga Pendidikan Ma'arif NU</p>
                             <p>Pengurus Besar Nahdlatul Ulama</p>
                         </div>
@@ -42,7 +42,7 @@
     <div class="row justify-content-center">
         <div class="col-sm-10">
             <div class="py-3 px-3 text-center">
-                <p class="mb-0 text-white-50" style="font-size: 11px; letter-spacing: 0.2px;"> Copyright &copy; {{ date('Y') }} <strong class="text-white">Brangkas Digital</strong> LP Ma'arif NU PBNU &bull; brankas.maarifnu.or.id </p>
+                <p class="mb-0 text-white-50" style="font-size: 11px; letter-spacing: 0.2px;"> Copyright &copy; {{ date('Y') }} <strong class="text-white">Brankas Digital</strong> LP Ma'arif NU PBNU &bull; brankas.maarifnu.or.id </p>
             </div>
         </div>
     </div>

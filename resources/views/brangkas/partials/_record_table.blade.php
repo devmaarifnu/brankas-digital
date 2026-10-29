@@ -1,6 +1,6 @@
 @php
 /**
- * Partial for Filter & Search Card across Brangkas modules (Surat Tanah, Akta Notaris, Data Aset Lembaga).
+ * Partial for Filter & Search Card across Brankas modules (Surat Tanah, Akta Notaris, Data Aset Lembaga).
  * Designed to look identical to Record of Transfer search & filter card.
  */
 $currentUrl = url()->current();

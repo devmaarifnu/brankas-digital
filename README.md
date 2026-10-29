@@ -1,7 +1,7 @@
-# BRANGKAS DIGITAL LP MA'ARIF NU PBNU
+# BRANKAS DIGITAL LP MA'ARIF NU PBNU
 
 <p align="center">
-  <img src="public/assets/images/logos/fotobrankas.jpeg" width="140" alt="Brangkas Digital Logo" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <img src="public/assets/images/logos/fotobrankas.jpeg" width="140" alt="Brankas Digital Logo" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 </p>
 
 <p align="center">
@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Laravel-10.x-red?style=flat-square&logo=laravel" alt="Laravel">
-  <img src="https://img.shields.io/badge/PHP-8.1+-blue?style=flat-square&logo=php" alt="PHP">
+  <img src="https://img.shields.io/badge/Laravel-13.39.0-red?style=flat-square&logo=laravel" alt="Laravel">
+  <img src="https://img.shields.io/badge/PHP-8.3+-blue?style=flat-square&logo=php" alt="PHP">
   <img src="https://img.shields.io/badge/MySQL-8.0+-orange?style=flat-square&logo=mysql" alt="MySQL">
   <img src="https://img.shields.io/badge/Bootstrap-5.x-purple?style=flat-square&logo=bootstrap" alt="Bootstrap">
   <img src="https://img.shields.io/badge/Select2-Bootstrap5-green?style=flat-square" alt="Select2">
@@ -22,7 +22,7 @@
 
 ## 📋 Tentang Aplikasi
 
-**Brangkas Digital LP Ma'arif NU PBNU** adalah platform digital berbasis web yang dirancang untuk mengamankan, mendokumentasikan, menginventarisasi, dan melacak peredaran surat-surat berharga serta aset fisik milik LP Ma'arif NU PBNU. 
+**Brankas Digital LP Ma'arif NU PBNU** adalah platform digital berbasis web yang dirancang untuk mengamankan, mendokumentasikan, menginventarisasi, dan melacak peredaran surat-surat berharga serta aset fisik milik LP Ma'arif NU PBNU.
 
 Sistem ini memastikan seluruh dokumen kepemilikan aset (seperti Sertifikat Tanah dan Akta Notaris), inventaris barang lembaga, serta riwayat peminjaman/pengagunan/hibah tercatat secara real-time, akuntabel, dan transparan.
 
@@ -79,8 +79,8 @@ Menu manajemen pengguna (**Setting ➔ Users**) eksklusif hanya dapat diakses ol
 
 ## 🛠️ Tech Stack
 
-- **Backend Framework**: [Laravel 10.x](https://laravel.com/)
-- **Bahasa Pemrograman**: PHP 8.1+
+- **Backend Framework**: [Laravel 13.39.0](https://laravel.com/)
+- **Bahasa Pemrograman**: PHP 8.3+
 - **Database**: MySQL 8.0+ / MariaDB
 - **Frontend & UI**: Bootstrap 5.3, Blade Templating, Custom Mobile CSS
 - **Icons**: Tabler Icons (`@tabler/icons`)
@@ -114,7 +114,7 @@ cp .env.example .env
 ```
 Sesuaikan konfigurasi database pada file `.env`:
 ```env
-APP_NAME="Brangkas Digital LP Ma'arif NU"
+APP_NAME="Brankas Digital LP Ma'arif NU"
 APP_ENV=local
 APP_KEY=
 APP_DEBUG=true
@@ -186,7 +186,7 @@ brankas-digital/
 
 ## 📄 Lisensi & Hak Cipta
 
-Dikembangkan untuk dan dikelola oleh:  
-**Lembaga Pendidikan Ma'arif NU Pengurus Besar Nahdlatul Ulama (LP Ma'arif NU PBNU)**  
-Copyright &copy; 2026 **Brangkas Digital LP Ma'arif NU PBNU** &bull; [brankas.maarifnu.or.id](https://brankas.maarifnu.or.id)
+Dikembangkan untuk dan dikelola oleh:
+**Lembaga Pendidikan Ma'arif NU Pengurus Besar Nahdlatul Ulama (LP Ma'arif NU PBNU)**
+Copyright &copy; 2026 **Brankas Digital LP Ma'arif NU PBNU** &bull; [brankas.maarifnu.or.id](https://brankas.maarifnu.or.id)
 

@@ -1,11 +1,5 @@
 <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
     <ul id="sidebarnav">
-
-        {{-- RECORD OF HANDOVER --}}
-        <li class="nav-small-cap">
-            <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
-            <span class="hide-menu">UTAMA</span>
-        </li>
         <li class="sidebar-item">
             <a class="sidebar-link {{ request()->routeIs('handover*') ? 'active' : '' }}"
                href="{{ route('handover.index') }}" aria-expanded="false">
@@ -13,17 +7,11 @@
                 <span class="hide-menu">Record of Handover</span>
             </a>
         </li>
-
-        {{-- SURAT SURAT BERHARGA --}}
-        <li class="nav-small-cap">
-            <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
-            <span class="hide-menu">SURAT SURAT BERHARGA</span>
-        </li>
         <li class="sidebar-item">
             <a class="sidebar-link has-arrow {{ request()->routeIs('brangkas.surat*') || request()->routeIs('brangkas.akta*') ? 'active' : '' }}"
                href="javascript:void(0)" aria-expanded="false">
                 <span><i class="ti ti-folder"></i></span>
-                <span class="hide-menu">Surat Surat Berharga</span>
+                <span class="hide-menu">Arsip Surat Berharga</span>
             </a>
             <ul aria-expanded="false" class="collapse first-level {{ request()->routeIs('brangkas.surat*') || request()->routeIs('brangkas.akta*') ? 'in' : '' }}">
                 <li class="sidebar-item">
@@ -49,24 +37,12 @@
                 </li>
             </ul>
         </li>
-
-        {{-- DATA ASET LEMBAGA --}}
-        <li class="nav-small-cap">
-            <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
-            <span class="hide-menu">ASET</span>
-        </li>
         <li class="sidebar-item">
             <a class="sidebar-link {{ request()->routeIs('brangkas.data-aset') ? 'active' : '' }}"
                href="{{ route('brangkas.data-aset') }}" aria-expanded="false">
                 <span><i class="ti ti-building-bank"></i></span>
                 <span class="hide-menu">Data Aset Lembaga</span>
             </a>
-        </li>
-
-        {{-- KEUANGAN --}}
-        <li class="nav-small-cap">
-            <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
-            <span class="hide-menu">KEUANGAN</span>
         </li>
         <li class="sidebar-item">
             <a class="sidebar-link has-arrow {{ request()->routeIs('keuangan*') ? 'active' : '' }}"
@@ -127,12 +103,8 @@
             </ul>
         </li>
 
-        {{-- SETTING --}}
+        {{-- PENGATURAN --}}
         @if(auth()->user()->isSuperAdmin())
-        <li class="nav-small-cap">
-            <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
-            <span class="hide-menu">PENGATURAN</span>
-        </li>
         <li class="sidebar-item">
             <a class="sidebar-link has-arrow {{ request()->routeIs('setting*') ? 'active' : '' }}"
                href="javascript:void(0)" aria-expanded="false">

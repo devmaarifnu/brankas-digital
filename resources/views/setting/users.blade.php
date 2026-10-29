@@ -18,7 +18,7 @@
                 </div>
                 <div>
                     <h4 class="mb-0 fw-bold text-dark">Manajemen Users</h4>
-                    <small class="text-muted">Kelola akun pengguna dan hak akses sistem Brangkas Digital</small>
+                    <small class="text-muted">Kelola akun pengguna dan hak akses sistem Brankas Digital</small>
                 </div>
             </div>
             <div>

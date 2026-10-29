@@ -32,9 +32,9 @@
       <div>
         <div class="brand-logo d-flex align-items-center justify-content-between" style="height:auto;min-height:82px;padding:10px 18px;border-bottom:1px solid #e5eaef;">
           <a href="{{ route('handover.index') }}" class="text-nowrap logo-img d-flex align-items-center gap-2 text-decoration-none">
-            <img src="{{ asset('assets/images/logos/fotobrankas-removebg.png') }}?v=4" alt="Brangkas Digital" style="height:62px;max-height:62px;width:auto;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.08));" />
+            <img src="{{ asset('assets/images/logos/fotobrankas-removebg.png') }}?v=4" alt="Brankas Digital" style="height:62px;max-height:62px;width:auto;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.08));" />
             <div class="d-flex flex-column">
-              <span class="fw-bolder text-dark lh-1" style="font-size:14px;letter-spacing:0.3px;">BRANGKAS DIGITAL</span>
+              <span class="fw-bolder text-dark lh-1" style="font-size:14px;letter-spacing:0.3px;">BRANKAS DIGITAL</span>
               <span class="lh-1 mt-1" style="font-size:11px; color:#00713D; letter-spacing:0.3px; font-weight:900;">LP MA'ARIF NU PBNU</span>
             </div>
           </a>
@@ -70,7 +70,7 @@
           <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
             <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
                 <li class="text-end me-2">
-                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 13px; letter-spacing: 0.2px;">Brangkas Digital LP Ma'arif NU</h6>
+                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 13px; letter-spacing: 0.2px;">Brankas Digital LP Ma'arif NU</h6>
                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 py-1 px-2 fs-1 text-uppercase fw-semibold">{{ auth()->user()->name ?: auth()->user()->username }} &bull; {{ auth()->user()->role }}</span>
                 </li>
               <li class="nav-item dropdown">
@@ -167,7 +167,7 @@
       <!-- End Modal Change Password -->
 
         <div class="py-3 px-3 text-center mt-2">
-          <p class="mb-0 text-muted" style="font-size: 11px; letter-spacing: 0.2px;"> Copyright &copy; {{ date('Y') }} <strong class="text-dark">Brangkas Digital</strong> &mdash; LP Ma'arif NU PBNU &bull; brankas.maarifnu.or.id </p>
+          <p class="mb-0 text-muted" style="font-size: 11px; letter-spacing: 0.2px;"> Copyright &copy; {{ date('Y') }} <strong class="text-dark">Brankas Digital</strong> &mdash; LP Ma'arif NU PBNU &bull; brankas.maarifnu.or.id </p>
         </div>
       </div>
     </div>

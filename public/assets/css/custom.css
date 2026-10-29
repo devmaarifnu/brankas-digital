@@ -1,4 +1,20 @@
 /*breadcrumb style*/
+/* Keep numeric values easy to scan and align across the interface. */
+body {
+    font-variant-numeric: lining-nums tabular-nums;
+}
+
+.sidebar-nav ul .sidebar-item .sidebar-link {
+    min-height: 38px;
+    padding: 7px 10px;
+    line-height: 22px;
+    border-radius: 8px;
+}
+
+.sidebar-nav ul .first-level {
+    margin: 2px 0 6px;
+}
+
 #breadcrumb {
     list-style: none;
     display: inline-block;
@@ -472,18 +488,15 @@ input[readonly]:focus {
 
     /* 6. Sidebar Menu on Mobile */
     .sidebar-nav ul .sidebar-item .sidebar-link {
-        padding: 9px 12px !important;
+        min-height: 38px !important;
+        padding: 7px 10px !important;
+        line-height: 22px !important;
         font-size: 13px !important;
     }
     .sidebar-nav ul .sidebar-item .sidebar-link i {
         font-size: 18px !important;
     }
-    .nav-small-cap {
-        font-size: 10px !important;
-        padding: 12px 12px 4px !important;
-    }
-
-    /* 7. Search & Filter Cards on Mobile */
+/* 7. Search & Filter Cards on Mobile */
     .card-body form.row.g-2 {
         row-gap: 8px !important;
     }

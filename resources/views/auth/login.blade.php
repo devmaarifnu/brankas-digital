@@ -1,5 +1,5 @@
 @extends('template.general', [
-    'title' => 'Brangkas Digital - Login',
+    'title' => 'Brankas Digital - Login',
 ])
 
 @section('style')
@@ -34,16 +34,16 @@
     <div class="sip-left">
         <div class="sip-card" style="max-width: 420px; width: 100%;">
             <div class="brangkas-logo-wrap">
-                <img src="{{ asset('assets/images/logos/fotobrankas-removebg.png') }}?v=5" alt="Brangkas Digital" class="brangkas-logo-img">
+                <img src="{{ asset('assets/images/logos/fotobrankas-removebg.png') }}?v=5" alt="Brankas Digital" class="brangkas-logo-img">
                 <div class="d-flex flex-column text-start">
-                    <span class="text-dark lh-1" style="font-size: 21px; font-weight: 900; letter-spacing: 0.5px;">BRANGKAS DIGITAL</span>
+                    <span class="text-dark lh-1" style="font-size: 21px; font-weight: 900; letter-spacing: 0.5px;">BRANKAS DIGITAL</span>
                     <span class="lh-1 mt-1" style="font-size: 13.5px; font-weight: 900; letter-spacing: 0.8px; color: var(--sip-primary);">LP MA'ARIF NU PBNU</span>
                 </div>
             </div>
 
             <div class="text-center mb-4">
                 <h5 class="fw-bold text-dark mb-1">Masuk ke Sistem</h5>
-                <small class="text-muted">Brangkas Digital &bull; LP Ma'arif NU PBNU</small>
+                <small class="text-muted">Brankas Digital &bull; LP Ma'arif NU PBNU</small>
             </div>
 
             @include('template.alert')
@@ -95,7 +95,7 @@
             </div>
 
             <div class="sip-brand-text">
-                <h2 style="color: #fff;">Brangkas Digital</h2>
+                <h2 style="color: #fff;">Brankas Digital</h2>
                 <span style="color: rgba(255,255,255,0.85);">LP Ma'arif NU PBNU &bull; brankas.maarifnu.or.id</span>
             </div>
 
@@ -108,7 +108,7 @@
             </ul>
 
             <div class="sip-help-card" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);">
-                <h4 style="color: #fff;">Helpdesk Brangkas Digital</h4>
+                <h4 style="color: #fff;">Helpdesk Brankas Digital</h4>
                 <div class="sip-help-row" style="color: rgba(255,255,255,0.85);">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 6l9 7 9-7" stroke="currentColor" stroke-width="1.8"/></svg>
                     brankas.maarifnu@gmail.com

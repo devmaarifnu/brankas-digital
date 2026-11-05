@@ -45,7 +45,24 @@
                         <input type="hidden" name="jenis" value="rekening_koran">
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Periode <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="periode" required placeholder="Contoh: Januari 2025">
+                            <div class="row g-2">
+                                <div class="col-7">
+                                    <select class="form-select" name="bulan" required>
+                                        <option value="">Pilih bulan</option>
+                                        @foreach([1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $monthNumber => $monthName)
+                                            <option value="{{ $monthNumber }}" @selected(old('bulan', now()->month) == $monthNumber)>{{ $monthName }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-5">
+                                    <select class="form-select" name="tahun" required>
+                                        <option value="">Tahun</option>
+                                        @foreach($inputYears as $inputYear)
+                                            <option value="{{ $inputYear }}" @selected(old('tahun', now()->year) == $inputYear)>{{ $inputYear }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Judul Dokumen</label>
@@ -77,6 +94,30 @@
                     <span class="badge bg-light text-primary border">{{ $data->count() }} Data</span>
                 </div>
                 <div class="card-body p-0">
+                    <form method="GET" action="{{ route('keuangan.rekening-koran') }}" class="row g-2 p-3 border-bottom align-items-end">
+                        <div class="col-sm-5 col-md-4">
+                            <label class="form-label mb-1" for="filter-bulan">Filter bulan</label>
+                            <select class="form-select form-select-sm" id="filter-bulan" name="bulan">
+                                <option value="">Semua bulan</option>
+                                @foreach([1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $monthNumber => $monthName)
+                                    <option value="{{ $monthNumber }}" @selected((string) $selectedMonth === (string) $monthNumber)>{{ $monthName }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-sm-4 col-md-3">
+                            <label class="form-label mb-1" for="filter-tahun">Filter tahun</label>
+                            <select class="form-select form-select-sm" id="filter-tahun" name="tahun">
+                                <option value="">Semua tahun</option>
+                                @foreach($years as $availableYear)
+                                    <option value="{{ $availableYear }}" @selected((string) $selectedYear === (string) $availableYear)>{{ $availableYear }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-sm-3 col-md-5 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="ti ti-filter me-1"></i>Filter</button>
+                            <a href="{{ route('keuangan.rekening-koran') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+                        </div>
+                    </form>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
                             <thead style="background: #f8fafc; border-bottom: 2px solid #ebf1f6;">
@@ -86,26 +127,51 @@
                                     <th>Judul</th>
                                     <th>Keterangan</th>
                                     <th>Tanggal Upload</th>
-                                    <th class="pe-3 text-center" width="90">File</th>
+                                    <th class="pe-3 text-center" width="{{ $isSuperAdmin ? 120 : 90 }}">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($data as $i => $item)
                                 <tr>
                                     <td class="ps-3">{{ $i+1 }}</td>
-                                    <td class="fw-semibold text-dark">{{ $item->periode }}</td>
+                                    <td class="fw-semibold text-dark">{{ $item->periode_label }}</td>
                                     <td>{{ $item->judul ?? "-" }}</td>
                                     <td><small class="text-muted">{{ $item->keterangan ?? "-" }}</small></td>
                                     <td><small class="text-muted">{{ $item->created_at->format("d/m/Y") }}</small></td>
-                                    <td class="pe-3 text-center">
+                                    <td class="pe-3 text-center text-nowrap">
                                         <a href="{{ asset($item->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2" title="Lihat Dokumen">
                                             <i class="ti ti-eye"></i>
                                         </a>
+                                        @if($isSuperAdmin)
+                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" data-bs-toggle="collapse" data-bs-target="#edit-rekening-koran-{{ $item->id }}" aria-expanded="false" title="Edit teks">
+                                            <i class="ti ti-edit"></i>
+                                        </button>
+                                        @endif
                                     </td>
                                 </tr>
+                                @if($isSuperAdmin)
+                                <tr class="collapse" id="edit-rekening-koran-{{ $item->id }}">
+                                    <td colspan="6" class="bg-light p-3">
+                                        <form action="{{ route('keuangan.rekening-koran.update', $item->id) }}" method="POST" class="row g-2 align-items-end">
+                                            @csrf
+                                            <div class="col-md-4">
+                                                <label class="form-label mb-1">Judul</label>
+                                                <input type="text" class="form-control form-control-sm" name="judul" maxlength="255" value="{{ $item->judul }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label mb-1">Keterangan</label>
+                                                <input type="text" class="form-control form-control-sm" name="keterangan" value="{{ $item->keterangan }}">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="submit" class="btn btn-success btn-sm w-100"><i class="ti ti-device-floppy me-1"></i>Simpan</button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                                @endif
                                 @empty
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-5">
+                                    <td colspan="{{ $isSuperAdmin ? 7 : 6 }}" class="text-center text-muted py-5">
                                         <i class="ti ti-inbox fs-2 d-block mb-2 text-muted"></i>
                                         Belum ada dokumen Rekening Koran.
                                     </td>

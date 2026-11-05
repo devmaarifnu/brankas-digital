@@ -89,6 +89,7 @@ Route::middleware('mustlogin')->group(function () {
     Route::get('/keuangan/rekap-bulanan', [KeuanganController::class, 'rekapBulanan'])->name('keuangan.rekap-bulanan');
     Route::get('/keuangan/rekap-tahunan', [KeuanganController::class, 'rekapTahunan'])->name('keuangan.rekap-tahunan');
     Route::post('/keuangan/dokumen', [KeuanganController::class, 'storeDokumen'])->name('keuangan.dokumen.store');
+    Route::post('/keuangan/rekening-koran/{id}/update', [KeuanganController::class, 'updateRekeningKoran'])->name('keuangan.rekening-koran.update');
 
     // Setting - Users (Super Admin only)
     Route::get('/setting/users', [SettingUserController::class, 'index'])->name('setting.users');

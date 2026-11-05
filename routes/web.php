@@ -90,6 +90,7 @@ Route::middleware('mustlogin')->group(function () {
     Route::get('/keuangan/rekap-tahunan', [KeuanganController::class, 'rekapTahunan'])->name('keuangan.rekap-tahunan');
     Route::post('/keuangan/dokumen', [KeuanganController::class, 'storeDokumen'])->name('keuangan.dokumen.store');
     Route::post('/keuangan/rekening-koran/{id}/update', [KeuanganController::class, 'updateRekeningKoran'])->name('keuangan.rekening-koran.update');
+    Route::post('/keuangan/rekening-koran/{id}/delete', [KeuanganController::class, 'destroyRekeningKoran'])->name('keuangan.rekening-koran.destroy');
 
     // Setting - Users (Super Admin only)
     Route::get('/setting/users', [SettingUserController::class, 'index'])->name('setting.users');

@@ -91,7 +91,7 @@
                         <i class="ti ti-files" style="color: #5D87FF;"></i>
                         <span>Daftar Dokumen Rekening Koran</span>
                     </h5>
-                    <span class="badge bg-light text-primary border">{{ $data->count() }} Data</span>
+                    <span class="badge bg-light text-primary border">{{ $data->total() }} Data</span>
                 </div>
                 <div class="card-body p-0">
                     <form method="GET" action="{{ route('keuangan.rekening-koran') }}" class="row g-2 p-3 border-bottom align-items-end">
@@ -133,7 +133,7 @@
                             <tbody>
                                 @forelse($data as $i => $item)
                                 <tr>
-                                    <td class="ps-3">{{ $i+1 }}</td>
+                                    <td class="ps-3">{{ ($data->firstItem() ?? 1) + $i }}</td>
                                     <td class="fw-semibold text-dark">{{ $item->periode_label }}</td>
                                     <td>{{ $item->judul ?? "-" }}</td>
                                     <td><small class="text-muted">{{ $item->keterangan ?? "-" }}</small></td>
@@ -146,6 +146,12 @@
                                         <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" data-bs-toggle="collapse" data-bs-target="#edit-rekening-koran-{{ $item->id }}" aria-expanded="false" title="Edit teks">
                                             <i class="ti ti-edit"></i>
                                         </button>
+                                        <form action="{{ route('keuangan.rekening-koran.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus dokumen Rekening Koran ini?')">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Hapus dokumen">
+                                                <i class="ti ti-trash"></i>
+                                            </button>
+                                        </form>
                                         @endif
                                     </td>
                                 </tr>
@@ -179,6 +185,12 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 px-3 py-3">
+                        <small class="text-muted">
+                            Menampilkan {{ $data->firstItem() ?? 0 }}–{{ $data->lastItem() ?? 0 }} dari {{ $data->total() }} berkas
+                        </small>
+                        {{ $data->links() }}
                     </div>
                 </div>
             </div>

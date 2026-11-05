@@ -6,6 +6,7 @@ use App\Models\KeuanganRekapBulanan;
 use App\Models\KeuanganRekapTahunan;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class KeuanganController extends Controller {
     public function pengajuan() {
@@ -76,11 +77,21 @@ class KeuanganController extends Controller {
         $years = collect($periodData->map(fn ($item) => $item->periode_tahun)
             ->filter()->unique()->sortDesc()->values()->all());
 
-        $data = $periodData
+        $filteredData = $periodData
             ->when($selectedMonth, fn ($items) => $items->where('periode_bulan', (int) $selectedMonth))
             ->when($selectedYear, fn ($items) => $items->where('periode_tahun', (int) $selectedYear))
             ->sortByDesc(fn ($item) => sprintf('%04d-%02d-%010d', $item->periode_tahun ?? 0, $item->periode_bulan ?? 0, $item->id))
             ->values();
+
+        $perPage = 15;
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $data = new LengthAwarePaginator(
+            $filteredData->forPage($currentPage, $perPage)->values(),
+            $filteredData->count(),
+            $perPage,
+            $currentPage,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         $inputYears = range(2000, max(2031, now()->year + 1));
 
@@ -184,5 +195,27 @@ class KeuanganController extends Controller {
         $document->update($validated);
 
         return back()->with('success', 'Judul dan keterangan rekening koran berhasil diperbarui.');
+    }
+
+    public function destroyRekeningKoran(int $id)
+    {
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Hanya Super Admin yang dapat menghapus dokumen rekening koran.');
+        }
+
+        $document = KeuanganDokumen::where('jenis', 'rekening_koran')->findOrFail($id);
+        $filename = basename($document->file_path);
+        $storedFile = storage_path('app/uploads/keuangan/'.$filename);
+        $publicFile = public_path('uploads/keuangan/'.$filename);
+
+        if (is_file($storedFile)) {
+            @unlink($storedFile);
+        } elseif (is_file($publicFile)) {
+            @unlink($publicFile);
+        }
+
+        $document->delete();
+
+        return back()->with('success', 'Dokumen Rekening Koran berhasil dihapus.');
     }
 }

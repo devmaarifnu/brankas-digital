@@ -21,6 +21,11 @@
                     <small class="text-muted">Kelola laporan dan transaksi kas tunai per periode</small>
                 </div>
             </div>
+            @if(!auth()->user()->isViewer())
+            <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahLaporan">
+                <i class="ti ti-plus me-1"></i>Tambah Laporan
+            </button>
+            @endif
         </div>
     </div>
 
@@ -56,7 +61,7 @@
                     <label class="form-label mb-1" for="cari-laporan">Pencarian</label>
                     <input type="search" class="form-control" id="cari-laporan" name="q" value="{{ $search }}" placeholder="Cari bulan atau tahun">
                 </div>
-                <div class="col-xl-2 col-md-3">
+                <div class="col-xl-3 col-md-4">
                     <label class="form-label mb-1" for="filter-bulan">Filter bulan</label>
                     <select class="form-select" id="filter-bulan" name="bulan">
                         <option value="">Semua bulan</option>
@@ -65,7 +70,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-xl-2 col-md-3">
+                <div class="col-xl-3 col-md-4">
                     <label class="form-label mb-1" for="filter-tahun">Filter tahun</label>
                     <select class="form-select" id="filter-tahun" name="tahun">
                         <option value="">Semua tahun</option>
@@ -74,12 +79,9 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-xl-5 col-md-12 d-flex flex-wrap justify-content-xl-end gap-2">
-                    <button type="submit" class="btn btn-primary"><i class="ti ti-filter me-1"></i>Filter</button>
-                    <a href="{{ route('keuangan.buku-kas-tunai') }}" class="btn btn-outline-secondary">Reset</a>
-                    @if(!auth()->user()->isViewer())
-                    <button type="button" class="btn btn-success fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahLaporan"><i class="ti ti-plus me-1"></i>Tambah Laporan</button>
-                    @endif
+                <div class="col-xl-3 col-md-12 d-flex flex-nowrap align-items-end justify-content-xl-end gap-2">
+                    <button type="submit" class="btn btn-primary flex-shrink-0"><i class="ti ti-filter me-1"></i>Filter</button>
+                    <a href="{{ route('keuangan.buku-kas-tunai') }}" class="btn btn-outline-secondary flex-shrink-0">Reset</a>
                 </div>
             </form>
             <div class="table-responsive">

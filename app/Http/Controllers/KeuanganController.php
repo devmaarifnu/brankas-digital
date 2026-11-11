@@ -4,6 +4,9 @@ use App\Models\KeuanganPengajuan;
 use App\Models\KeuanganDokumen;
 use App\Models\KeuanganRekapBulanan;
 use App\Models\KeuanganRekapTahunan;
+use App\Models\KeuanganBukuKasTunai;
+use App\Models\KeuanganBukuKasTunaiTransaksi;
+use App\Models\KeuanganBukuKasTunaiAkun;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -139,7 +142,242 @@ class KeuanganController extends Controller {
         return ['year' => null, 'month' => null];
     }
     public function bukuBank() { return $this->dokumenView('buku_bank', 'Buku Bank', 'keuangan.buku-bank'); }
-    public function bukuKasTunai() { return $this->dokumenView('buku_kas_tunai', 'Buku Kas Tunai', 'keuangan.buku-kas-tunai'); }
+    public function bukuKasTunai(Request $request)
+    {
+        $months = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $query = KeuanganBukuKasTunai::query()
+            ->withSum(['transaksi as total_pemasukan' => fn ($query) => $query->where('jenis_transaksi', 'pemasukan')], 'jumlah')
+            ->withSum(['transaksi as total_pengeluaran' => fn ($query) => $query->where('jenis_transaksi', 'pengeluaran')], 'jumlah');
+        if ($request->filled('bulan')) {
+            $query->where('bulan', $request->integer('bulan'));
+        }
+        if ($request->filled('tahun')) {
+            $query->where('tahun', $request->integer('tahun'));
+        }
+        if ($request->filled('q')) {
+            $search = mb_strtolower(trim($request->query('q')));
+            $matchingMonths = array_keys(array_filter($months, fn ($monthName) => str_contains(mb_strtolower($monthName), $search)));
+            if (ctype_digit($search) && (int) $search >= 1 && (int) $search <= 12) {
+                $matchingMonths[] = (int) $search;
+            }
+            $query->where(function ($builder) use ($search, $matchingMonths) {
+                $builder->where('tahun', 'like', '%'.$search.'%')
+                    ->orWhere('judul', 'like', '%'.$search.'%')
+                    ->orWhere('keterangan', 'like', '%'.$search.'%');
+                if ($matchingMonths) {
+                    $builder->orWhereIn('bulan', array_unique($matchingMonths));
+                }
+            });
+        }
+        $data = $query->orderByDesc('tahun')->orderByDesc('bulan')->paginate(15)->withQueryString();
+        $years = KeuanganBukuKasTunai::query()->distinct()->orderByDesc('tahun')->pluck('tahun');
+        $inputYears = array_reverse(range(2000, max(2031, now()->year + 1)));
+
+        $data->getCollection()->transform(function ($item) {
+            $item->total_pemasukan = (float) ($item->total_pemasukan ?? 0);
+            $item->total_pengeluaran = (float) ($item->total_pengeluaran ?? 0);
+            $item->saldo_akhir = (float) $item->saldo_awal + $item->total_pemasukan - $item->total_pengeluaran;
+
+            return $item;
+        });
+
+        return view('keuangan.buku-kas-tunai', [
+            'data' => $data,
+            'months' => $months,
+            'years' => $years,
+            'inputYears' => $inputYears,
+            'search' => $request->query('q'),
+            'selectedMonth' => $request->query('bulan'),
+            'selectedYear' => $request->query('tahun'),
+        ])->with('title', 'Buku Kas Tunai');
+    }
+
+    public function storeBukuKasTunai(Request $request)
+    {
+        if (auth()->user()->isViewer()) {
+            return back()->with('error', 'Akses ditolak: Viewer tidak diizinkan membuat laporan.');
+        }
+
+        $validated = $request->validate([
+            'bulan' => 'required|integer|between:1,12',
+            'tahun' => 'required|integer|between:2000,2100',
+            'judul' => 'nullable|string|max:255',
+            'keterangan' => 'nullable|string|max:5000',
+            'saldo_awal' => 'required|numeric|min:0|max:9999999999999.99',
+        ]);
+
+        $exists = KeuanganBukuKasTunai::where('bulan', $validated['bulan'])
+            ->where('tahun', $validated['tahun'])->exists();
+        if ($exists) {
+            return back()->withErrors(['bulan' => 'Laporan untuk bulan dan tahun tersebut sudah tersedia.'])->withInput();
+        }
+
+        KeuanganBukuKasTunai::create($validated);
+
+        return redirect()->route('keuangan.buku-kas-tunai')->with('success', 'Laporan Buku Kas Tunai berhasil dibuat.');
+    }
+
+    public function showBukuKasTunai(KeuanganBukuKasTunai $bukuKasTunai)
+    {
+        return $this->bukuKasTunaiDetail($bukuKasTunai, false, request());
+    }
+
+    public function editBukuKasTunai(Request $request, KeuanganBukuKasTunai $bukuKasTunai)
+    {
+        return $this->bukuKasTunaiDetail($bukuKasTunai, true, $request);
+    }
+
+    private function bukuKasTunaiDetail(KeuanganBukuKasTunai $report, bool $canManage, Request $request)
+    {
+        $allTransactions = $report->transaksi()->orderBy('tanggal')->orderBy('id')->get();
+        $totalPemasukan = 0.0;
+        $totalPengeluaran = 0.0;
+        $runningBalanceCents = (int) round((float) $report->saldo_awal * 100);
+
+        foreach ($allTransactions as $transaction) {
+            $amountCents = (int) round((float) $transaction->jumlah * 100);
+            if ($transaction->jenis_transaksi === 'pemasukan') {
+                $totalPemasukan += (float) $transaction->jumlah;
+                $runningBalanceCents += $amountCents;
+            } else {
+                $totalPengeluaran += (float) $transaction->jumlah;
+                $runningBalanceCents -= $amountCents;
+            }
+            $transaction->saldo_berjalan = $runningBalanceCents / 100;
+        }
+
+        $accountCodes = KeuanganBukuKasTunaiAkun::orderBy('jenis_transaksi')->orderBy('nama')->get();
+        $filteredTransactions = $allTransactions
+            ->when($request->filled('kode_akun'), fn ($rows) => $rows->where('kode_akun', $request->query('kode_akun')))
+            ->when($request->filled('q'), function ($rows) use ($request) {
+                $needle = mb_strtolower(trim($request->query('q')));
+                return $rows->filter(fn ($row) => str_contains(mb_strtolower($row->transaksi), $needle)
+                    || str_contains(mb_strtolower($row->kode_akun), $needle));
+            })
+            ->values();
+
+        $totalFilteredPemasukan = $filteredTransactions->where('jenis_transaksi', 'pemasukan')->sum(fn ($item) => (float) $item->jumlah);
+        $totalFilteredPengeluaran = $filteredTransactions->where('jenis_transaksi', 'pengeluaran')->sum(fn ($item) => (float) $item->jumlah);
+
+        return view('keuangan.buku-kas-tunai-detail', [
+            'report' => $report,
+            'transactions' => $filteredTransactions,
+            'accountCodes' => $accountCodes,
+            'canManage' => $canManage && ! auth()->user()->isViewer(),
+            'canMutate' => $canManage && ! auth()->user()->isViewer(),
+            'totalPemasukan' => $totalPemasukan,
+            'totalPengeluaran' => $totalPengeluaran,
+            'saldoAkhir' => (float) $report->saldo_awal + $totalPemasukan - $totalPengeluaran,
+            'totalFilteredPemasukan' => $totalFilteredPemasukan,
+            'totalFilteredPengeluaran' => $totalFilteredPengeluaran,
+            'selectedAccountCode' => $request->query('kode_akun'),
+            'search' => $request->query('q'),
+        ])->with('title', 'Buku Kas Tunai - '.$report->bulan.'/'.$report->tahun);
+    }
+
+    public function storeBukuKasTunaiTransaksi(Request $request, KeuanganBukuKasTunai $bukuKasTunai)
+    {
+        if (auth()->user()->isViewer()) {
+            return back()->with('error', 'Akses ditolak: Viewer tidak diizinkan menambah transaksi.');
+        }
+
+        $validated = $request->validate([
+            'tanggal' => 'required|date_format:Y-m-d',
+            'jenis_transaksi' => 'required|in:pemasukan,pengeluaran',
+            'kode_akun' => 'required|string|max:100',
+            'transaksi' => 'required|string|max:255',
+            'jumlah' => 'required|numeric|gt:0|max:9999999999999.99',
+        ]);
+
+        $accountExists = KeuanganBukuKasTunaiAkun::where('nama', $validated['kode_akun'])
+            ->where('jenis_transaksi', $validated['jenis_transaksi'])->exists();
+        if (! $accountExists) {
+            return back()->withErrors(['kode_akun' => 'Pilih kode akun yang sesuai dengan jenis transaksi.'])->withInput();
+        }
+
+        $tanggal = Carbon::createFromFormat('Y-m-d', $validated['tanggal']);
+        if ((int) $tanggal->month !== (int) $bukuKasTunai->bulan || (int) $tanggal->year !== (int) $bukuKasTunai->tahun) {
+            return back()->withErrors(['tanggal' => 'Tanggal transaksi harus berada pada bulan dan tahun laporan ini.'])->withInput();
+        }
+
+        $bukuKasTunai->transaksi()->create($validated);
+
+        return back()->with('success', 'Transaksi berhasil ditambahkan dan saldo telah dihitung ulang.');
+    }
+
+    public function toggleBukuKasTunaiTransaksi(KeuanganBukuKasTunai $bukuKasTunai, KeuanganBukuKasTunaiTransaksi $transaksi)
+    {
+        if (auth()->user()->isViewer()) {
+            return back()->with('error', 'Akses ditolak: Viewer tidak diizinkan mengubah status transaksi.');
+        }
+
+        abort_unless($transaksi->buku_kas_tunai_id === $bukuKasTunai->id, 404);
+        $transaksi->update(['terverifikasi' => ! $transaksi->terverifikasi]);
+
+        return back()->with('success', 'Status transaksi diperbarui.');
+    }
+
+    public function destroyBukuKasTunaiTransaksi(KeuanganBukuKasTunai $bukuKasTunai, KeuanganBukuKasTunaiTransaksi $transaksi)
+    {
+        if (auth()->user()->isViewer()) {
+            return back()->with('error', 'Akses ditolak: Viewer tidak diizinkan menghapus transaksi.');
+        }
+
+        abort_unless($transaksi->buku_kas_tunai_id === $bukuKasTunai->id, 404);
+        $transaksi->delete();
+
+        return back()->with('success', 'Transaksi dihapus dan saldo telah dihitung ulang.');
+    }
+
+    public function destroyBukuKasTunai(KeuanganBukuKasTunai $bukuKasTunai)
+    {
+        if (auth()->user()->isViewer()) {
+            return back()->with('error', 'Akses ditolak: Viewer tidak diizinkan menghapus laporan.');
+        }
+
+        $bukuKasTunai->delete();
+
+        return redirect()->route('keuangan.buku-kas-tunai')->with('success', 'Laporan dan seluruh transaksinya berhasil dihapus.');
+    }
+
+    public function bukuKasTunaiAkun()
+    {
+        abort_if(auth()->user()->isViewer(), 403);
+
+        $accounts = KeuanganBukuKasTunaiAkun::withCount('transaksi')
+            ->orderBy('jenis_transaksi')->orderBy('nama')->get();
+
+        return view('keuangan.buku-kas-tunai-akun', compact('accounts'))->with('title', 'Pengaturan Kode Akun Buku Kas Tunai');
+    }
+
+    public function storeBukuKasTunaiAkun(Request $request)
+    {
+        if (auth()->user()->isViewer()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'jenis_transaksi' => 'required|in:pemasukan,pengeluaran',
+            'nama' => 'required|string|max:100|unique:keuangan_buku_kas_tunai_akun,nama',
+        ]);
+        KeuanganBukuKasTunaiAkun::create($validated);
+
+        return back()->with('success', 'Kode akun berhasil ditambahkan.');
+    }
+
+    public function destroyBukuKasTunaiAkun(KeuanganBukuKasTunaiAkun $akun)
+    {
+        if (auth()->user()->isViewer()) {
+            abort(403);
+        }
+        if ($akun->transaksi()->exists()) {
+            return back()->with('error', 'Kode akun tidak dapat dihapus karena sudah digunakan pada transaksi.');
+        }
+
+        $akun->delete();
+
+        return back()->with('success', 'Kode akun berhasil dihapus.');
+    }
     public function bukuKasUmum() { return $this->dokumenView('buku_kas_umum', 'Buku Kas Umum', 'keuangan.buku-kas-umum'); }
     public function rekapBulanan() {
         $data = KeuanganRekapBulanan::orderBy('tahun','desc')->orderBy('id','desc')->get();

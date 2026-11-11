@@ -85,6 +85,16 @@ Route::middleware('mustlogin')->group(function () {
     Route::get('/keuangan/rekening-koran', [KeuanganController::class, 'rekeningKoran'])->name('keuangan.rekening-koran');
     Route::get('/keuangan/buku-bank', [KeuanganController::class, 'bukuBank'])->name('keuangan.buku-bank');
     Route::get('/keuangan/buku-kas-tunai', [KeuanganController::class, 'bukuKasTunai'])->name('keuangan.buku-kas-tunai');
+    Route::post('/keuangan/buku-kas-tunai', [KeuanganController::class, 'storeBukuKasTunai'])->name('keuangan.buku-kas-tunai.store');
+    Route::get('/keuangan/buku-kas-tunai/pengaturan-akun', [KeuanganController::class, 'bukuKasTunaiAkun'])->name('keuangan.buku-kas-tunai.akun');
+    Route::post('/keuangan/buku-kas-tunai/pengaturan-akun', [KeuanganController::class, 'storeBukuKasTunaiAkun'])->name('keuangan.buku-kas-tunai.akun.store');
+    Route::post('/keuangan/buku-kas-tunai/pengaturan-akun/{akun}/delete', [KeuanganController::class, 'destroyBukuKasTunaiAkun'])->name('keuangan.buku-kas-tunai.akun.destroy');
+    Route::get('/keuangan/buku-kas-tunai/{bukuKasTunai}', [KeuanganController::class, 'showBukuKasTunai'])->name('keuangan.buku-kas-tunai.show');
+    Route::get('/keuangan/buku-kas-tunai/{bukuKasTunai}/edit', [KeuanganController::class, 'editBukuKasTunai'])->name('keuangan.buku-kas-tunai.edit');
+    Route::post('/keuangan/buku-kas-tunai/{bukuKasTunai}/transaksi', [KeuanganController::class, 'storeBukuKasTunaiTransaksi'])->name('keuangan.buku-kas-tunai.transaksi.store');
+    Route::post('/keuangan/buku-kas-tunai/{bukuKasTunai}/transaksi/{transaksi}/verify', [KeuanganController::class, 'toggleBukuKasTunaiTransaksi'])->name('keuangan.buku-kas-tunai.transaksi.verify');
+    Route::post('/keuangan/buku-kas-tunai/{bukuKasTunai}/transaksi/{transaksi}/delete', [KeuanganController::class, 'destroyBukuKasTunaiTransaksi'])->name('keuangan.buku-kas-tunai.transaksi.destroy');
+    Route::post('/keuangan/buku-kas-tunai/{bukuKasTunai}/delete', [KeuanganController::class, 'destroyBukuKasTunai'])->name('keuangan.buku-kas-tunai.destroy');
     Route::get('/keuangan/buku-kas-umum', [KeuanganController::class, 'bukuKasUmum'])->name('keuangan.buku-kas-umum');
     Route::get('/keuangan/rekap-bulanan', [KeuanganController::class, 'rekapBulanan'])->name('keuangan.rekap-bulanan');
     Route::get('/keuangan/rekap-tahunan', [KeuanganController::class, 'rekapTahunan'])->name('keuangan.rekap-tahunan');

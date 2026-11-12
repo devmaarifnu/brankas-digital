@@ -246,7 +246,7 @@ class KeuanganController extends Controller {
             $transaction->saldo_berjalan = $runningBalanceCents / 100;
         }
 
-        $accountCodes = KeuanganBukuKasTunaiAkun::orderBy('jenis_transaksi')->orderBy('nama')->get();
+        $accountCodes = KeuanganBukuKasTunaiAkun::sortForDisplay(KeuanganBukuKasTunaiAkun::all());
         $filteredTransactions = $allTransactions
             ->when($request->filled('kode_akun'), fn ($rows) => $rows->where('kode_akun', $request->query('kode_akun')))
             ->when($request->filled('q'), function ($rows) use ($request) {
@@ -378,8 +378,9 @@ class KeuanganController extends Controller {
     {
         abort_if(auth()->user()->isViewer(), 403);
 
-        $accounts = KeuanganBukuKasTunaiAkun::withCount('transaksi')
-            ->orderBy('jenis_transaksi')->orderBy('nama')->get();
+        $accounts = KeuanganBukuKasTunaiAkun::sortForDisplay(
+            KeuanganBukuKasTunaiAkun::withCount('transaksi')->get()
+        );
 
         return view('keuangan.buku-kas-tunai-akun', compact('accounts'))->with('title', 'Pengaturan Kode Akun Buku Kas Tunai');
     }

@@ -9,12 +9,13 @@ class KeuanganBukuKasTunai extends Model
 {
     protected $table = 'keuangan_buku_kas_tunai';
 
-    protected $fillable = ['bulan', 'tahun', 'judul', 'keterangan', 'saldo_awal'];
+    protected $fillable = ['bulan', 'tahun', 'judul', 'keterangan', 'saldo_awal', 'ditutup_pada'];
 
     protected $casts = [
         'bulan' => 'integer',
         'tahun' => 'integer',
         'saldo_awal' => 'decimal:2',
+        'ditutup_pada' => 'datetime',
     ];
 
     public function transaksi(): HasMany

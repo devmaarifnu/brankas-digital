@@ -30,10 +30,17 @@
                 </div>
             </div>
             <div class="d-flex flex-wrap gap-2">
+                @if($report->ditutup_pada)<span class="btn btn-outline-danger disabled"><i class="ti ti-lock me-1"></i>Buku Ditutup</span>@endif
                 @if($canManage)
                     <a href="{{ route('keuangan.buku-kas-tunai.show', $report) }}" class="btn btn-outline-primary fw-semibold"><i class="ti ti-eye me-1"></i>Lihat</a>
                     <a href="{{ route('keuangan.buku-kas-tunai.akun') }}" class="btn btn-outline-secondary fw-semibold"><i class="ti ti-settings me-1"></i>Pengaturan Kode Akun</a>
                     <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahTransaksi"><i class="ti ti-plus me-1"></i>Tambah Transaksi</button>
+                @endif
+                @if(!auth()->user()->isViewer())
+                    <form method="POST" action="{{ route('keuangan.buku-kas-tunai.status', $report) }}" class="d-inline" onsubmit="return confirm('{{ $report->ditutup_pada ? 'Buka kembali buku ini?' : 'Tutup buku ini? Transaksi tidak dapat diubah sampai buku dibuka kembali.' }}')">
+                        @csrf
+                        <button class="btn {{ $report->ditutup_pada ? 'btn-warning' : 'btn-outline-danger' }} fw-semibold"><i class="ti {{ $report->ditutup_pada ? 'ti-lock-open' : 'ti-lock' }} me-1"></i>{{ $report->ditutup_pada ? 'Buka Buku' : 'Tutup Buku' }}</button>
+                    </form>
                 @endif
                 <a href="{{ route('keuangan.buku-kas-tunai') }}" class="btn btn-light"><i class="ti ti-arrow-left me-1"></i>Kembali</a>
             </div>
@@ -104,9 +111,9 @@
                 <thead style="background:#f8fafc;border-bottom:2px solid #ebf1f6">
                     <tr>
                         <th class="ps-3" width="50">No</th>
-                        <th>Tanggal/Bulan/Tahun</th>
-                        <th>Transaksi</th>
+                        <th>Tanggal</th>
                         <th>Kode Akun</th>
+                        <th>Transaksi</th>
                         <th class="text-end">Penerimaan</th>
                         <th class="text-end">Pengeluaran</th>
                         <th class="text-end">Saldo</th>
@@ -118,27 +125,30 @@
                     <tr>
                         <td class="ps-3">{{ $index + 1 }}</td>
                         <td class="text-nowrap">{{ $transaction->tanggal->format('d/m/Y') }}</td>
+                        <td>{{ $transaction->kode_akun }}</td>
                         <td>
                             <div class="fw-semibold">{{ $transaction->transaksi }}</div>
                             @if($transaction->terverifikasi)<small class="text-success"><i class="ti ti-circle-check me-1"></i>Terverifikasi</small>@endif
                         </td>
-                        <td>{{ $transaction->kode_akun }}</td>
                         <td class="text-end text-success">{{ $transaction->jenis_transaksi === 'pemasukan' ? 'Rp '.number_format((float) $transaction->jumlah, 0, ',', '.') : '—' }}</td>
                         <td class="text-end text-danger">{{ $transaction->jenis_transaksi === 'pengeluaran' ? 'Rp '.number_format((float) $transaction->jumlah, 0, ',', '.') : '—' }}</td>
                         <td class="text-end fw-semibold">Rp {{ number_format($transaction->saldo_berjalan, 0, ',', '.') }}</td>
                         @if($canMutate)
                         <td class="pe-3">
                             <div class="d-flex flex-column align-items-center gap-1">
-                                <form action="{{ route('keuangan.buku-kas-tunai.transaksi.verify', [$report, $transaction]) }}" method="POST" class="mb-0">
+                                @if($canVerify && !$report->ditutup_pada)<form action="{{ route('keuangan.buku-kas-tunai.transaksi.verify', [$report, $transaction]) }}" method="POST" class="mb-0">
                                     @csrf
                                     <button type="submit" class="btn btn-sm {{ $transaction->terverifikasi ? 'btn-success' : 'btn-outline-success' }} py-0 px-2" title="{{ $transaction->terverifikasi ? 'Batalkan verifikasi' : 'Verifikasi transaksi' }}">
                                         <i class="ti {{ $transaction->terverifikasi ? 'ti-check' : 'ti-check' }}"></i>
                                     </button>
-                                </form>
+                                </form>@endif
+                                @if($canManage)
+                                <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" title="Edit transaksi" data-bs-toggle="modal" data-bs-target="#modalEditTransaksi{{ $transaction->id }}"><i class="ti ti-edit"></i></button>
                                 <form action="{{ route('keuangan.buku-kas-tunai.transaksi.destroy', [$report, $transaction]) }}" method="POST" class="mb-0" onsubmit="return confirm('Hapus transaksi ini? Saldo akan dihitung ulang.')">
                                     @csrf
                                     <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Hapus transaksi"><i class="ti ti-trash"></i></button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                         @endif
@@ -162,6 +172,22 @@
 </div>
 
 @if($canManage)
+@foreach($transactions as $transaction)
+<div class="modal fade" id="modalEditTransaksi{{ $transaction->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content rounded-3 shadow border-0">
+        <div class="modal-header"><h5 class="modal-title fw-bold">Edit Transaksi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <form action="{{ route('keuangan.buku-kas-tunai.transaksi.update', [$report, $transaction]) }}" method="POST">@csrf
+            <div class="modal-body"><div class="row g-3">
+                <div class="col-md-6"><label class="form-label">Tanggal <span class="text-danger">*</span></label><input type="date" name="tanggal" class="form-control" value="{{ $transaction->tanggal->format('Y-m-d') }}" min="{{ sprintf('%04d-%02d-01', $report->tahun, $report->bulan) }}" max="{{ \Carbon\Carbon::create($report->tahun, $report->bulan, 1)->endOfMonth()->format('Y-m-d') }}" required></div>
+                <div class="col-md-6"><label class="form-label">Jenis Transaksi <span class="text-danger">*</span></label><select name="jenis_transaksi" class="form-select js-edit-jenis" data-target="akunEdit{{ $transaction->id }}"><option value="pemasukan" @selected($transaction->jenis_transaksi === 'pemasukan')>Pemasukan</option><option value="pengeluaran" @selected($transaction->jenis_transaksi === 'pengeluaran')>Pengeluaran</option></select></div>
+                <div class="col-md-6"><label class="form-label">Kode Akun <span class="text-danger">*</span></label><select name="kode_akun" id="akunEdit{{ $transaction->id }}" class="form-select" required>@foreach($accountCodes as $accountCode)<option value="{{ $accountCode->nama }}" data-jenis="{{ $accountCode->jenis_transaksi }}" @selected($transaction->kode_akun === $accountCode->nama)>{{ $accountCode->nama }}</option>@endforeach</select></div>
+                <div class="col-md-6"><label class="form-label">Nominal <span class="text-danger">*</span></label><input type="number" name="jumlah" class="form-control" min="0.01" step="0.01" value="{{ $transaction->jumlah }}" required></div>
+                <div class="col-12"><label class="form-label">Transaksi <span class="text-danger">*</span></label><input type="text" name="transaksi" class="form-control" maxlength="255" value="{{ $transaction->transaksi }}" required></div>
+            </div></div><div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary"><i class="ti ti-device-floppy me-1"></i>Simpan Perubahan</button></div>
+        </form>
+    </div></div>
+</div>
+@endforeach
 <div class="modal fade" id="modalTambahTransaksi" tabindex="-1" aria-labelledby="modalTambahTransaksiLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content rounded-3 shadow border-0">
@@ -186,7 +212,7 @@
                     </div>
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Tanggal/Bulan/Tahun <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">Tanggal <span class="text-danger">*</span></label>
                             <input type="date" name="tanggal" class="form-control" value="{{ old('tanggal', $dateDefault) }}" min="{{ sprintf('%04d-%02d-01', $report->tahun, $report->bulan) }}" max="{{ \Carbon\Carbon::create($report->tahun, $report->bulan, 1)->endOfMonth()->format('Y-m-d') }}" required>
                         </div>
                         <div class="col-md-6">
@@ -221,6 +247,18 @@
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.js-edit-jenis').forEach(function (typeSelect) {
+        const accountSelect = document.getElementById(typeSelect.dataset.target);
+        const filter = function () {
+            Array.from(accountSelect.options).forEach(function (option) {
+                if (!option.dataset.jenis) return;
+                option.hidden = option.dataset.jenis !== typeSelect.value;
+            });
+            if (accountSelect.selectedOptions[0]?.hidden) accountSelect.value = '';
+        };
+        typeSelect.addEventListener('change', filter);
+        filter();
+    });
     const typeInputs = document.querySelectorAll('input[name="jenis_transaksi"]');
     const accountSelect = document.getElementById('inputKodeAkun');
     if (!accountSelect) return;

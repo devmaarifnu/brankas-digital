@@ -92,6 +92,8 @@ Route::middleware('mustlogin')->group(function () {
     Route::get('/keuangan/buku-kas-tunai/{bukuKasTunai}', [KeuanganController::class, 'showBukuKasTunai'])->name('keuangan.buku-kas-tunai.show');
     Route::get('/keuangan/buku-kas-tunai/{bukuKasTunai}/edit', [KeuanganController::class, 'editBukuKasTunai'])->name('keuangan.buku-kas-tunai.edit');
     Route::post('/keuangan/buku-kas-tunai/{bukuKasTunai}/transaksi', [KeuanganController::class, 'storeBukuKasTunaiTransaksi'])->name('keuangan.buku-kas-tunai.transaksi.store');
+    Route::post('/keuangan/buku-kas-tunai/{bukuKasTunai}/transaksi/{transaksi}/update', [KeuanganController::class, 'updateBukuKasTunaiTransaksi'])->name('keuangan.buku-kas-tunai.transaksi.update');
+    Route::post('/keuangan/buku-kas-tunai/{bukuKasTunai}/status-buku', [KeuanganController::class, 'toggleStatusBukuKasTunai'])->name('keuangan.buku-kas-tunai.status');
     Route::post('/keuangan/buku-kas-tunai/{bukuKasTunai}/transaksi/{transaksi}/verify', [KeuanganController::class, 'toggleBukuKasTunaiTransaksi'])->name('keuangan.buku-kas-tunai.transaksi.verify');
     Route::post('/keuangan/buku-kas-tunai/{bukuKasTunai}/transaksi/{transaksi}/delete', [KeuanganController::class, 'destroyBukuKasTunaiTransaksi'])->name('keuangan.buku-kas-tunai.transaksi.destroy');
     Route::post('/keuangan/buku-kas-tunai/{bukuKasTunai}/delete', [KeuanganController::class, 'destroyBukuKasTunai'])->name('keuangan.buku-kas-tunai.destroy');

@@ -263,8 +263,9 @@ class KeuanganController extends Controller {
             'report' => $report,
             'transactions' => $filteredTransactions,
             'accountCodes' => $accountCodes,
-            'canManage' => $canManage && ! auth()->user()->isViewer(),
+            'canManage' => $canManage && ! auth()->user()->isViewer() && ! $report->ditutup_pada,
             'canMutate' => $canManage && ! auth()->user()->isViewer(),
+            'canVerify' => auth()->user()->isAproval() || auth()->user()->isSuperAdmin(),
             'totalPemasukan' => $totalPemasukan,
             'totalPengeluaran' => $totalPengeluaran,
             'saldoAkhir' => (float) $report->saldo_awal + $totalPemasukan - $totalPengeluaran,
@@ -277,6 +278,7 @@ class KeuanganController extends Controller {
 
     public function storeBukuKasTunaiTransaksi(Request $request, KeuanganBukuKasTunai $bukuKasTunai)
     {
+        abort_if($bukuKasTunai->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah transaksi.');
         if (auth()->user()->isViewer()) {
             return back()->with('error', 'Akses ditolak: Viewer tidak diizinkan menambah transaksi.');
         }
@@ -307,10 +309,11 @@ class KeuanganController extends Controller {
 
     public function toggleBukuKasTunaiTransaksi(KeuanganBukuKasTunai $bukuKasTunai, KeuanganBukuKasTunaiTransaksi $transaksi)
     {
-        if (auth()->user()->isViewer()) {
-            return back()->with('error', 'Akses ditolak: Viewer tidak diizinkan mengubah status transaksi.');
+        if (! auth()->user()->isAproval() && ! auth()->user()->isSuperAdmin()) {
+            abort(403, 'Hanya Approval dan Super Admin yang dapat memverifikasi transaksi.');
         }
 
+        abort_if($bukuKasTunai->ditutup_pada, 403, 'Buku sudah ditutup.');
         abort_unless($transaksi->buku_kas_tunai_id === $bukuKasTunai->id, 404);
         $transaksi->update(['terverifikasi' => ! $transaksi->terverifikasi]);
 
@@ -319,6 +322,7 @@ class KeuanganController extends Controller {
 
     public function destroyBukuKasTunaiTransaksi(KeuanganBukuKasTunai $bukuKasTunai, KeuanganBukuKasTunaiTransaksi $transaksi)
     {
+        abort_if($bukuKasTunai->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah transaksi.');
         if (auth()->user()->isViewer()) {
             return back()->with('error', 'Akses ditolak: Viewer tidak diizinkan menghapus transaksi.');
         }
@@ -327,6 +331,36 @@ class KeuanganController extends Controller {
         $transaksi->delete();
 
         return back()->with('success', 'Transaksi dihapus dan saldo telah dihitung ulang.');
+    }
+
+    public function updateBukuKasTunaiTransaksi(Request $request, KeuanganBukuKasTunai $bukuKasTunai, KeuanganBukuKasTunaiTransaksi $transaksi)
+    {
+        abort_if($bukuKasTunai->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah transaksi.');
+        abort_unless($transaksi->buku_kas_tunai_id === $bukuKasTunai->id, 404);
+        abort_if(auth()->user()->isViewer(), 403);
+
+        $validated = $request->validate([
+            'tanggal' => 'required|date_format:Y-m-d',
+            'jenis_transaksi' => 'required|in:pemasukan,pengeluaran',
+            'kode_akun' => 'required|string|max:100',
+            'transaksi' => 'required|string|max:255',
+            'jumlah' => 'required|numeric|gt:0|max:9999999999999.99',
+        ]);
+        $accountExists = KeuanganBukuKasTunaiAkun::where('nama', $validated['kode_akun'])->where('jenis_transaksi', $validated['jenis_transaksi'])->exists();
+        if (! $accountExists) return back()->withErrors(['kode_akun' => 'Pilih kode akun yang sesuai dengan jenis transaksi.'])->withInput();
+        $tanggal = Carbon::createFromFormat('Y-m-d', $validated['tanggal']);
+        if ((int) $tanggal->month !== (int) $bukuKasTunai->bulan || (int) $tanggal->year !== (int) $bukuKasTunai->tahun) {
+            return back()->withErrors(['tanggal' => 'Tanggal transaksi harus berada pada bulan dan tahun laporan ini.'])->withInput();
+        }
+        $transaksi->update($validated);
+        return back()->with('success', 'Transaksi berhasil diperbarui.');
+    }
+
+    public function toggleStatusBukuKasTunai(KeuanganBukuKasTunai $bukuKasTunai)
+    {
+        abort_if(auth()->user()->isViewer(), 403);
+        $bukuKasTunai->update(['ditutup_pada' => $bukuKasTunai->ditutup_pada ? null : now()]);
+        return back()->with('success', $bukuKasTunai->ditutup_pada ? 'Buku berhasil ditutup.' : 'Buku berhasil dibuka kembali.');
     }
 
     public function destroyBukuKasTunai(KeuanganBukuKasTunai $bukuKasTunai)

@@ -204,6 +204,8 @@ class KeuanganController extends Controller {
             'judul' => 'nullable|string|max:255',
             'keterangan' => 'nullable|string|max:5000',
             'saldo_awal' => 'required|numeric|min:0|max:9999999999999.99',
+            'saldo_awal_lampiran' => 'nullable|array',
+            'saldo_awal_lampiran.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         $exists = KeuanganBukuKasTunai::where('bulan', $validated['bulan'])
@@ -212,7 +214,12 @@ class KeuanganController extends Controller {
             return back()->withErrors(['bulan' => 'Laporan untuk bulan dan tahun tersebut sudah tersedia.'])->withInput();
         }
 
-        KeuanganBukuKasTunai::create($validated);
+        $files = $request->file('saldo_awal_lampiran', []);
+        unset($validated['saldo_awal_lampiran']);
+        $report = KeuanganBukuKasTunai::create($validated);
+        foreach ($files as $file) {
+            $report->lampiranSaldoAwal()->create(['file_path' => $this->storeBukuKasTunaiLampiran($file)]);
+        }
 
         return redirect()->route('keuangan.buku-kas-tunai')->with('success', 'Laporan Buku Kas Tunai berhasil dibuat.');
     }
@@ -229,7 +236,8 @@ class KeuanganController extends Controller {
 
     private function bukuKasTunaiDetail(KeuanganBukuKasTunai $report, bool $canManage, Request $request)
     {
-        $allTransactions = $report->transaksi()->orderBy('tanggal')->orderBy('id')->get();
+        $report->load('lampiranSaldoAwal');
+        $allTransactions = $report->transaksi()->with('lampiranFiles')->orderBy('tanggal')->orderBy('id')->get();
         $totalPemasukan = 0.0;
         $totalPengeluaran = 0.0;
         $runningBalanceCents = (int) round((float) $report->saldo_awal * 100);
@@ -289,6 +297,8 @@ class KeuanganController extends Controller {
             'kode_akun' => 'required|string|max:100',
             'transaksi' => 'required|string|max:255',
             'jumlah' => 'required|numeric|gt:0|max:9999999999999.99',
+            'lampiran' => 'nullable|array',
+            'lampiran.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         $accountExists = KeuanganBukuKasTunaiAkun::where('nama', $validated['kode_akun'])
@@ -302,7 +312,15 @@ class KeuanganController extends Controller {
             return back()->withErrors(['tanggal' => 'Tanggal transaksi harus berada pada bulan dan tahun laporan ini.'])->withInput();
         }
 
-        $bukuKasTunai->transaksi()->create($validated);
+        $files = $request->file('lampiran', []);
+        unset($validated['lampiran']);
+        $transaction = $bukuKasTunai->transaksi()->create($validated);
+        foreach ($files as $file) {
+            $transaction->lampiranFiles()->create([
+                'buku_kas_tunai_id' => $bukuKasTunai->id,
+                'file_path' => $this->storeBukuKasTunaiLampiran($file),
+            ]);
+        }
 
         return back()->with('success', 'Transaksi berhasil ditambahkan dan saldo telah dihitung ulang.');
     }
@@ -345,6 +363,8 @@ class KeuanganController extends Controller {
             'kode_akun' => 'required|string|max:100',
             'transaksi' => 'required|string|max:255',
             'jumlah' => 'required|numeric|gt:0|max:9999999999999.99',
+            'lampiran' => 'nullable|array',
+            'lampiran.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
         $accountExists = KeuanganBukuKasTunaiAkun::where('nama', $validated['kode_akun'])->where('jenis_transaksi', $validated['jenis_transaksi'])->exists();
         if (! $accountExists) return back()->withErrors(['kode_akun' => 'Pilih kode akun yang sesuai dengan jenis transaksi.'])->withInput();
@@ -352,8 +372,41 @@ class KeuanganController extends Controller {
         if ((int) $tanggal->month !== (int) $bukuKasTunai->bulan || (int) $tanggal->year !== (int) $bukuKasTunai->tahun) {
             return back()->withErrors(['tanggal' => 'Tanggal transaksi harus berada pada bulan dan tahun laporan ini.'])->withInput();
         }
+        $files = $request->file('lampiran', []);
+        unset($validated['lampiran']);
         $transaksi->update($validated);
+        foreach ($files as $file) {
+            $transaksi->lampiranFiles()->create([
+                'buku_kas_tunai_id' => $bukuKasTunai->id,
+                'file_path' => $this->storeBukuKasTunaiLampiran($file),
+            ]);
+        }
         return back()->with('success', 'Transaksi berhasil diperbarui.');
+    }
+
+    public function storeBukuKasTunaiSaldoAwalLampiran(Request $request, KeuanganBukuKasTunai $bukuKasTunai)
+    {
+        abort_if($bukuKasTunai->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah lampiran.');
+        abort_if(auth()->user()->isViewer(), 403);
+        $request->validate([
+            'saldo_awal_lampiran' => 'required|array|min:1',
+            'saldo_awal_lampiran.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ]);
+        foreach ($request->file('saldo_awal_lampiran') as $file) {
+            $bukuKasTunai->lampiranSaldoAwal()->create(['file_path' => $this->storeBukuKasTunaiLampiran($file)]);
+        }
+        return back()->with('success', 'Lampiran saldo awal berhasil ditambahkan.');
+    }
+
+    private function storeBukuKasTunaiLampiran($file): string
+    {
+        $destination = public_path('uploads/buku-kas-tunai');
+        if (! is_dir($destination)) {
+            mkdir($destination, 0755, true);
+        }
+        $filename = uniqid('kas-', true).'.'.$file->getClientOriginalExtension();
+        $file->move($destination, $filename);
+        return 'uploads/buku-kas-tunai/'.$filename;
     }
 
     public function toggleStatusBukuKasTunai(KeuanganBukuKasTunai $bukuKasTunai)

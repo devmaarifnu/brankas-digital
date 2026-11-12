@@ -114,6 +114,7 @@
                         <th>Tanggal</th>
                         <th>Kode Akun</th>
                         <th>Transaksi</th>
+                        <th>Lampiran</th>
                         <th class="text-end">Penerimaan</th>
                         <th class="text-end">Pengeluaran</th>
                         <th class="text-end">Saldo</th>
@@ -121,15 +122,40 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @if((float) $report->saldo_awal > 0)
+                    <tr class="table-light">
+                        <td class="ps-3">1</td>
+                        <td class="text-nowrap">{{ sprintf('%02d/%02d/%04d', 1, $report->bulan, $report->tahun) }}</td>
+                        <td>—</td>
+                        <td><div class="fw-semibold">Saldo Awal</div></td>
+                        <td>
+                            @forelse($report->lampiranSaldoAwal as $lampiran)
+                                <a href="{{ asset($lampiran->file_path) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary py-0 px-2 mb-1"><i class="ti ti-paperclip me-1"></i>Lihat Bukti {{ $loop->iteration }}</a>
+                            @empty<span class="text-muted">—</span>@endforelse
+                            @if($canManage)
+                                <form action="{{ route('keuangan.buku-kas-tunai.saldo-awal.lampiran', $report) }}" method="POST" enctype="multipart/form-data" class="d-flex flex-column gap-1">
+                                    @csrf
+                                    <input type="file" name="saldo_awal_lampiran[]" class="form-control form-control-sm" accept="application/pdf,image/jpeg,image/png" multiple required>
+                                    <button class="btn btn-sm btn-outline-primary py-0 px-2"><i class="ti ti-upload me-1"></i>Tambah Bukti</button>
+                                </form>
+                            @endif
+                        </td>
+                        <td class="text-end">—</td>
+                        <td class="text-end">—</td>
+                        <td class="text-end fw-semibold">Rp {{ number_format((float) $report->saldo_awal, 0, ',', '.') }}</td>
+                        @if($canMutate)<td></td>@endif
+                    </tr>
+                    @endif
                     @forelse($transactions as $index => $transaction)
                     <tr>
-                        <td class="ps-3">{{ $index + 1 }}</td>
+                        <td class="ps-3">{{ $index + ((float) $report->saldo_awal > 0 ? 2 : 1) }}</td>
                         <td class="text-nowrap">{{ $transaction->tanggal->format('d/m/Y') }}</td>
                         <td>{{ $transaction->kode_akun }}</td>
                         <td>
                             <div class="fw-semibold">{{ $transaction->transaksi }}</div>
                             @if($transaction->terverifikasi)<small class="text-success"><i class="ti ti-circle-check me-1"></i>Terverifikasi</small>@endif
                         </td>
+                        <td>@forelse($transaction->lampiranFiles as $lampiran)<a href="{{ asset($lampiran->file_path) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary py-0 px-2 mb-1"><i class="ti ti-paperclip me-1"></i>Bukti {{ $loop->iteration }}</a>@empty<span class="text-muted">—</span>@endforelse</td>
                         <td class="text-end text-success">{{ $transaction->jenis_transaksi === 'pemasukan' ? 'Rp '.number_format((float) $transaction->jumlah, 0, ',', '.') : '—' }}</td>
                         <td class="text-end text-danger">{{ $transaction->jenis_transaksi === 'pengeluaran' ? 'Rp '.number_format((float) $transaction->jumlah, 0, ',', '.') : '—' }}</td>
                         <td class="text-end fw-semibold">Rp {{ number_format($transaction->saldo_berjalan, 0, ',', '.') }}</td>
@@ -154,12 +180,12 @@
                         @endif
                     </tr>
                     @empty
-                    <tr><td colspan="{{ $canMutate ? 8 : 7 }}" class="text-center text-muted py-5"><i class="ti ti-inbox fs-2 d-block mb-2"></i>Belum ada transaksi pada laporan ini.</td></tr>
+                    <tr><td colspan="{{ $canMutate ? 9 : 8 }}" class="text-center text-muted py-5"><i class="ti ti-inbox fs-2 d-block mb-2"></i>Belum ada transaksi pada laporan ini.</td></tr>
                     @endforelse
                 </tbody>
                 <tfoot style="background:#f8fafc">
                     <tr class="fw-bold">
-                        <td colspan="4" class="ps-3">Total</td>
+                        <td colspan="5" class="ps-3">Total</td>
                         <td class="text-end text-success">Rp {{ number_format($totalFilteredPemasukan, 0, ',', '.') }}</td>
                         <td class="text-end text-danger">Rp {{ number_format($totalFilteredPengeluaran, 0, ',', '.') }}</td>
                         <td class="text-end text-primary">Rp {{ number_format($saldoAkhir, 0, ',', '.') }}</td>
@@ -176,13 +202,14 @@
 <div class="modal fade" id="modalEditTransaksi{{ $transaction->id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content rounded-3 shadow border-0">
         <div class="modal-header"><h5 class="modal-title fw-bold">Edit Transaksi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-        <form action="{{ route('keuangan.buku-kas-tunai.transaksi.update', [$report, $transaction]) }}" method="POST">@csrf
+        <form action="{{ route('keuangan.buku-kas-tunai.transaksi.update', [$report, $transaction]) }}" method="POST" enctype="multipart/form-data">@csrf
             <div class="modal-body"><div class="row g-3">
                 <div class="col-md-6"><label class="form-label">Tanggal <span class="text-danger">*</span></label><input type="date" name="tanggal" class="form-control" value="{{ $transaction->tanggal->format('Y-m-d') }}" min="{{ sprintf('%04d-%02d-01', $report->tahun, $report->bulan) }}" max="{{ \Carbon\Carbon::create($report->tahun, $report->bulan, 1)->endOfMonth()->format('Y-m-d') }}" required></div>
                 <div class="col-md-6"><label class="form-label">Jenis Transaksi <span class="text-danger">*</span></label><select name="jenis_transaksi" class="form-select js-edit-jenis" data-target="akunEdit{{ $transaction->id }}"><option value="pemasukan" @selected($transaction->jenis_transaksi === 'pemasukan')>Pemasukan</option><option value="pengeluaran" @selected($transaction->jenis_transaksi === 'pengeluaran')>Pengeluaran</option></select></div>
                 <div class="col-md-6"><label class="form-label">Kode Akun <span class="text-danger">*</span></label><select name="kode_akun" id="akunEdit{{ $transaction->id }}" class="form-select" required>@foreach($accountCodes as $accountCode)<option value="{{ $accountCode->nama }}" data-jenis="{{ $accountCode->jenis_transaksi }}" @selected($transaction->kode_akun === $accountCode->nama)>{{ $accountCode->nama }}</option>@endforeach</select></div>
                 <div class="col-md-6"><label class="form-label">Nominal <span class="text-danger">*</span></label><input type="number" name="jumlah" class="form-control" min="0.01" step="0.01" value="{{ $transaction->jumlah }}" required></div>
                 <div class="col-12"><label class="form-label">Transaksi <span class="text-danger">*</span></label><input type="text" name="transaksi" class="form-control" maxlength="255" value="{{ $transaction->transaksi }}" required></div>
+                <div class="col-12"><label class="form-label">Tambah Lampiran Bukti <small class="text-muted">(opsional, bisa pilih beberapa file)</small></label>@forelse($transaction->lampiranFiles as $lampiran)<div><a href="{{ asset($lampiran->file_path) }}" target="_blank" rel="noopener">Lihat bukti {{ $loop->iteration }}</a></div>@empty<div class="text-muted mb-2">Belum ada bukti.</div>@endforelse<input type="file" name="lampiran[]" class="form-control mt-2" accept="application/pdf,image/jpeg,image/png" multiple><small class="text-muted">PDF atau gambar, setiap file maksimal 10 MB.</small></div>
             </div></div><div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary"><i class="ti ti-device-floppy me-1"></i>Simpan Perubahan</button></div>
         </form>
     </div></div>
@@ -195,7 +222,7 @@
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="modalTambahTransaksiLabel"><i class="ti ti-arrows-exchange" style="color:#5D87FF"></i>Tambah Transaksi — {{ $periodLabel }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('keuangan.buku-kas-tunai.transaksi.store', $report) }}" method="POST">
+            <form action="{{ route('keuangan.buku-kas-tunai.transaksi.store', $report) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body p-4">
                     <div class="alert alert-primary bg-light-primary text-primary py-2 px-3 mb-3 border-0" style="font-size:13px"><i class="ti ti-info-circle me-1"></i>Pilih pemasukan atau pengeluaran. Saldo akan dihitung otomatis berdasarkan tanggal transaksi.</div>
@@ -235,6 +262,11 @@
                             <label class="form-label fw-semibold">Jumlah Transaksi <span class="text-danger">*</span></label>
                             <div class="input-group"><span class="input-group-text">Rp</span><input type="number" name="jumlah" class="form-control" min="0.01" step="0.01" value="{{ old('jumlah') }}" placeholder="0" required></div>
                         </div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label fw-semibold">Lampiran Bukti <small class="text-muted">(opsional, bisa pilih beberapa file)</small></label>
+                        <input type="file" name="lampiran[]" class="form-control" accept="application/pdf,image/jpeg,image/png" multiple>
+                        <div class="form-text">PDF atau gambar, setiap file maksimal 10 MB.</div>
                     </div>
                 </div>
                 <div class="modal-footer border-top px-4 py-3 bg-white">

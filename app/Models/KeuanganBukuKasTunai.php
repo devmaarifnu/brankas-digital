@@ -22,4 +22,9 @@ class KeuanganBukuKasTunai extends Model
     {
         return $this->hasMany(KeuanganBukuKasTunaiTransaksi::class, 'buku_kas_tunai_id');
     }
+
+    public function lampiranSaldoAwal(): HasMany
+    {
+        return $this->hasMany(KeuanganBukuKasTunaiLampiran::class, 'buku_kas_tunai_id')->whereNull('transaksi_id');
+    }
 }

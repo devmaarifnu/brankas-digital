@@ -136,7 +136,7 @@
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="modalTambahLaporanLabel"><i class="ti ti-plus" style="color:#5D87FF"></i>Tambah Laporan Buku Kas Tunai</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('keuangan.buku-kas-tunai.store') }}" method="POST">
+            <form action="{{ route('keuangan.buku-kas-tunai.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body p-4">
                     <div class="alert alert-primary bg-light-primary text-primary py-2 px-3 mb-3 border-0" style="font-size:13px"><i class="ti ti-info-circle me-1"></i>Buat satu laporan untuk setiap bulan dan tahun.</div>
@@ -163,6 +163,11 @@
                             <label class="form-label fw-semibold">Saldo Awal <span class="text-danger">*</span></label>
                             <div class="input-group"><span class="input-group-text">Rp</span><input type="number" name="saldo_awal" class="form-control" min="0" step="0.01" value="{{ old('saldo_awal', 0) }}" required></div>
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Lampiran Bukti Saldo Awal <small class="text-muted">(opsional, bisa pilih beberapa file)</small></label>
+                        <input type="file" name="saldo_awal_lampiran[]" class="form-control" accept="application/pdf,image/jpeg,image/png" multiple>
+                        <div class="form-text">PDF atau gambar, setiap file maksimal 10 MB.</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Judul Dokumen</label>

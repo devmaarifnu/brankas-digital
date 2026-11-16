@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers;
+use App\Exports\BukuKasTunaiExport;
 use App\Models\KeuanganPengajuan;
 use App\Models\KeuanganDokumen;
 use App\Models\KeuanganRekapBulanan;
@@ -10,6 +11,7 @@ use App\Models\KeuanganBukuKasTunaiAkun;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class KeuanganController extends Controller {
     public function pengajuan() {
@@ -429,36 +431,9 @@ class KeuanganController extends Controller {
 
     public function exportBukuKasTunai(KeuanganBukuKasTunai $bukuKasTunai)
     {
-        $bukuKasTunai->load('lampiranSaldoAwal');
-        $transactions = $bukuKasTunai->transaksi()->with('lampiranFiles')->orderBy('tanggal')->orderBy('id')->get();
-        $filename = sprintf('buku-kas-tunai-%04d-%02d.csv', $bukuKasTunai->tahun, $bukuKasTunai->bulan);
+        $filename = sprintf('buku-kas-tunai-%04d-%02d.xlsx', $bukuKasTunai->tahun, $bukuKasTunai->bulan);
 
-        return response()->streamDownload(function () use ($bukuKasTunai, $transactions) {
-            $output = fopen('php://output', 'w');
-            fwrite($output, "\xEF\xBB\xBF");
-            fputcsv($output, ['No', 'Tanggal', 'Kode Akun', 'Transaksi', 'Penerimaan', 'Pengeluaran', 'Saldo', 'Lampiran']);
-
-            $balance = (float) $bukuKasTunai->saldo_awal;
-            $row = 1;
-            if ($balance > 0) {
-                $startDate = Carbon::create($bukuKasTunai->tahun, $bukuKasTunai->bulan, 1)->format('d/m/Y');
-                $paths = $bukuKasTunai->lampiranSaldoAwal->pluck('file_path')->implode('; ');
-                fputcsv($output, [$row++, $startDate, '', 'Sisa Saldo Bulan Sebelumnya', $balance, '', $balance, $paths]);
-            }
-
-            foreach ($transactions as $transaction) {
-                $incoming = $transaction->jenis_transaksi === 'pemasukan' ? (float) $transaction->jumlah : 0;
-                $outgoing = $transaction->jenis_transaksi === 'pengeluaran' ? (float) $transaction->jumlah : 0;
-                $balance += $incoming - $outgoing;
-                fputcsv($output, [
-                    $row++, $transaction->tanggal->format('d/m/Y'), $transaction->kode_akun,
-                    $transaction->transaksi, $incoming ?: '', $outgoing ?: '', $balance,
-                    $transaction->lampiranFiles->pluck('file_path')->implode('; '),
-                ]);
-            }
-
-            fclose($output);
-        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+        return Excel::download(new BukuKasTunaiExport($bukuKasTunai), $filename);
     }
 
     public function bukuKasTunaiAkun()

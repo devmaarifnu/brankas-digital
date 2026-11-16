@@ -194,9 +194,7 @@ class KeuanganController extends Controller {
 
     public function storeBukuKasTunai(Request $request)
     {
-        if (auth()->user()->isViewer()) {
-            return back()->with('error', 'Akses ditolak: Viewer tidak diizinkan membuat laporan.');
-        }
+        abort_unless(auth()->user()->isAdmin(), 403, 'Hanya Admin yang dapat membuat laporan Buku Kas Tunai.');
 
         $validated = $request->validate([
             'bulan' => 'required|integer|between:1,12',
@@ -231,6 +229,7 @@ class KeuanganController extends Controller {
 
     public function editBukuKasTunai(Request $request, KeuanganBukuKasTunai $bukuKasTunai)
     {
+        abort_unless(auth()->user()->isAdmin(), 403);
         return $this->bukuKasTunaiDetail($bukuKasTunai, true, $request);
     }
 
@@ -264,17 +263,21 @@ class KeuanganController extends Controller {
             })
             ->values();
 
-        $totalFilteredPemasukan = $filteredTransactions->where('jenis_transaksi', 'pemasukan')->sum(fn ($item) => (float) $item->jumlah);
+        $totalPemasukanBulanBerjalan = $totalPemasukan;
+        $totalFilteredPemasukan = (float) $report->saldo_awal + $filteredTransactions->where('jenis_transaksi', 'pemasukan')->sum(fn ($item) => (float) $item->jumlah);
         $totalFilteredPengeluaran = $filteredTransactions->where('jenis_transaksi', 'pengeluaran')->sum(fn ($item) => (float) $item->jumlah);
 
         return view('keuangan.buku-kas-tunai-detail', [
             'report' => $report,
             'transactions' => $filteredTransactions,
             'accountCodes' => $accountCodes,
-            'canManage' => $canManage && ! auth()->user()->isViewer() && ! $report->ditutup_pada,
-            'canMutate' => $canManage && ! auth()->user()->isViewer(),
+            'canManage' => auth()->user()->isAdmin() && ! $report->ditutup_pada,
+            'canAddTransaction' => auth()->user()->isAdmin() && ! $report->ditutup_pada,
+            'canEditTransaction' => auth()->user()->isSuperAdmin() && ! $report->ditutup_pada,
+            'canMutate' => auth()->user()->isSuperAdmin() || auth()->user()->isAproval(),
+            'canCloseBook' => auth()->user()->isAproval(),
             'canVerify' => auth()->user()->isAproval() || auth()->user()->isSuperAdmin(),
-            'totalPemasukan' => $totalPemasukan,
+            'totalPemasukan' => (float) $report->saldo_awal + $totalPemasukanBulanBerjalan,
             'totalPengeluaran' => $totalPengeluaran,
             'saldoAkhir' => (float) $report->saldo_awal + $totalPemasukan - $totalPengeluaran,
             'totalFilteredPemasukan' => $totalFilteredPemasukan,
@@ -286,10 +289,8 @@ class KeuanganController extends Controller {
 
     public function storeBukuKasTunaiTransaksi(Request $request, KeuanganBukuKasTunai $bukuKasTunai)
     {
+        abort_unless(auth()->user()->isAdmin(), 403, 'Hanya Admin yang dapat menambah transaksi.');
         abort_if($bukuKasTunai->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah transaksi.');
-        if (auth()->user()->isViewer()) {
-            return back()->with('error', 'Akses ditolak: Viewer tidak diizinkan menambah transaksi.');
-        }
 
         $validated = $request->validate([
             'tanggal' => 'required|date_format:Y-m-d',
@@ -341,11 +342,10 @@ class KeuanganController extends Controller {
     public function destroyBukuKasTunaiTransaksi(KeuanganBukuKasTunai $bukuKasTunai, KeuanganBukuKasTunaiTransaksi $transaksi)
     {
         abort_if($bukuKasTunai->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah transaksi.');
-        if (auth()->user()->isViewer()) {
-            return back()->with('error', 'Akses ditolak: Viewer tidak diizinkan menghapus transaksi.');
-        }
+        abort_unless(auth()->user()->isSuperAdmin(), 403, 'Hanya Super Admin yang dapat menghapus transaksi.');
 
         abort_unless($transaksi->buku_kas_tunai_id === $bukuKasTunai->id, 404);
+        abort_if($transaksi->terverifikasi, 403, 'Transaksi yang sudah diverifikasi tidak dapat dihapus.');
         $transaksi->delete();
 
         return back()->with('success', 'Transaksi dihapus dan saldo telah dihitung ulang.');
@@ -355,7 +355,8 @@ class KeuanganController extends Controller {
     {
         abort_if($bukuKasTunai->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah transaksi.');
         abort_unless($transaksi->buku_kas_tunai_id === $bukuKasTunai->id, 404);
-        abort_if(auth()->user()->isViewer(), 403);
+        abort_unless(auth()->user()->isSuperAdmin(), 403, 'Hanya Super Admin yang dapat mengedit transaksi.');
+        abort_if($transaksi->terverifikasi, 403, 'Transaksi yang sudah diverifikasi tidak dapat diedit.');
 
         $validated = $request->validate([
             'tanggal' => 'required|date_format:Y-m-d',
@@ -387,7 +388,7 @@ class KeuanganController extends Controller {
     public function storeBukuKasTunaiSaldoAwalLampiran(Request $request, KeuanganBukuKasTunai $bukuKasTunai)
     {
         abort_if($bukuKasTunai->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah lampiran.');
-        abort_if(auth()->user()->isViewer(), 403);
+        abort_unless(auth()->user()->isAdmin(), 403);
         $request->validate([
             'saldo_awal_lampiran' => 'required|array|min:1',
             'saldo_awal_lampiran.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
@@ -411,20 +412,53 @@ class KeuanganController extends Controller {
 
     public function toggleStatusBukuKasTunai(KeuanganBukuKasTunai $bukuKasTunai)
     {
-        abort_if(auth()->user()->isViewer(), 403);
+        abort_unless(auth()->user()->isAproval(), 403, 'Hanya Approval dan Super Admin yang dapat menutup atau membuka buku.');
         $bukuKasTunai->update(['ditutup_pada' => $bukuKasTunai->ditutup_pada ? null : now()]);
         return back()->with('success', $bukuKasTunai->ditutup_pada ? 'Buku berhasil ditutup.' : 'Buku berhasil dibuka kembali.');
     }
 
     public function destroyBukuKasTunai(KeuanganBukuKasTunai $bukuKasTunai)
     {
-        if (auth()->user()->isViewer()) {
-            return back()->with('error', 'Akses ditolak: Viewer tidak diizinkan menghapus laporan.');
-        }
+        abort_unless(auth()->user()->isSuperAdmin(), 403, 'Hanya Super Admin yang dapat menghapus laporan.');
+        abort_if($bukuKasTunai->ditutup_pada, 403, 'Buka buku terlebih dahulu sebelum menghapus laporan.');
 
         $bukuKasTunai->delete();
 
         return redirect()->route('keuangan.buku-kas-tunai')->with('success', 'Laporan dan seluruh transaksinya berhasil dihapus.');
+    }
+
+    public function exportBukuKasTunai(KeuanganBukuKasTunai $bukuKasTunai)
+    {
+        $bukuKasTunai->load('lampiranSaldoAwal');
+        $transactions = $bukuKasTunai->transaksi()->with('lampiranFiles')->orderBy('tanggal')->orderBy('id')->get();
+        $filename = sprintf('buku-kas-tunai-%04d-%02d.csv', $bukuKasTunai->tahun, $bukuKasTunai->bulan);
+
+        return response()->streamDownload(function () use ($bukuKasTunai, $transactions) {
+            $output = fopen('php://output', 'w');
+            fwrite($output, "\xEF\xBB\xBF");
+            fputcsv($output, ['No', 'Tanggal', 'Kode Akun', 'Transaksi', 'Penerimaan', 'Pengeluaran', 'Saldo', 'Lampiran']);
+
+            $balance = (float) $bukuKasTunai->saldo_awal;
+            $row = 1;
+            if ($balance > 0) {
+                $startDate = Carbon::create($bukuKasTunai->tahun, $bukuKasTunai->bulan, 1)->format('d/m/Y');
+                $paths = $bukuKasTunai->lampiranSaldoAwal->pluck('file_path')->implode('; ');
+                fputcsv($output, [$row++, $startDate, '', 'Sisa Saldo Bulan Sebelumnya', $balance, '', $balance, $paths]);
+            }
+
+            foreach ($transactions as $transaction) {
+                $incoming = $transaction->jenis_transaksi === 'pemasukan' ? (float) $transaction->jumlah : 0;
+                $outgoing = $transaction->jenis_transaksi === 'pengeluaran' ? (float) $transaction->jumlah : 0;
+                $balance += $incoming - $outgoing;
+                fputcsv($output, [
+                    $row++, $transaction->tanggal->format('d/m/Y'), $transaction->kode_akun,
+                    $transaction->transaksi, $incoming ?: '', $outgoing ?: '', $balance,
+                    $transaction->lampiranFiles->pluck('file_path')->implode('; '),
+                ]);
+            }
+
+            fclose($output);
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
     public function bukuKasTunaiAkun()

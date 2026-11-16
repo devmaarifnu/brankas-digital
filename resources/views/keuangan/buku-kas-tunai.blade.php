@@ -21,7 +21,7 @@
                     <small class="text-muted">Kelola laporan dan transaksi kas tunai per periode</small>
                 </div>
             </div>
-            @if(!auth()->user()->isViewer())
+            @if(auth()->user()->isAdmin())
             <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahLaporan">
                 <i class="ti ti-plus me-1"></i>Tambah Laporan
             </button>
@@ -105,7 +105,7 @@
                             <td class="pe-3">
                                 <div class="d-flex flex-column align-items-center gap-1">
                                     <a href="{{ route('keuangan.buku-kas-tunai.show', $report) }}" class="btn btn-sm btn-outline-primary py-0 px-2" title="Lihat laporan"><i class="ti ti-eye"></i></a>
-                                    @if(!auth()->user()->isViewer())
+                                    @if(auth()->user()->isSuperAdmin() && !$report->ditutup_pada)
                                     <a href="{{ route('keuangan.buku-kas-tunai.edit', $report) }}" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Edit laporan"><i class="ti ti-edit"></i></a>
                                     <form action="{{ route('keuangan.buku-kas-tunai.destroy', $report) }}" method="POST" class="mb-0" onsubmit="return confirm('Hapus laporan ini beserta seluruh transaksinya?')">
                                         @csrf
@@ -128,7 +128,7 @@
     </div>
 </div>
 
-@if(!auth()->user()->isViewer())
+@if(auth()->user()->isAdmin())
 <div class="modal fade" id="modalTambahLaporan" tabindex="-1" aria-labelledby="modalTambahLaporanLabel" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content rounded-3 shadow border-0">
@@ -160,7 +160,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Saldo Awal <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">Sisa Saldo Bulan Sebelumnya <span class="text-danger">*</span></label>
                             <div class="input-group"><span class="input-group-text">Rp</span><input type="number" name="saldo_awal" class="form-control" min="0" step="0.01" value="{{ old('saldo_awal', 0) }}" required></div>
                         </div>
                     </div>

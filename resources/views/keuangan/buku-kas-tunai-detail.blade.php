@@ -34,9 +34,12 @@
                 @if($canManage)
                     <a href="{{ route('keuangan.buku-kas-tunai.show', $report) }}" class="btn btn-outline-primary fw-semibold"><i class="ti ti-eye me-1"></i>Lihat</a>
                     <a href="{{ route('keuangan.buku-kas-tunai.akun') }}" class="btn btn-outline-secondary fw-semibold"><i class="ti ti-settings me-1"></i>Pengaturan Kode Akun</a>
+                @endif
+                <a href="{{ route('keuangan.buku-kas-tunai.export', $report) }}" class="btn btn-outline-success fw-semibold"><i class="ti ti-download me-1"></i>Ekspor Data</a>
+                @if($canAddTransaction)
                     <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahTransaksi"><i class="ti ti-plus me-1"></i>Tambah Transaksi</button>
                 @endif
-                @if(!auth()->user()->isViewer())
+                @if($canCloseBook)
                     <form method="POST" action="{{ route('keuangan.buku-kas-tunai.status', $report) }}" class="d-inline" onsubmit="return confirm('{{ $report->ditutup_pada ? 'Buka kembali buku ini?' : 'Tutup buku ini? Transaksi tidak dapat diubah sampai buku dibuka kembali.' }}')">
                         @csrf
                         <button class="btn {{ $report->ditutup_pada ? 'btn-warning' : 'btn-outline-danger' }} fw-semibold"><i class="ti {{ $report->ditutup_pada ? 'ti-lock-open' : 'ti-lock' }} me-1"></i>{{ $report->ditutup_pada ? 'Buka Buku' : 'Tutup Buku' }}</button>
@@ -65,7 +68,7 @@
             <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted d-block mb-1">Periode</small><div class="fs-5 fw-bold text-dark">{{ $periodLabel }}</div></div></div>
         </div>
         <div class="col-sm-6 col-xl">
-            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted d-block mb-1">Saldo Awal</small><div class="fs-5 fw-bold text-dark">Rp {{ number_format((float) $report->saldo_awal, 0, ',', '.') }}</div></div></div>
+            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted d-block mb-1">Sisa Saldo Bulan Sebelumnya</small><div class="fs-5 fw-bold text-dark">Rp {{ number_format((float) $report->saldo_awal, 0, ',', '.') }}</div></div></div>
         </div>
         <div class="col-sm-6 col-xl">
             <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted d-block mb-1">Total Penerimaan</small><div class="fs-5 fw-bold text-success">Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</div></div></div>
@@ -127,7 +130,7 @@
                         <td class="ps-3">1</td>
                         <td class="text-nowrap">{{ sprintf('%02d/%02d/%04d', 1, $report->bulan, $report->tahun) }}</td>
                         <td>—</td>
-                        <td><div class="fw-semibold">Saldo Awal</div></td>
+                        <td><div class="fw-semibold">Sisa Saldo Bulan Sebelumnya</div></td>
                         <td>
                             @forelse($report->lampiranSaldoAwal as $lampiran)
                                 <a href="{{ asset($lampiran->file_path) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary py-0 px-2 mb-1"><i class="ti ti-paperclip me-1"></i>Lihat Bukti {{ $loop->iteration }}</a>
@@ -140,7 +143,7 @@
                                 </form>
                             @endif
                         </td>
-                        <td class="text-end">—</td>
+                        <td class="text-end text-success">Rp {{ number_format((float) $report->saldo_awal, 0, ',', '.') }}</td>
                         <td class="text-end">—</td>
                         <td class="text-end fw-semibold">Rp {{ number_format((float) $report->saldo_awal, 0, ',', '.') }}</td>
                         @if($canMutate)<td></td>@endif
@@ -168,7 +171,7 @@
                                         <i class="ti {{ $transaction->terverifikasi ? 'ti-check' : 'ti-check' }}"></i>
                                     </button>
                                 </form>@endif
-                                @if($canManage)
+                                @if($canEditTransaction && !$transaction->terverifikasi)
                                 <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" title="Edit transaksi" data-bs-toggle="modal" data-bs-target="#modalEditTransaksi{{ $transaction->id }}"><i class="ti ti-edit"></i></button>
                                 <form action="{{ route('keuangan.buku-kas-tunai.transaksi.destroy', [$report, $transaction]) }}" method="POST" class="mb-0" onsubmit="return confirm('Hapus transaksi ini? Saldo akan dihitung ulang.')">
                                     @csrf
@@ -185,7 +188,7 @@
                 </tbody>
                 <tfoot style="background:#f8fafc">
                     <tr class="fw-bold">
-                        <td colspan="5" class="ps-3">Total</td>
+                        <td colspan="5" class="ps-3">Total Penerimaan &amp; Pengeluaran</td>
                         <td class="text-end text-success">Rp {{ number_format($totalFilteredPemasukan, 0, ',', '.') }}</td>
                         <td class="text-end text-danger">Rp {{ number_format($totalFilteredPengeluaran, 0, ',', '.') }}</td>
                         <td class="text-end text-primary">Rp {{ number_format($saldoAkhir, 0, ',', '.') }}</td>
@@ -197,7 +200,8 @@
     </div>
 </div>
 
-@if($canManage)
+@if($canEditTransaction || $canAddTransaction)
+@if($canEditTransaction)
 @foreach($transactions as $transaction)
 <div class="modal fade" id="modalEditTransaksi{{ $transaction->id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content rounded-3 shadow border-0">
@@ -215,6 +219,8 @@
     </div></div>
 </div>
 @endforeach
+@endif
+@if($canAddTransaction)
 <div class="modal fade" id="modalTambahTransaksi" tabindex="-1" aria-labelledby="modalTambahTransaksiLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content rounded-3 shadow border-0">
@@ -277,6 +283,7 @@
         </div>
     </div>
 </div>
+@endif
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.js-edit-jenis').forEach(function (typeSelect) {

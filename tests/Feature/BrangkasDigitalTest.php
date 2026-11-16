@@ -238,10 +238,11 @@ class BrangkasDigitalTest extends TestCase
         $response->assertSessionHas('success');
 
         // 3. Verify BPKB record
-        $bpkb = \App\Models\SuratKendaraan::where('no_plat', 'B 1926 NUX')->first();
+        $bpkb = \App\Models\SuratKendaraan::where('data_aset_id', $aset->id)->first();
         $this->assertNotNull($bpkb);
         $this->assertEquals('BPKB', $bpkb->jenis_surat);
         $this->assertEquals($aset->id, $bpkb->data_aset_id);
+        $this->assertEquals($aset->nomor_registrasi, $bpkb->no_plat);
 
         // 4. Verify linking on DataAsetLembaga model
         $aset->refresh();
@@ -252,7 +253,7 @@ class BrangkasDigitalTest extends TestCase
         // 5. Test search filter & JSON kendaraan list API
         $searchRes = $this->actingAs($this->user)->get('/brangkas/surat-kendaraan?q=Innova');
         $searchRes->assertOk();
-        $searchRes->assertSee('B 1926 NUX');
+        $searchRes->assertSee($aset->nomor_registrasi);
 
         $apiRes = $this->actingAs($this->user)->get('/brangkas/surat-kendaraan/kendaraan-list');
         $apiRes->assertOk();

@@ -11,6 +11,7 @@ use App\Models\KeuanganBukuKasTunaiAkun;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class KeuanganController extends Controller {
@@ -403,13 +404,13 @@ class KeuanganController extends Controller {
 
     private function storeBukuKasTunaiLampiran($file): string
     {
-        $destination = public_path('uploads/buku-kas-tunai');
-        if (! is_dir($destination)) {
-            mkdir($destination, 0755, true);
+        $path = Storage::disk('uploads')->putFile('buku-kas-tunai', $file);
+
+        if (! $path) {
+            throw new \RuntimeException('Lampiran Buku Kas Tunai gagal disimpan.');
         }
-        $filename = uniqid('kas-', true).'.'.$file->getClientOriginalExtension();
-        $file->move($destination, $filename);
-        return 'uploads/buku-kas-tunai/'.$filename;
+
+        return 'uploads/'.$path;
     }
 
     public function toggleStatusBukuKasTunai(KeuanganBukuKasTunai $bukuKasTunai)

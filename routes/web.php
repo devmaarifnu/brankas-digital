@@ -90,6 +90,7 @@ Route::middleware('mustlogin')->group(function () {
     Route::post('/keuangan/buku-kas-tunai/pengaturan-akun', [KeuanganController::class, 'storeBukuKasTunaiAkun'])->name('keuangan.buku-kas-tunai.akun.store');
     Route::post('/keuangan/buku-kas-tunai/pengaturan-akun/{akun}/delete', [KeuanganController::class, 'destroyBukuKasTunaiAkun'])->name('keuangan.buku-kas-tunai.akun.destroy');
     Route::get('/keuangan/buku-kas-tunai/{bukuKasTunai}', [KeuanganController::class, 'showBukuKasTunai'])->name('keuangan.buku-kas-tunai.show');
+    Route::get('/keuangan/buku-kas-tunai/{bukuKasTunai}/export', [KeuanganController::class, 'exportBukuKasTunai'])->name('keuangan.buku-kas-tunai.export');
     Route::get('/keuangan/buku-kas-tunai/{bukuKasTunai}/edit', [KeuanganController::class, 'editBukuKasTunai'])->name('keuangan.buku-kas-tunai.edit');
     Route::post('/keuangan/buku-kas-tunai/{bukuKasTunai}/transaksi', [KeuanganController::class, 'storeBukuKasTunaiTransaksi'])->name('keuangan.buku-kas-tunai.transaksi.store');
     Route::post('/keuangan/buku-kas-tunai/{bukuKasTunai}/transaksi/{transaksi}/update', [KeuanganController::class, 'updateBukuKasTunaiTransaksi'])->name('keuangan.buku-kas-tunai.transaksi.update');

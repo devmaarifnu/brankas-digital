@@ -204,7 +204,7 @@ class KeuanganController extends Controller {
             'tahun' => 'required|integer|between:2000,2100',
             'judul' => 'nullable|string|max:255',
             'keterangan' => 'nullable|string|max:5000',
-            'saldo_awal' => 'required|numeric|min:0|max:9999999999999.99',
+            'saldo_awal' => 'nullable|numeric|min:0|max:9999999999999.99',
             'saldo_awal_lampiran' => 'nullable|array',
             'saldo_awal_lampiran.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
@@ -217,6 +217,7 @@ class KeuanganController extends Controller {
 
         $files = $request->file('saldo_awal_lampiran', []);
         unset($validated['saldo_awal_lampiran']);
+        $validated['saldo_awal'] = $validated['saldo_awal'] ?? 0;
         $report = KeuanganBukuKasTunai::create($validated);
         foreach ($files as $file) {
             $report->lampiranSaldoAwal()->create(['file_path' => $this->storeBukuKasTunaiLampiran($file)]);
@@ -238,7 +239,7 @@ class KeuanganController extends Controller {
 
     private function bukuKasTunaiDetail(KeuanganBukuKasTunai $report, bool $canManage, Request $request)
     {
-        $report->load('lampiranSaldoAwal');
+        $report->load(['lampiranSaldoAwal', 'saldoAwalSumber']);
         $allTransactions = $report->transaksi()->with('lampiranFiles')->orderBy('tanggal')->orderBy('id')->get();
         $totalPemasukan = 0.0;
         $totalPengeluaran = 0.0;
@@ -269,6 +270,11 @@ class KeuanganController extends Controller {
         $totalPemasukanBulanBerjalan = $totalPemasukan;
         $totalFilteredPemasukan = (float) $report->saldo_awal + $filteredTransactions->where('jenis_transaksi', 'pemasukan')->sum(fn ($item) => (float) $item->jumlah);
         $totalFilteredPengeluaran = $filteredTransactions->where('jenis_transaksi', 'pengeluaran')->sum(fn ($item) => (float) $item->jumlah);
+        $previousPeriod = Carbon::create((int) $report->tahun, (int) $report->bulan, 1)->subMonthNoOverflow();
+        $previousReport = KeuanganBukuKasTunai::where('tahun', $previousPeriod->year)
+            ->where('bulan', $previousPeriod->month)
+            ->first();
+        $previousClosingBalance = $previousReport ? $this->calculateBukuKasTunaiClosingBalance($previousReport) : null;
 
         return view('keuangan.buku-kas-tunai-detail', [
             'report' => $report,
@@ -280,6 +286,8 @@ class KeuanganController extends Controller {
             'canMutate' => auth()->user()->isSuperAdmin() || auth()->user()->isAproval(),
             'canCloseBook' => auth()->user()->isAproval(),
             'canVerify' => auth()->user()->isAproval() || auth()->user()->isSuperAdmin(),
+            'previousReport' => $previousReport,
+            'previousClosingBalance' => $previousClosingBalance,
             'totalPemasukan' => (float) $report->saldo_awal + $totalPemasukanBulanBerjalan,
             'totalPengeluaran' => $totalPengeluaran,
             'saldoAkhir' => (float) $report->saldo_awal + $totalPemasukan - $totalPengeluaran,
@@ -393,13 +401,51 @@ class KeuanganController extends Controller {
         abort_if($bukuKasTunai->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah lampiran.');
         abort_unless(auth()->user()->isAdmin(), 403);
         $request->validate([
-            'saldo_awal_lampiran' => 'required|array|min:1',
+            'saldo_awal_lampiran' => 'nullable|array',
             'saldo_awal_lampiran.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
-        foreach ($request->file('saldo_awal_lampiran') as $file) {
+        $files = $request->file('saldo_awal_lampiran', []);
+        if (! $files) {
+            return back()->with('error', 'Pilih bukti lampiran terlebih dahulu.');
+        }
+        foreach ($files as $file) {
             $bukuKasTunai->lampiranSaldoAwal()->create(['file_path' => $this->storeBukuKasTunaiLampiran($file)]);
         }
         return back()->with('success', 'Lampiran saldo awal berhasil ditambahkan.');
+    }
+
+    public function ambilSaldoBukuKasTunaiBulanSebelumnya(KeuanganBukuKasTunai $bukuKasTunai)
+    {
+        abort_unless(auth()->user()->isAdmin(), 403, 'Hanya Admin yang dapat mengubah saldo awal.');
+        abort_if($bukuKasTunai->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah saldo awal.');
+
+        $previousPeriod = Carbon::create((int) $bukuKasTunai->tahun, (int) $bukuKasTunai->bulan, 1)->subMonthNoOverflow();
+        $previousReport = KeuanganBukuKasTunai::where('tahun', $previousPeriod->year)
+            ->where('bulan', $previousPeriod->month)
+            ->first();
+
+        if (! $previousReport) {
+            return back()->with('error', 'Laporan bulan sebelumnya belum tersedia.');
+        }
+
+        $bukuKasTunai->update([
+            'saldo_awal' => $this->calculateBukuKasTunaiClosingBalance($previousReport),
+            'saldo_awal_sumber_id' => $previousReport->id,
+        ]);
+
+        return back()->with('success', 'Saldo awal berhasil ditautkan ke saldo akhir bulan sebelumnya.');
+    }
+
+    private function calculateBukuKasTunaiClosingBalance(KeuanganBukuKasTunai $report): float
+    {
+        $balanceCents = (int) round((float) $report->saldo_awal * 100);
+
+        foreach ($report->transaksi()->get(['jenis_transaksi', 'jumlah']) as $transaction) {
+            $amountCents = (int) round((float) $transaction->jumlah * 100);
+            $balanceCents += $transaction->jenis_transaksi === 'pemasukan' ? $amountCents : -$amountCents;
+        }
+
+        return $balanceCents / 100;
     }
 
     private function storeBukuKasTunaiLampiran($file): string

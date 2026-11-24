@@ -160,8 +160,8 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Sisa Saldo Bulan Sebelumnya <span class="text-danger">*</span></label>
-                            <div class="input-group"><span class="input-group-text">Rp</span><input type="number" name="saldo_awal" class="form-control" min="0" step="0.01" value="{{ old('saldo_awal', 0) }}" required></div>
+                            <label class="form-label fw-semibold">Sisa Saldo Bulan Sebelumnya <small class="text-muted">(opsional)</small></label>
+                            <div class="input-group"><span class="input-group-text">Rp</span><input type="number" name="saldo_awal" class="form-control" min="0" step="0.01" value="{{ old('saldo_awal') }}" placeholder="0"></div>
                         </div>
                     </div>
                     <div class="mb-3">

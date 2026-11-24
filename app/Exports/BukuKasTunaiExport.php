@@ -33,7 +33,7 @@ class BukuKasTunaiExport implements FromCollection, WithHeadings, WithCustomStar
         $balance = (float) $this->report->saldo_awal;
         $number = 1;
 
-        if ($balance > 0) {
+        if ($balance > 0 || $this->report->saldo_awal_sumber_id) {
             $rows->push([
                 $number++,
                 Carbon::create($this->report->tahun, $this->report->bulan, 1)->format('d/m/Y'),

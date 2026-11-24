@@ -80,6 +80,60 @@ class BukuKasTunaiAccessTest extends TestCase
         $this->assertStringContainsString('spreadsheetml.sheet', $export->headers->get('content-type'));
     }
 
+    public function test_admin_can_create_report_without_manual_opening_balance(): void
+    {
+        $admin = $this->userWithRole('admin');
+
+        $this->actingAs($admin)->post(route('keuangan.buku-kas-tunai.store'), [
+            'bulan' => 12,
+            'tahun' => 2026,
+        ])->assertRedirect(route('keuangan.buku-kas-tunai'));
+
+        $report = KeuanganBukuKasTunai::where('bulan', 12)->where('tahun', 2026)->firstOrFail();
+        $this->assertSame('0.00', $report->saldo_awal);
+        $this->assertNull($report->saldo_awal_sumber_id);
+    }
+
+    public function test_admin_can_link_opening_balance_to_previous_month_closing_balance(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $previous = KeuanganBukuKasTunai::create([
+            'bulan' => 10,
+            'tahun' => 2026,
+            'saldo_awal' => 150000,
+        ]);
+        $incoming = KeuanganBukuKasTunaiAkun::where('jenis_transaksi', 'pemasukan')->firstOrFail();
+        $outgoing = KeuanganBukuKasTunaiAkun::where('jenis_transaksi', 'pengeluaran')->firstOrFail();
+        $previous->transaksi()->create([
+            'tanggal' => '2026-10-02',
+            'jenis_transaksi' => 'pemasukan',
+            'kode_akun' => $incoming->nama,
+            'transaksi' => 'Penerimaan Oktober',
+            'jumlah' => 50000,
+        ]);
+        $previous->transaksi()->create([
+            'tanggal' => '2026-10-03',
+            'jenis_transaksi' => 'pengeluaran',
+            'kode_akun' => $outgoing->nama,
+            'transaksi' => 'Pengeluaran Oktober',
+            'jumlah' => 25000,
+        ]);
+        $current = $this->createReport();
+
+        $this->actingAs($admin)->post(route('keuangan.buku-kas-tunai.saldo-awal.ambil', $current))
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertSame('175000.00', $current->fresh()->saldo_awal);
+        $this->assertSame($previous->id, $current->fresh()->saldo_awal_sumber_id);
+
+        $this->actingAs($admin)->get(route('keuangan.buku-kas-tunai.show', $current))
+            ->assertOk()
+            ->assertSee('Diambil dari Oktober 2026')
+            ->assertSeeText('Ambil & tautkan')
+            ->assertSeeText('saldo akhir Rp 175.000');
+    }
+
     public function test_approval_can_close_and_reopen_but_cannot_add_or_delete_transactions(): void
     {
         $approval = $this->userWithRole('aproval');

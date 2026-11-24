@@ -68,7 +68,7 @@
             <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted d-block mb-1">Periode</small><div class="fs-5 fw-bold text-dark">{{ $periodLabel }}</div></div></div>
         </div>
         <div class="col-sm-6 col-xl">
-            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted d-block mb-1">Sisa Saldo Bulan Sebelumnya</small><div class="fs-5 fw-bold text-dark">Rp {{ number_format((float) $report->saldo_awal, 0, ',', '.') }}</div></div></div>
+            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted d-block mb-1">Sisa Saldo Bulan Sebelumnya</small><div class="fs-5 fw-bold text-dark">Rp {{ number_format((float) $report->saldo_awal, 0, ',', '.') }}</div>@if($report->saldoAwalSumber)<small class="text-muted">Diambil dari {{ $months[$report->saldoAwalSumber->bulan] ?? $report->saldoAwalSumber->bulan }} {{ $report->saldoAwalSumber->tahun }}</small>@endif</div></div>
         </div>
         <div class="col-sm-6 col-xl">
             <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted d-block mb-1">Total Penerimaan</small><div class="fs-5 fw-bold text-success">Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</div></div></div>
@@ -125,7 +125,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if((float) $report->saldo_awal > 0)
+                    @if((float) $report->saldo_awal > 0 || $report->saldo_awal_sumber_id)
                     <tr class="table-light">
                         <td class="ps-3">1</td>
                         <td class="text-nowrap">{{ sprintf('%02d/%02d/%04d', 1, $report->bulan, $report->tahun) }}</td>
@@ -138,7 +138,7 @@
                             @if($canManage)
                                 <form action="{{ route('keuangan.buku-kas-tunai.saldo-awal.lampiran', $report) }}" method="POST" enctype="multipart/form-data" class="d-flex flex-column gap-1">
                                     @csrf
-                                    <input type="file" name="saldo_awal_lampiran[]" class="form-control form-control-sm" accept="application/pdf,image/jpeg,image/png" multiple required>
+                                    <input type="file" name="saldo_awal_lampiran[]" class="form-control form-control-sm" accept="application/pdf,image/jpeg,image/png" multiple>
                                     <button class="btn btn-sm btn-outline-primary py-0 px-2"><i class="ti ti-upload me-1"></i>Tambah Bukti</button>
                                 </form>
                             @endif
@@ -232,6 +232,14 @@
                 @csrf
                 <div class="modal-body p-4">
                     <div class="alert alert-primary bg-light-primary text-primary py-2 px-3 mb-3 border-0" style="font-size:13px"><i class="ti ti-info-circle me-1"></i>Pilih pemasukan atau pengeluaran. Saldo akan dihitung otomatis berdasarkan tanggal transaksi.</div>
+                    @if($previousReport)
+                        <div class="alert alert-light border d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                            <div><strong>Saldo bulan sebelumnya</strong><div class="small text-muted">{{ $months[$previousReport->bulan] ?? $previousReport->bulan }} {{ $previousReport->tahun }} · saldo akhir Rp {{ number_format($previousClosingBalance, 0, ',', '.') }}</div></div>
+                            <button type="submit" form="formAmbilSaldoSebelumnya" class="btn btn-sm btn-outline-primary" onclick="return confirm('Saldo awal {{ $periodLabel }} akan diisi dari saldo akhir {{ $months[$previousReport->bulan] ?? $previousReport->bulan }} {{ $previousReport->tahun }}. Lanjutkan?')"><i class="ti ti-link me-1"></i>Ambil &amp; tautkan</button>
+                        </div>
+                    @else
+                        <div class="alert alert-light border py-2 px-3 mb-3 small text-muted">Laporan bulan sebelumnya belum tersedia untuk ditautkan.</div>
+                    @endif
                     <label class="form-label fw-semibold d-block">Jenis Transaksi <span class="text-danger">*</span></label>
                     <div class="row g-2 mb-3">
                         <div class="col-sm-6">
@@ -280,6 +288,7 @@
                     <button type="submit" class="btn btn-primary fw-semibold px-4"><i class="ti ti-device-floppy me-1"></i>Simpan Transaksi</button>
                 </div>
             </form>
+            <form id="formAmbilSaldoSebelumnya" action="{{ route('keuangan.buku-kas-tunai.saldo-awal.ambil', $report) }}" method="POST" class="d-none">@csrf</form>
         </div>
     </div>
 </div>

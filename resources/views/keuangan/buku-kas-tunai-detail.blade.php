@@ -125,7 +125,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if((float) $report->saldo_awal > 0 || $report->saldo_awal_sumber_id)
                     <tr class="table-light">
                         <td class="ps-3">1</td>
                         <td class="text-nowrap">{{ sprintf('%02d/%02d/%04d', 1, $report->bulan, $report->tahun) }}</td>
@@ -146,9 +145,21 @@
                         <td class="text-end text-success">Rp {{ number_format((float) $report->saldo_awal, 0, ',', '.') }}</td>
                         <td class="text-end">—</td>
                         <td class="text-end fw-semibold">Rp {{ number_format((float) $report->saldo_awal, 0, ',', '.') }}</td>
-                        @if($canMutate)<td></td>@endif
+                        @if($canMutate)
+                        <td class="pe-3 text-center">
+                            @if($canManage)
+                                @if($previousReport)
+                                    <form action="{{ route('keuangan.buku-kas-tunai.saldo-awal.ambil', $report) }}" method="POST" class="mb-0" onsubmit="return confirm('Perbarui saldo dari saldo akhir {{ $months[$previousReport->bulan] ?? $previousReport->bulan }} {{ $previousReport->tahun }} yang terbaru?')">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-primary py-0 px-2" title="Update sisa saldo"><i class="ti ti-refresh me-1"></i>Update</button>
+                                    </form>
+                                @else
+                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Laporan bulan sebelumnya belum tersedia" disabled><i class="ti ti-refresh me-1"></i>Update</button>
+                                @endif
+                            @endif
+                        </td>
+                        @endif
                     </tr>
-                    @endif
                     @forelse($transactions as $index => $transaction)
                     <tr>
                         <td class="ps-3">{{ $index + ((float) $report->saldo_awal > 0 ? 2 : 1) }}</td>

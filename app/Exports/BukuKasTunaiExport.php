@@ -33,18 +33,16 @@ class BukuKasTunaiExport implements FromCollection, WithHeadings, WithCustomStar
         $balance = (float) $this->report->saldo_awal;
         $number = 1;
 
-        if ($balance > 0 || $this->report->saldo_awal_sumber_id) {
-            $rows->push([
-                $number++,
-                Carbon::create($this->report->tahun, $this->report->bulan, 1)->format('d/m/Y'),
-                '',
-                'Sisa Saldo Bulan Sebelumnya',
-                $balance,
-                null,
-                $balance,
-                $this->report->lampiranSaldoAwal->pluck('file_path')->implode('; '),
-            ]);
-        }
+        $rows->push([
+            $number++,
+            Carbon::create($this->report->tahun, $this->report->bulan, 1)->format('d/m/Y'),
+            '',
+            'Sisa Saldo Bulan Sebelumnya',
+            $balance,
+            null,
+            $balance,
+            $this->report->lampiranSaldoAwal->pluck('file_path')->implode('; '),
+        ]);
 
         foreach ($transactions as $transaction) {
             $incoming = $transaction->jenis_transaksi === 'pemasukan' ? (float) $transaction->jumlah : null;

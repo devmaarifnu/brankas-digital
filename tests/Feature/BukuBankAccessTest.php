@@ -272,4 +272,41 @@ class BukuBankAccessTest extends TestCase
             'jumlah' => 15000,
         ])->assertForbidden();
     }
+
+    public function test_admin_can_update_opening_balance_from_latest_previous_month_closing_balance(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $older = KeuanganBukuBank::create(['bulan' => 9, 'tahun' => 2026, 'saldo_awal' => 0]);
+        $incoming = KeuanganBukuBankAkun::where('jenis_transaksi', 'pemasukan')->firstOrFail();
+        $expense = KeuanganBukuBankAkun::where('jenis_transaksi', 'pengeluaran')->firstOrFail();
+        $olderTransaction = $older->transaksi()->create([
+            'tanggal' => '2026-09-15',
+            'jenis_transaksi' => 'pemasukan',
+            'kode_akun' => $incoming->nama,
+            'transaksi' => 'Saldo pada September',
+            'jumlah' => 15000,
+        ]);
+        $previous = KeuanganBukuBank::create(['bulan' => 10, 'tahun' => 2026, 'saldo_awal' => 15000, 'saldo_awal_sumber_id' => $older->id]);
+        $previous->transaksi()->create([
+            'tanggal' => '2026-10-15',
+            'jenis_transaksi' => 'pengeluaran',
+            'kode_akun' => $expense->nama,
+            'transaksi' => 'Pengeluaran sebelumnya',
+            'jumlah' => 10000,
+        ]);
+        $report = $this->createReport();
+        $report->update(['saldo_awal' => 2000, 'saldo_awal_sumber_id' => $previous->id]);
+
+        $olderTransaction->update(['jumlah' => 10500]);
+        $this->assertSame('2000.00', $report->fresh()->saldo_awal);
+        $this->actingAs($admin)->get(route('keuangan.buku-bank.show', $report))
+            ->assertOk()
+            ->assertSee('title="Update sisa saldo"', false)
+            ->assertSee('>Update</button>', false)
+            ->assertDontSee('Edit Sisa Saldo Bulan Sebelumnya');
+
+        $this->actingAs($admin)->post(route('keuangan.buku-bank.saldo-awal.ambil', $report))->assertRedirect();
+        $this->assertSame('500.00', $report->fresh()->saldo_awal);
+        $this->assertSame($previous->id, $report->fresh()->saldo_awal_sumber_id);
+    }
 }

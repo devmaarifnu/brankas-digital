@@ -442,7 +442,11 @@ class KeuanganController extends Controller {
 
     private function calculateBukuBankClosingBalance(KeuanganBukuBank $report): float
     {
-        $balanceCents = (int) round((float) $report->saldo_awal * 100);
+        $openingBalance = (float) $report->saldo_awal;
+        if ($report->saldo_awal_sumber_id && ($source = $report->saldoAwalSumber()->first())) {
+            $openingBalance = $this->calculateBukuBankClosingBalance($source);
+        }
+        $balanceCents = (int) round($openingBalance * 100);
 
         foreach ($report->transaksi()->get(['jenis_transaksi', 'jumlah']) as $transaction) {
             $amountCents = (int) round((float) $transaction->jumlah * 100);
@@ -820,7 +824,11 @@ class KeuanganController extends Controller {
 
     private function calculateBukuKasTunaiClosingBalance(KeuanganBukuKasTunai $report): float
     {
-        $balanceCents = (int) round((float) $report->saldo_awal * 100);
+        $openingBalance = (float) $report->saldo_awal;
+        if ($report->saldo_awal_sumber_id && ($source = $report->saldoAwalSumber()->first())) {
+            $openingBalance = $this->calculateBukuKasTunaiClosingBalance($source);
+        }
+        $balanceCents = (int) round($openingBalance * 100);
 
         foreach ($report->transaksi()->get(['jenis_transaksi', 'jumlah']) as $transaction) {
             $amountCents = (int) round((float) $transaction->jumlah * 100);

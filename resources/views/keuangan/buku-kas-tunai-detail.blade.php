@@ -173,6 +173,8 @@
                                 </form>@endif
                                 @if($canEditTransaction && !$transaction->terverifikasi)
                                 <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" title="Edit transaksi" data-bs-toggle="modal" data-bs-target="#modalEditTransaksi{{ $transaction->id }}"><i class="ti ti-edit"></i></button>
+                                @endif
+                                @if($canDeleteTransaction && !$transaction->terverifikasi)
                                 <form action="{{ route('keuangan.buku-kas-tunai.transaksi.destroy', [$report, $transaction]) }}" method="POST" class="mb-0" onsubmit="return confirm('Hapus transaksi ini? Saldo akan dihitung ulang.')">
                                     @csrf
                                     <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Hapus transaksi"><i class="ti ti-trash"></i></button>

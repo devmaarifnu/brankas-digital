@@ -282,8 +282,9 @@ class KeuanganController extends Controller {
             'accountCodes' => $accountCodes,
             'canManage' => auth()->user()->isAdmin() && ! $report->ditutup_pada,
             'canAddTransaction' => auth()->user()->isAdmin() && ! $report->ditutup_pada,
-            'canEditTransaction' => auth()->user()->isSuperAdmin() && ! $report->ditutup_pada,
-            'canMutate' => auth()->user()->isSuperAdmin() || auth()->user()->isAproval(),
+            'canEditTransaction' => auth()->user()->isAdmin() && ! $report->ditutup_pada,
+            'canDeleteTransaction' => auth()->user()->isSuperAdmin() && ! $report->ditutup_pada,
+            'canMutate' => auth()->user()->isAdmin() || auth()->user()->isAproval(),
             'canCloseBook' => auth()->user()->isAproval(),
             'canVerify' => auth()->user()->isAproval() || auth()->user()->isSuperAdmin(),
             'previousReport' => $previousReport,
@@ -366,7 +367,7 @@ class KeuanganController extends Controller {
     {
         abort_if($bukuKasTunai->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah transaksi.');
         abort_unless($transaksi->buku_kas_tunai_id === $bukuKasTunai->id, 404);
-        abort_unless(auth()->user()->isSuperAdmin(), 403, 'Hanya Super Admin yang dapat mengedit transaksi.');
+        abort_unless(auth()->user()->isAdmin(), 403, 'Hanya Admin dan Super Admin yang dapat mengedit transaksi.');
         abort_if($transaksi->terverifikasi, 403, 'Transaksi yang sudah diverifikasi tidak dapat diedit.');
 
         $validated = $request->validate([

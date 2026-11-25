@@ -182,10 +182,11 @@ class BukuKasTunaiAccessTest extends TestCase
         $this->assertNull($report->fresh()->ditutup_pada);
     }
 
-    public function test_regular_admin_cannot_edit_or_delete_but_super_admin_can_manage_unverified_transaction(): void
+    public function test_admin_can_edit_only_unverified_transactions_while_book_is_open(): void
     {
         $admin = $this->userWithRole('admin');
         $superAdmin = $this->userWithRole('super admin');
+        $approval = $this->userWithRole('aproval');
         $report = $this->createReport();
         $incoming = KeuanganBukuKasTunaiAkun::where('jenis_transaksi', 'pemasukan')->firstOrFail();
         $transaction = $report->transaksi()->create([
@@ -196,27 +197,79 @@ class BukuKasTunaiAccessTest extends TestCase
             'jumlah' => 50000,
         ]);
 
-        $this->actingAs($admin)->post(route('keuangan.buku-kas-tunai.transaksi.destroy', [$report, $transaction]))
-            ->assertForbidden();
+        $detailResponse = $this->actingAs($admin)->get(route('keuangan.buku-kas-tunai.show', $report))->assertOk();
+        $navigation = new \DOMDocument();
+        @$navigation->loadHTML($detailResponse->getContent());
+        $navigationXPath = new \DOMXPath($navigation);
+        $cashbookLink = $navigationXPath->query('//a[contains(@href, "/keuangan/buku-kas-tunai")]')->item(0);
+        $this->assertNotNull($cashbookLink);
+        $this->assertStringContainsString('active', $cashbookLink->getAttribute('class'));
+        $detailResponse->assertSee('title="Edit transaksi"', false)
+            ->assertDontSee('title="Hapus transaksi"', false);
+
         $this->actingAs($admin)->post(route('keuangan.buku-kas-tunai.transaksi.update', [$report, $transaction]), [
             'tanggal' => '2026-11-02',
             'jenis_transaksi' => 'pemasukan',
             'kode_akun' => $incoming->nama,
-            'transaksi' => 'Ubah tanpa izin',
+            'transaksi' => 'Diperbarui Admin',
             'jumlah' => 60000,
-        ])->assertForbidden();
+        ])->assertRedirect();
+        $this->assertSame('60000.00', $transaction->fresh()->jumlah);
+        $this->actingAs($admin)->post(route('keuangan.buku-kas-tunai.transaksi.destroy', [$report, $transaction]))
+            ->assertForbidden();
 
         $this->actingAs($superAdmin)->post(route('keuangan.buku-kas-tunai.transaksi.update', [$report, $transaction]), [
             'tanggal' => '2026-11-02',
             'jenis_transaksi' => 'pemasukan',
             'kode_akun' => $incoming->nama,
             'transaksi' => 'Penerimaan diperbarui',
-            'jumlah' => 60000,
+            'jumlah' => 70000,
         ])->assertRedirect();
-        $this->assertSame('60000.00', $transaction->fresh()->jumlah);
+        $this->assertSame('70000.00', $transaction->fresh()->jumlah);
 
         $this->actingAs($superAdmin)->post(route('keuangan.buku-kas-tunai.transaksi.destroy', [$report, $transaction]))
             ->assertRedirect();
         $this->assertDatabaseMissing('keuangan_buku_kas_tunai_transaksi', ['id' => $transaction->id]);
+
+        $verifiedTransaction = $report->transaksi()->create([
+            'tanggal' => '2026-11-03',
+            'jenis_transaksi' => 'pemasukan',
+            'kode_akun' => $incoming->nama,
+            'transaksi' => 'Penerimaan akan diverifikasi',
+            'jumlah' => 20000,
+        ]);
+        $this->actingAs($approval)->post(route('keuangan.buku-kas-tunai.transaksi.verify', [$report, $verifiedTransaction]))
+            ->assertRedirect();
+        $this->assertTrue($verifiedTransaction->fresh()->terverifikasi);
+
+        $this->actingAs($admin)->get(route('keuangan.buku-kas-tunai.show', $report))
+            ->assertOk()
+            ->assertDontSee('title="Edit transaksi"', false);
+        $this->actingAs($admin)->post(route('keuangan.buku-kas-tunai.transaksi.update', [$report, $verifiedTransaction]), [
+            'tanggal' => '2026-11-03',
+            'jenis_transaksi' => 'pemasukan',
+            'kode_akun' => $incoming->nama,
+            'transaksi' => 'Tidak boleh diedit',
+            'jumlah' => 25000,
+        ])->assertForbidden();
+
+        $closedBookTransaction = $report->transaksi()->create([
+            'tanggal' => '2026-11-04',
+            'jenis_transaksi' => 'pemasukan',
+            'kode_akun' => $incoming->nama,
+            'transaksi' => 'Penerimaan pada buku terbuka',
+            'jumlah' => 10000,
+        ]);
+        $this->actingAs($approval)->post(route('keuangan.buku-kas-tunai.status', $report))->assertRedirect();
+        $this->actingAs($admin)->get(route('keuangan.buku-kas-tunai.show', $report))
+            ->assertOk()
+            ->assertDontSee('title="Edit transaksi"', false);
+        $this->actingAs($admin)->post(route('keuangan.buku-kas-tunai.transaksi.update', [$report, $closedBookTransaction]), [
+            'tanggal' => '2026-11-04',
+            'jenis_transaksi' => 'pemasukan',
+            'kode_akun' => $incoming->nama,
+            'transaksi' => 'Tidak boleh diedit setelah buku ditutup',
+            'jumlah' => 15000,
+        ])->assertForbidden();
     }
 }

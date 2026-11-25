@@ -74,7 +74,7 @@
                 </li>
                 <li class="sidebar-item">
                     <a href="{{ route('keuangan.buku-kas-tunai') }}"
-                       class="sidebar-link {{ request()->routeIs('keuangan.buku-kas-tunai') ? 'active' : '' }}">
+                       class="sidebar-link {{ request()->routeIs('keuangan.buku-kas-tunai*') ? 'active' : '' }}">
                         <span><i class="ti ti-wallet"></i></span>
                         <span class="hide-menu">Buku Kas Tunai</span>
                     </a>

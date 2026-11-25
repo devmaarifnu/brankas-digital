@@ -1,13 +1,17 @@
 <?php
 namespace App\Http\Controllers;
 use App\Exports\BukuKasTunaiExport;
+use App\Exports\BukuBankExport;
 use App\Models\KeuanganPengajuan;
 use App\Models\KeuanganDokumen;
 use App\Models\KeuanganRekapBulanan;
 use App\Models\KeuanganRekapTahunan;
 use App\Models\KeuanganBukuKasTunai;
+use App\Models\KeuanganBukuBank;
 use App\Models\KeuanganBukuKasTunaiTransaksi;
+use App\Models\KeuanganBukuBankTransaksi;
 use App\Models\KeuanganBukuKasTunaiAkun;
+use App\Models\KeuanganBukuBankAkun;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -144,7 +148,384 @@ class KeuanganController extends Controller {
 
         return ['year' => null, 'month' => null];
     }
-    public function bukuBank() { return $this->dokumenView('buku_bank', 'Buku Bank', 'keuangan.buku-bank'); }
+    public function bukuBank(Request $request)
+    {
+        $months = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $query = KeuanganBukuBank::query()
+            ->withSum(['transaksi as total_pemasukan' => fn ($query) => $query->where('jenis_transaksi', 'pemasukan')], 'jumlah')
+            ->withSum(['transaksi as total_pengeluaran' => fn ($query) => $query->where('jenis_transaksi', 'pengeluaran')], 'jumlah');
+        if ($request->filled('bulan')) {
+            $query->where('bulan', $request->integer('bulan'));
+        }
+        if ($request->filled('tahun')) {
+            $query->where('tahun', $request->integer('tahun'));
+        }
+        if ($request->filled('q')) {
+            $search = mb_strtolower(trim($request->query('q')));
+            $matchingMonths = array_keys(array_filter($months, fn ($monthName) => str_contains(mb_strtolower($monthName), $search)));
+            if (ctype_digit($search) && (int) $search >= 1 && (int) $search <= 12) {
+                $matchingMonths[] = (int) $search;
+            }
+            $query->where(function ($builder) use ($search, $matchingMonths) {
+                $builder->where('tahun', 'like', '%'.$search.'%')
+                    ->orWhere('judul', 'like', '%'.$search.'%')
+                    ->orWhere('keterangan', 'like', '%'.$search.'%');
+                if ($matchingMonths) {
+                    $builder->orWhereIn('bulan', array_unique($matchingMonths));
+                }
+            });
+        }
+        $data = $query->orderByDesc('tahun')->orderByDesc('bulan')->paginate(15)->withQueryString();
+        $years = KeuanganBukuBank::query()->distinct()->orderByDesc('tahun')->pluck('tahun');
+        $inputYears = array_reverse(range(2000, max(2031, now()->year + 1)));
+
+        $data->getCollection()->transform(function ($item) {
+            $item->total_pemasukan = (float) ($item->total_pemasukan ?? 0);
+            $item->total_pengeluaran = (float) ($item->total_pengeluaran ?? 0);
+            $item->saldo_akhir = (float) $item->saldo_awal + $item->total_pemasukan - $item->total_pengeluaran;
+
+            return $item;
+        });
+
+        return view('keuangan.buku-bank-ledger', [
+            'data' => $data,
+            'months' => $months,
+            'years' => $years,
+            'inputYears' => $inputYears,
+            'search' => $request->query('q'),
+            'selectedMonth' => $request->query('bulan'),
+            'selectedYear' => $request->query('tahun'),
+        ])->with('title', 'Buku Bank');
+    }
+
+    public function storeBukuBank(Request $request)
+    {
+        abort_unless(auth()->user()->isAdmin(), 403, 'Hanya Admin yang dapat membuat laporan Buku Bank.');
+
+        $validated = $request->validate([
+            'bulan' => 'required|integer|between:1,12',
+            'tahun' => 'required|integer|between:2000,2100',
+            'judul' => 'nullable|string|max:255',
+            'keterangan' => 'nullable|string|max:5000',
+            'saldo_awal' => 'nullable|numeric|min:0|max:9999999999999.99',
+            'saldo_awal_lampiran' => 'nullable|array',
+            'saldo_awal_lampiran.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ]);
+
+        $exists = KeuanganBukuBank::where('bulan', $validated['bulan'])
+            ->where('tahun', $validated['tahun'])->exists();
+        if ($exists) {
+            return back()->withErrors(['bulan' => 'Laporan untuk bulan dan tahun tersebut sudah tersedia.'])->withInput();
+        }
+
+        $files = $request->file('saldo_awal_lampiran', []);
+        unset($validated['saldo_awal_lampiran']);
+        $validated['saldo_awal'] = $validated['saldo_awal'] ?? 0;
+        $report = KeuanganBukuBank::create($validated);
+        foreach ($files as $file) {
+            $report->lampiranSaldoAwal()->create(['file_path' => $this->storeBukuBankLampiran($file)]);
+        }
+
+        return redirect()->route('keuangan.buku-bank')->with('success', 'Laporan Buku Bank berhasil dibuat.');
+    }
+
+    public function showBukuBank(KeuanganBukuBank $bukuBank)
+    {
+        return $this->bukuBankDetail($bukuBank, false, request());
+    }
+
+    public function editBukuBank(Request $request, KeuanganBukuBank $bukuBank)
+    {
+        abort_unless(auth()->user()->isAdmin(), 403);
+        return $this->bukuBankDetail($bukuBank, true, $request);
+    }
+
+    private function bukuBankDetail(KeuanganBukuBank $report, bool $canManage, Request $request)
+    {
+        $report->load(['lampiranSaldoAwal', 'saldoAwalSumber']);
+        $allTransactions = $report->transaksi()->with('lampiranFiles')->orderBy('tanggal')->orderBy('id')->get();
+        $totalPemasukan = 0.0;
+        $totalPengeluaran = 0.0;
+        $runningBalanceCents = (int) round((float) $report->saldo_awal * 100);
+
+        foreach ($allTransactions as $transaction) {
+            $amountCents = (int) round((float) $transaction->jumlah * 100);
+            if ($transaction->jenis_transaksi === 'pemasukan') {
+                $totalPemasukan += (float) $transaction->jumlah;
+                $runningBalanceCents += $amountCents;
+            } else {
+                $totalPengeluaran += (float) $transaction->jumlah;
+                $runningBalanceCents -= $amountCents;
+            }
+            $transaction->saldo_berjalan = $runningBalanceCents / 100;
+        }
+
+        $accountCodes = KeuanganBukuBankAkun::sortForDisplay(KeuanganBukuBankAkun::all());
+        $filteredTransactions = $allTransactions
+            ->when($request->filled('kode_akun'), fn ($rows) => $rows->where('kode_akun', $request->query('kode_akun')))
+            ->when($request->filled('q'), function ($rows) use ($request) {
+                $needle = mb_strtolower(trim($request->query('q')));
+                return $rows->filter(fn ($row) => str_contains(mb_strtolower($row->transaksi), $needle)
+                    || str_contains(mb_strtolower($row->kode_akun), $needle));
+            })
+            ->values();
+
+        $totalPemasukanBulanBerjalan = $totalPemasukan;
+        $totalFilteredPemasukan = (float) $report->saldo_awal + $filteredTransactions->where('jenis_transaksi', 'pemasukan')->sum(fn ($item) => (float) $item->jumlah);
+        $totalFilteredPengeluaran = $filteredTransactions->where('jenis_transaksi', 'pengeluaran')->sum(fn ($item) => (float) $item->jumlah);
+        $previousPeriod = Carbon::create((int) $report->tahun, (int) $report->bulan, 1)->subMonthNoOverflow();
+        $previousReport = KeuanganBukuBank::where('tahun', $previousPeriod->year)
+            ->where('bulan', $previousPeriod->month)
+            ->first();
+        $previousClosingBalance = $previousReport ? $this->calculateBukuBankClosingBalance($previousReport) : null;
+
+        return view('keuangan.buku-bank-detail', [
+            'report' => $report,
+            'transactions' => $filteredTransactions,
+            'accountCodes' => $accountCodes,
+            'canManage' => auth()->user()->isAdmin() && ! $report->ditutup_pada,
+            'canAddTransaction' => auth()->user()->isAdmin() && ! $report->ditutup_pada,
+            'canEditTransaction' => auth()->user()->isAdmin() && ! $report->ditutup_pada,
+            'canDeleteTransaction' => auth()->user()->isSuperAdmin() && ! $report->ditutup_pada,
+            'canMutate' => auth()->user()->isAdmin() || auth()->user()->isAproval(),
+            'canCloseBook' => auth()->user()->isAproval(),
+            'canVerify' => auth()->user()->isAproval() || auth()->user()->isSuperAdmin(),
+            'previousReport' => $previousReport,
+            'previousClosingBalance' => $previousClosingBalance,
+            'totalPemasukan' => (float) $report->saldo_awal + $totalPemasukanBulanBerjalan,
+            'totalPengeluaran' => $totalPengeluaran,
+            'saldoAkhir' => (float) $report->saldo_awal + $totalPemasukan - $totalPengeluaran,
+            'totalFilteredPemasukan' => $totalFilteredPemasukan,
+            'totalFilteredPengeluaran' => $totalFilteredPengeluaran,
+            'selectedAccountCode' => $request->query('kode_akun'),
+            'search' => $request->query('q'),
+        ])->with('title', 'Buku Bank - '.$report->bulan.'/'.$report->tahun);
+    }
+
+    public function storeBukuBankTransaksi(Request $request, KeuanganBukuBank $bukuBank)
+    {
+        abort_unless(auth()->user()->isAdmin(), 403, 'Hanya Admin yang dapat menambah transaksi.');
+        abort_if($bukuBank->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah transaksi.');
+
+        $validated = $request->validate([
+            'tanggal' => 'required|date_format:Y-m-d',
+            'jenis_transaksi' => 'required|in:pemasukan,pengeluaran',
+            'kode_akun' => 'required|string|max:100',
+            'transaksi' => 'required|string|max:255',
+            'jumlah' => 'required|numeric|gt:0|max:9999999999999.99',
+            'lampiran' => 'nullable|array',
+            'lampiran.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ]);
+
+        $accountExists = KeuanganBukuBankAkun::where('nama', $validated['kode_akun'])
+            ->where('jenis_transaksi', $validated['jenis_transaksi'])->exists();
+        if (! $accountExists) {
+            return back()->withErrors(['kode_akun' => 'Pilih kode akun yang sesuai dengan jenis transaksi.'])->withInput();
+        }
+
+        $tanggal = Carbon::createFromFormat('Y-m-d', $validated['tanggal']);
+        if ((int) $tanggal->month !== (int) $bukuBank->bulan || (int) $tanggal->year !== (int) $bukuBank->tahun) {
+            return back()->withErrors(['tanggal' => 'Tanggal transaksi harus berada pada bulan dan tahun laporan ini.'])->withInput();
+        }
+
+        $files = $request->file('lampiran', []);
+        unset($validated['lampiran']);
+        $transaction = $bukuBank->transaksi()->create($validated);
+        foreach ($files as $file) {
+            $transaction->lampiranFiles()->create([
+                'buku_bank_id' => $bukuBank->id,
+                'file_path' => $this->storeBukuBankLampiran($file),
+            ]);
+        }
+
+        return back()->with('success', 'Transaksi berhasil ditambahkan dan saldo telah dihitung ulang.');
+    }
+
+    public function toggleBukuBankTransaksi(KeuanganBukuBank $bukuBank, KeuanganBukuBankTransaksi $transaksi)
+    {
+        if (! auth()->user()->isAproval() && ! auth()->user()->isSuperAdmin()) {
+            abort(403, 'Hanya Approval dan Super Admin yang dapat memverifikasi transaksi.');
+        }
+
+        abort_if($bukuBank->ditutup_pada, 403, 'Buku sudah ditutup.');
+        abort_unless($transaksi->buku_bank_id === $bukuBank->id, 404);
+        $transaksi->update(['terverifikasi' => ! $transaksi->terverifikasi]);
+
+        return back()->with('success', 'Status transaksi diperbarui.');
+    }
+
+    public function destroyBukuBankTransaksi(KeuanganBukuBank $bukuBank, KeuanganBukuBankTransaksi $transaksi)
+    {
+        abort_if($bukuBank->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah transaksi.');
+        abort_unless(auth()->user()->isSuperAdmin(), 403, 'Hanya Super Admin yang dapat menghapus transaksi.');
+
+        abort_unless($transaksi->buku_bank_id === $bukuBank->id, 404);
+        abort_if($transaksi->terverifikasi, 403, 'Transaksi yang sudah diverifikasi tidak dapat dihapus.');
+        $transaksi->delete();
+
+        return back()->with('success', 'Transaksi dihapus dan saldo telah dihitung ulang.');
+    }
+
+    public function updateBukuBankTransaksi(Request $request, KeuanganBukuBank $bukuBank, KeuanganBukuBankTransaksi $transaksi)
+    {
+        abort_if($bukuBank->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah transaksi.');
+        abort_unless($transaksi->buku_bank_id === $bukuBank->id, 404);
+        abort_unless(auth()->user()->isAdmin(), 403, 'Hanya Admin dan Super Admin yang dapat mengedit transaksi.');
+        abort_if($transaksi->terverifikasi, 403, 'Transaksi yang sudah diverifikasi tidak dapat diedit.');
+
+        $validated = $request->validate([
+            'tanggal' => 'required|date_format:Y-m-d',
+            'jenis_transaksi' => 'required|in:pemasukan,pengeluaran',
+            'kode_akun' => 'required|string|max:100',
+            'transaksi' => 'required|string|max:255',
+            'jumlah' => 'required|numeric|gt:0|max:9999999999999.99',
+            'lampiran' => 'nullable|array',
+            'lampiran.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ]);
+        $accountExists = KeuanganBukuBankAkun::where('nama', $validated['kode_akun'])->where('jenis_transaksi', $validated['jenis_transaksi'])->exists();
+        if (! $accountExists) return back()->withErrors(['kode_akun' => 'Pilih kode akun yang sesuai dengan jenis transaksi.'])->withInput();
+        $tanggal = Carbon::createFromFormat('Y-m-d', $validated['tanggal']);
+        if ((int) $tanggal->month !== (int) $bukuBank->bulan || (int) $tanggal->year !== (int) $bukuBank->tahun) {
+            return back()->withErrors(['tanggal' => 'Tanggal transaksi harus berada pada bulan dan tahun laporan ini.'])->withInput();
+        }
+        $files = $request->file('lampiran', []);
+        unset($validated['lampiran']);
+        $transaksi->update($validated);
+        foreach ($files as $file) {
+            $transaksi->lampiranFiles()->create([
+                'buku_bank_id' => $bukuBank->id,
+                'file_path' => $this->storeBukuBankLampiran($file),
+            ]);
+        }
+        return back()->with('success', 'Transaksi berhasil diperbarui.');
+    }
+
+    public function storeBukuBankSaldoAwalLampiran(Request $request, KeuanganBukuBank $bukuBank)
+    {
+        abort_if($bukuBank->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah lampiran.');
+        abort_unless(auth()->user()->isAdmin(), 403);
+        $request->validate([
+            'saldo_awal_lampiran' => 'nullable|array',
+            'saldo_awal_lampiran.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ]);
+        $files = $request->file('saldo_awal_lampiran', []);
+        if (! $files) {
+            return back()->with('error', 'Pilih bukti lampiran terlebih dahulu.');
+        }
+        foreach ($files as $file) {
+            $bukuBank->lampiranSaldoAwal()->create(['file_path' => $this->storeBukuBankLampiran($file)]);
+        }
+        return back()->with('success', 'Lampiran saldo awal berhasil ditambahkan.');
+    }
+
+    public function ambilSaldoBukuBankBulanSebelumnya(KeuanganBukuBank $bukuBank)
+    {
+        abort_unless(auth()->user()->isAdmin(), 403, 'Hanya Admin yang dapat mengubah saldo awal.');
+        abort_if($bukuBank->ditutup_pada, 403, 'Buku sudah ditutup. Buka buku terlebih dahulu untuk mengubah saldo awal.');
+
+        $previousPeriod = Carbon::create((int) $bukuBank->tahun, (int) $bukuBank->bulan, 1)->subMonthNoOverflow();
+        $previousReport = KeuanganBukuBank::where('tahun', $previousPeriod->year)
+            ->where('bulan', $previousPeriod->month)
+            ->first();
+
+        if (! $previousReport) {
+            return back()->with('error', 'Laporan bulan sebelumnya belum tersedia.');
+        }
+
+        $bukuBank->update([
+            'saldo_awal' => $this->calculateBukuBankClosingBalance($previousReport),
+            'saldo_awal_sumber_id' => $previousReport->id,
+        ]);
+
+        return back()->with('success', 'Saldo awal berhasil ditautkan ke saldo akhir bulan sebelumnya.');
+    }
+
+    private function calculateBukuBankClosingBalance(KeuanganBukuBank $report): float
+    {
+        $balanceCents = (int) round((float) $report->saldo_awal * 100);
+
+        foreach ($report->transaksi()->get(['jenis_transaksi', 'jumlah']) as $transaction) {
+            $amountCents = (int) round((float) $transaction->jumlah * 100);
+            $balanceCents += $transaction->jenis_transaksi === 'pemasukan' ? $amountCents : -$amountCents;
+        }
+
+        return $balanceCents / 100;
+    }
+
+    private function storeBukuBankLampiran($file): string
+    {
+        $path = Storage::disk('uploads')->putFile('buku-bank', $file);
+
+        if (! $path) {
+            throw new \RuntimeException('Lampiran Buku Bank gagal disimpan.');
+        }
+
+        return 'uploads/'.$path;
+    }
+
+    public function toggleStatusBukuBank(KeuanganBukuBank $bukuBank)
+    {
+        abort_unless(auth()->user()->isAproval(), 403, 'Hanya Approval dan Super Admin yang dapat menutup atau membuka buku.');
+        $bukuBank->update(['ditutup_pada' => $bukuBank->ditutup_pada ? null : now()]);
+        return back()->with('success', $bukuBank->ditutup_pada ? 'Buku berhasil ditutup.' : 'Buku berhasil dibuka kembali.');
+    }
+
+    public function destroyBukuBank(KeuanganBukuBank $bukuBank)
+    {
+        abort_unless(auth()->user()->isSuperAdmin(), 403, 'Hanya Super Admin yang dapat menghapus laporan.');
+        abort_if($bukuBank->ditutup_pada, 403, 'Buka buku terlebih dahulu sebelum menghapus laporan.');
+
+        $bukuBank->delete();
+
+        return redirect()->route('keuangan.buku-bank')->with('success', 'Laporan dan seluruh transaksinya berhasil dihapus.');
+    }
+
+    public function exportBukuBank(KeuanganBukuBank $bukuBank)
+    {
+        $filename = sprintf('buku-bank-%04d-%02d.xlsx', $bukuBank->tahun, $bukuBank->bulan);
+
+        return Excel::download(new BukuBankExport($bukuBank), $filename);
+    }
+
+    public function bukuBankAkun()
+    {
+        abort_if(auth()->user()->isViewer(), 403);
+
+        $accounts = KeuanganBukuBankAkun::sortForDisplay(
+            KeuanganBukuBankAkun::withCount('transaksi')->get()
+        );
+
+        return view('keuangan.buku-bank-akun', compact('accounts'))->with('title', 'Pengaturan Kode Akun Buku Bank');
+    }
+
+    public function storeBukuBankAkun(Request $request)
+    {
+        if (auth()->user()->isViewer()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'jenis_transaksi' => 'required|in:pemasukan,pengeluaran',
+            'nama' => 'required|string|max:100|unique:keuangan_buku_bank_akun,nama',
+        ]);
+        KeuanganBukuBankAkun::create($validated);
+
+        return back()->with('success', 'Kode akun berhasil ditambahkan.');
+    }
+
+    public function destroyBukuBankAkun(KeuanganBukuBankAkun $akun)
+    {
+        if (auth()->user()->isViewer()) {
+            abort(403);
+        }
+        if ($akun->transaksi()->exists()) {
+            return back()->with('error', 'Kode akun tidak dapat dihapus karena sudah digunakan pada transaksi.');
+        }
+
+        $akun->delete();
+
+        return back()->with('success', 'Kode akun berhasil dihapus.');
+    }
     public function bukuKasTunai(Request $request)
     {
         $months = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];

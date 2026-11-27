@@ -912,7 +912,150 @@ class KeuanganController extends Controller {
 
         return back()->with('success', 'Kode akun berhasil dihapus.');
     }
-    public function bukuKasUmum() { return $this->dokumenView('buku_kas_umum', 'Buku Kas Umum', 'keuangan.buku-kas-umum'); }
+    public function bukuKasUmum(Request $request)
+    {
+        $months = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $cashPeriods = KeuanganBukuKasTunai::query()->get(['bulan', 'tahun']);
+        $bankPeriods = KeuanganBukuBank::query()->get(['bulan', 'tahun']);
+        $periods = $cashPeriods->concat($bankPeriods)
+            ->unique(fn ($item) => $item->tahun.'-'.$item->bulan)
+            ->sortByDesc(fn ($item) => $item->tahun * 100 + $item->bulan)
+            ->values();
+        $selectedMonth = $request->query('bulan');
+        $selectedYear = $request->query('tahun');
+        $search = trim((string) $request->query('q', ''));
+        $data = $periods->filter(function ($period) use ($selectedMonth, $selectedYear, $search, $months) {
+            if ($selectedMonth && (int) $period->bulan !== (int) $selectedMonth) return false;
+            if ($selectedYear && (int) $period->tahun !== (int) $selectedYear) return false;
+            if ($search !== '') {
+                $label = mb_strtolower(($months[$period->bulan] ?? $period->bulan).' '.$period->tahun);
+                if (!str_contains($label, mb_strtolower($search))) return false;
+            }
+            return true;
+        })->map(function ($period) {
+            $period->kas_tunai = KeuanganBukuKasTunai::withSum(['transaksi as total_pemasukan' => fn ($query) => $query->where('jenis_transaksi', 'pemasukan')], 'jumlah')
+                ->withSum(['transaksi as total_pengeluaran' => fn ($query) => $query->where('jenis_transaksi', 'pengeluaran')], 'jumlah')
+                ->where('bulan', $period->bulan)->where('tahun', $period->tahun)->first();
+            $period->bank = KeuanganBukuBank::withSum(['transaksi as total_pemasukan' => fn ($query) => $query->where('jenis_transaksi', 'pemasukan')], 'jumlah')
+                ->withSum(['transaksi as total_pengeluaran' => fn ($query) => $query->where('jenis_transaksi', 'pengeluaran')], 'jumlah')
+                ->where('bulan', $period->bulan)->where('tahun', $period->tahun)->first();
+            $period->pemasukan = (float) ($period->kas_tunai->total_pemasukan ?? 0) + (float) ($period->bank->total_pemasukan ?? 0);
+            $period->pengeluaran = (float) ($period->kas_tunai->total_pengeluaran ?? 0) + (float) ($period->bank->total_pengeluaran ?? 0);
+            $period->saldo_awal = (float) ($period->kas_tunai->saldo_awal ?? 0) + (float) ($period->bank->saldo_awal ?? 0);
+            $period->saldo_akhir = $period->saldo_awal + $period->pemasukan - $period->pengeluaran;
+            return $period;
+        })->values();
+        $availableYears = $periods->pluck('tahun')->unique()->sortDesc()->values();
+
+        return view('keuangan.buku-kas-umum', compact('months', 'data', 'availableYears', 'selectedMonth', 'selectedYear', 'search'))
+            ->with('title', 'Buku Kas Umum');
+    }
+
+    public function showBukuKasUmum(Request $request, int $tahun, int $bulan)
+    {
+        abort_unless($bulan >= 1 && $bulan <= 12 && $tahun >= 2000 && $tahun <= 2100, 404);
+        $months = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $periods = KeuanganBukuKasTunai::query()->get(['bulan', 'tahun'])->concat(KeuanganBukuBank::query()->get(['bulan', 'tahun']));
+        $availableYears = $periods->pluck('tahun')->unique()->sortDesc()->values();
+        $selectedMonth = $bulan;
+        $selectedYear = $tahun;
+        abort_unless($selectedMonth >= 1 && $selectedMonth <= 12 && $selectedYear >= 2000 && $selectedYear <= 2100, 404);
+
+        $cashReport = KeuanganBukuKasTunai::with(['transaksi.lampiranFiles'])->where('bulan', $selectedMonth)->where('tahun', $selectedYear)->first();
+        $bankReport = KeuanganBukuBank::with(['transaksi.lampiranFiles'])->where('bulan', $selectedMonth)->where('tahun', $selectedYear)->first();
+        $entries = collect();
+        $openingBalanceCents = 0;
+        $openingCashCents = 0;
+        $openingBankCents = 0;
+
+        foreach ([['report' => $cashReport, 'source' => 'Kas Tunai'], ['report' => $bankReport, 'source' => 'Bank']] as $book) {
+            $report = $book['report'];
+            if (!$report) {
+                continue;
+            }
+
+            $openingBalance = (float) $report->saldo_awal;
+            if ($report->saldo_awal_sumber_id && ($sourceReport = $report->saldoAwalSumber()->first())) {
+                $openingBalance = $book['source'] === 'Kas Tunai'
+                    ? $this->calculateBukuKasTunaiClosingBalance($sourceReport)
+                    : $this->calculateBukuBankClosingBalance($sourceReport);
+            }
+
+            $openingCents = (int) round($openingBalance * 100);
+            $openingBalanceCents += $openingCents;
+            if ($book['source'] === 'Kas Tunai') {
+                $openingCashCents = $openingCents;
+            } else {
+                $openingBankCents = $openingCents;
+            }
+            $entries->push([
+                'tanggal' => Carbon::createFromDate($selectedYear, $selectedMonth, 1),
+                'source' => $book['source'],
+                'kode_akun' => '—',
+                'transaksi' => 'Sisa Saldo Bulan Sebelumnya',
+                'pemasukan' => $openingBalance,
+                'pengeluaran' => null,
+                'saldo' => null,
+                'terverifikasi' => true,
+                'lampiran' => $report->lampiranSaldoAwal()->get(),
+                'report_url' => $book['source'] === 'Kas Tunai'
+                    ? route('keuangan.buku-kas-tunai.show', $report)
+                    : route('keuangan.buku-bank.show', $report),
+                'sort' => '0000-'.$book['source'],
+            ]);
+
+            foreach ($report->transaksi as $transaction) {
+                $entries->push([
+                    'tanggal' => $transaction->tanggal,
+                    'source' => $book['source'],
+                    'kode_akun' => $transaction->kode_akun ?: '—',
+                    'transaksi' => $transaction->transaksi,
+                    'pemasukan' => $transaction->jenis_transaksi === 'pemasukan' ? (float) $transaction->jumlah : null,
+                    'pengeluaran' => $transaction->jenis_transaksi === 'pengeluaran' ? (float) $transaction->jumlah : null,
+                    'saldo' => null,
+                    'terverifikasi' => (bool) $transaction->terverifikasi,
+                    'lampiran' => $transaction->lampiranFiles,
+                    'report_url' => $book['source'] === 'Kas Tunai'
+                        ? route('keuangan.buku-kas-tunai.show', $report)
+                        : route('keuangan.buku-bank.show', $report),
+                    'sort' => $transaction->tanggal->format('Y-m-d').'-'.str_pad((string) $transaction->id, 12, '0', STR_PAD_LEFT),
+                ]);
+            }
+        }
+
+        $sourceFilter = $request->query('sumber', 'semua');
+        $search = trim((string) $request->query('q', ''));
+        if (in_array($sourceFilter, ['Kas Tunai', 'Bank'], true)) {
+            $entries = $entries->where('source', $sourceFilter);
+        }
+        $entries = $entries->sortBy('sort')->values();
+        $displayOpeningBalanceCents = $sourceFilter === 'Kas Tunai'
+            ? $openingCashCents
+            : ($sourceFilter === 'Bank' ? $openingBankCents : $openingBalanceCents);
+        $runningBalanceCents = $displayOpeningBalanceCents;
+        foreach ($entries as $index => $entry) {
+            if ($entry['transaksi'] !== 'Sisa Saldo Bulan Sebelumnya') {
+                $runningBalanceCents += (int) round(((float) ($entry['pemasukan'] ?? 0) - (float) ($entry['pengeluaran'] ?? 0)) * 100);
+            }
+            $entry['saldo'] = $runningBalanceCents / 100;
+            $entries[$index] = $entry;
+        }
+
+        if ($search !== '') {
+            $needle = mb_strtolower($search);
+            $entries = $entries->filter(fn ($entry) => str_contains(mb_strtolower(implode(' ', [$entry['source'], $entry['kode_akun'], $entry['transaksi']])), $needle))->values();
+        }
+
+        $transactionEntries = $entries->reject(fn ($entry) => $entry['transaksi'] === 'Sisa Saldo Bulan Sebelumnya');
+        $totalPemasukan = $transactionEntries->sum(fn ($entry) => (float) ($entry['pemasukan'] ?? 0));
+        $totalPengeluaran = $transactionEntries->sum(fn ($entry) => (float) ($entry['pengeluaran'] ?? 0));
+        $availableYears = $periods->pluck('tahun')->unique()->sortDesc()->values();
+
+        return view('keuangan.buku-kas-umum-detail', compact(
+            'months', 'periods', 'selectedMonth', 'selectedYear', 'availableYears', 'cashReport', 'bankReport',
+            'entries', 'sourceFilter', 'search', 'totalPemasukan', 'totalPengeluaran', 'openingBalanceCents', 'displayOpeningBalanceCents'
+        ))->with('title', 'Buku Kas Umum');
+    }
     public function rekapBulanan() {
         $data = KeuanganRekapBulanan::orderBy('tahun','desc')->orderBy('id','desc')->get();
         return view('keuangan.rekap-bulanan', compact('data'))->with('title','Rekap Bulanan');

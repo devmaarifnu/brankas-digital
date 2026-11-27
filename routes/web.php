@@ -115,6 +115,7 @@ Route::middleware('mustlogin')->group(function () {
     Route::post('/keuangan/buku-kas-tunai/{bukuKasTunai}/transaksi/{transaksi}/verify', [KeuanganController::class, 'toggleBukuKasTunaiTransaksi'])->name('keuangan.buku-kas-tunai.transaksi.verify');
     Route::post('/keuangan/buku-kas-tunai/{bukuKasTunai}/transaksi/{transaksi}/delete', [KeuanganController::class, 'destroyBukuKasTunaiTransaksi'])->name('keuangan.buku-kas-tunai.transaksi.destroy');
     Route::post('/keuangan/buku-kas-tunai/{bukuKasTunai}/delete', [KeuanganController::class, 'destroyBukuKasTunai'])->name('keuangan.buku-kas-tunai.destroy');
+    Route::get('/keuangan/buku-kas-umum/{tahun}/{bulan}', [KeuanganController::class, 'showBukuKasUmum'])->name('keuangan.buku-kas-umum.show');
     Route::get('/keuangan/buku-kas-umum', [KeuanganController::class, 'bukuKasUmum'])->name('keuangan.buku-kas-umum');
     Route::get('/keuangan/rekap-bulanan', [KeuanganController::class, 'rekapBulanan'])->name('keuangan.rekap-bulanan');
     Route::get('/keuangan/rekap-tahunan', [KeuanganController::class, 'rekapTahunan'])->name('keuangan.rekap-tahunan');
